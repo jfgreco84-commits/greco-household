@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.3 — CLEAN PERSONAL TAB</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.4 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1341,22 +1341,24 @@ let salesData = [];
 let SALES_LAST_UPDATED = 'Awaiting ship sheet';
 
 const defaultBills = [
-  // splitHalf:true  → shows every period at monthly/2 (mortgage splits in half; acadia/hellofresh every check)
-  // dueDay:N        → shows full monthly amount only in the period containing the Nth of the month
-  { name:'Mortgage',             monthly:3575, splitHalf:true, note:'Split in half each period ($1,788/check)' },
-  { name:'Verizon',              monthly:355,  dueDay:8,       note:'Due ~8th — full $355 when due' },
-  { name:'Hello Fresh',          monthly:218,  splitHalf:true, note:'$109/delivery · 2x per month' },
-  { name:'Hinckley Springs',     monthly:100,  dueDay:10,      note:'Due ~10th — full $100 when due' },
-  { name:'Sun Tan City',         monthly:63,   dueDay:5,       note:'Due ~5th — full $63 when due' },
-  { name:'YMCA',                 monthly:101,  dueDay:1,       note:'Due ~1st — full $101 when due' },
-  { name:'Progressive (Auto)',   monthly:328,  dueDay:10,      note:'Due ~10th — full $328 when due' },
-  { name:'Progressive (Boat)',   monthly:61,   dueDay:10,      note:'Due ~10th — full $61 when due' },
-  { name:'AAA Life',             monthly:47,   dueDay:1,       note:'Due ~1st — full $47 when due' },
-  { name:'Acadia',               monthly:500,  splitHalf:true, note:'$250 every check (both periods)' },
-  { name:'WE Energies',          monthly:400,  dueDay:20,      note:'Due ~20th — full $400 when due' },
-  { name:'Choice Home Warranty', monthly:50,   dueDay:1,       note:'Due ~1st — full $50 when due' },
-  { name:'Spectrum',             monthly:91,   dueDay:15,      note:'Due ~15th — full $91 when due' },
-  { name:'Water Bill',           monthly:100,  dueDay:20,      note:'Quarterly ~$100 when due' },
+  // ONLY mortgage splits in half — everything else shows full amount on its due date
+  // splitHalf:true → shows monthly/2 every period (Mortgage only)
+  // dueDay:N       → shows full monthly amount only in the period containing the Nth of the month
+  { name:'Mortgage',             monthly:3575, splitHalf:true, note:'Split in half — $1,788 per check' },
+  { name:'Verizon',              monthly:355,  dueDay:8,       note:'Due ~8th' },
+  { name:'Hello Fresh',          monthly:109,  dueDay:5,       note:'Due ~5th — $109 full when charged' },
+  { name:'Hinckley Springs',     monthly:100,  dueDay:10,      note:'Due ~10th' },
+  { name:'Sun Tan City',         monthly:63,   dueDay:5,       note:'Due ~5th' },
+  { name:'YMCA',                 monthly:101,  dueDay:1,       note:'Due ~1st' },
+  { name:'Progressive (Auto)',   monthly:328,  dueDay:10,      note:'Due ~10th' },
+  { name:'Progressive (Boat)',   monthly:61,   dueDay:10,      note:'Due ~10th' },
+  { name:'AAA Life',             monthly:47,   dueDay:1,       note:'Due ~1st' },
+  { name:'Acadia (1st check)',   monthly:250,  dueDay:1,       note:'$250 — 1st check of month' },
+  { name:'Acadia (2nd check)',   monthly:250,  dueDay:15,      note:'$250 — 2nd check of month' },
+  { name:'WE Energies',          monthly:400,  dueDay:20,      note:'Due ~20th' },
+  { name:'Choice Home Warranty', monthly:50,   dueDay:1,       note:'Due ~1st' },
+  { name:'Spectrum',             monthly:91,   dueDay:15,      note:'Due ~15th' },
+  { name:'Water Bill',           monthly:100,  dueDay:20,      note:'Quarterly — due ~20th' },
 ];
 let bills = JSON.parse(JSON.stringify(defaultBills));
 let billsPaid = {}; // { '<periodOffset>': { '<billName>': { paidDate, paidBy } } }
@@ -1844,6 +1846,7 @@ function calcBills() {
 }
 function resetBills() {
   bills = JSON.parse(JSON.stringify(defaultBills));
+  billsPaid = {};
   renderBills();
   queueBillsSave();
 }
