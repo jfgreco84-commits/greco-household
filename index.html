@@ -557,7 +557,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   <div class="hnum hero-divider"><div class="hlabel">Net</div><div class="hval green" id="heroNet">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Bills</div><div class="hval red" id="heroBills">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Expenses</div><div class="hval amber" id="heroExpenses">$0</div></div>
-  <div class="hnum hero-divider"><div class="hlabel">Left</div><div class="hval blue" id="heroLeft">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">→ Savings</div><div class="hval blue" id="heroLeft">$0</div></div>
 </div>
 
 <div class="main">
@@ -1532,10 +1532,8 @@ function applyPeriodData() {
   const salaryEl = document.getElementById('salaryBase');
   salaryEl.value = SALARY_BASE;
   salaryEl.readOnly = true;
-  if (known) {
-    document.getElementById('bonusAmt').value   = known.bonus;
-    document.getElementById('commAmt').value    = known.comm;
-  }
+  document.getElementById('bonusAmt').value = known ? (known.bonus || 0) : 0;
+  document.getElementById('commAmt').value  = known ? (known.comm  || 0) : 0;
   calc();
 }
 
@@ -1604,7 +1602,7 @@ function calc() {
   document.getElementById('heroBills').textContent    = f0(billsPerCheck);
   document.getElementById('heroExpenses').textContent = f0(expensesThisPeriod);
   const leftEl = document.getElementById('heroLeft');
-  leftEl.textContent = f0(left);
+  leftEl.textContent = (left >= 0 ? '+' : '') + f0(left);
   leftEl.className   = 'hval ' + (left >= 0 ? 'blue' : 'red');
 
   // Bills footer (still part of the bills card)
@@ -1621,20 +1619,24 @@ function billPayments(billName, periodOffset) {
 function billPaidAmount(billName, periodOffset) {
   return billPayments(billName, periodOffset).reduce((s, p) => s + (+p.amount || 0), 0);
 }
+function periodDue(bill) {
+  return Math.round(((+bill.monthly || 0) / 2) * 100) / 100;
+}
 function billRemaining(bill, periodOffset) {
-  return Math.max(0, (+bill.monthly || 0) - billPaidAmount(bill.name, periodOffset));
+  return Math.max(0, periodDue(bill) - billPaidAmount(bill.name, periodOffset));
 }
 function isBillFullyPaid(bill, periodOffset) {
-  return billPaidAmount(bill.name, periodOffset) >= +bill.monthly;
+  const due = periodDue(bill);
+  return due > 0 && billPaidAmount(bill.name, periodOffset) >= due;
 }
 
 function renderBills() {
   document.getElementById('billsGrid').innerHTML = bills.map((b) => {
     const safeName = (b.name || '').replace(/'/g, "\\'");
     const paid = billPaidAmount(b.name);
-    const total = +b.monthly || 0;
+    const total = periodDue(b);
     const remain = Math.max(0, total - paid);
-    const fully = paid >= total && total > 0;
+    const fully = total > 0 && paid >= total;
     const partial = paid > 0 && !fully;
     const payments = billPayments(b.name);
     let cls = '';
@@ -1691,7 +1693,7 @@ function renderBills() {
 function updateBillsSummary() {
   let totalDue = 0, totalPaid = 0;
   bills.forEach(b => {
-    totalDue += +b.monthly || 0;
+    totalDue += periodDue(b);
     totalPaid += billPaidAmount(b.name);
   });
   const remaining = Math.max(0, totalDue - totalPaid);
@@ -1743,10 +1745,11 @@ function openPayBillModal(billName) {
   if (!bill) return;
   _payingBillName = billName;
   const paid = billPaidAmount(billName);
-  const remain = Math.max(0, bill.monthly - paid);
+  const due = periodDue(bill);
+  const remain = Math.max(0, due - paid);
   document.getElementById('payBillTitle').textContent = `Pay ${billName}`;
-  document.getElementById('payBillSub').textContent = `Period: ${periodLabel(viewingOffset)}`;
-  document.getElementById('payBillTotal').textContent = f2(bill.monthly);
+  document.getElementById('payBillSub').textContent = `Period: ${periodLabel(viewingOffset)} · ½ of $${f2(bill.monthly)}/mo`;
+  document.getElementById('payBillTotal').textContent = f2(due);
   document.getElementById('payBillPaid').textContent = f2(paid);
   document.getElementById('payBillRemain').textContent = f2(remain);
   document.getElementById('payBillAmt').value = '';
@@ -3104,357 +3107,4 @@ async function saveExpense() {
     isHeavy: false
   };
   expenses.push(entry);
-  await saveKey('expenses', expenses);
-  // Auto-navigate to the period that contains this expense so the user sees the impact
-  if (typeof goToPeriod === 'function') {
-    goToPeriod(entry.periodOffset);
-  } else {
-    periodOffset = entry.periodOffset;
-    updatePeriodBar();
-    buildTracker();
-  }
-  renderBudgets();
-  renderMonthlySummary();
-  calc();
-  closeModal('expenseModal');
-  // Visual confirmation toast
-  showToast('✅ Logged ' + f2(entry.amount) + ' — ' + (entry.description || entry.category));
-}
-
-/* ---------------- 🎤 VOICE EXPENSE LOGGING ---------------- */
-/* Uses Web Speech API (built into iOS Safari + Chrome). User taps SAY IT,
-   speaks naturally ("I just spent ten dollars at the gas station on bubblegum"),
-   we parse out amount + category + description, pre-fill the expense modal,
-   user reviews + saves. Falls back gracefully if speech API isn't available. */
-
-const _wordNumbers = {
-  'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,'ten':10,
-  'eleven':11,'twelve':12,'thirteen':13,'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,
-  'eighteen':18,'nineteen':19,'twenty':20,'thirty':30,'forty':40,'fifty':50,'sixty':60,
-  'seventy':70,'eighty':80,'ninety':90,'hundred':100
-};
-
-const _categoryKeywords = {
-  'gas':      ['gas','fuel','kwik trip','kwiktrip','bp','shell','mobil','exxon','marathon','citgo','speedway','pump','filling station','gas station'],
-  'grocery':  ['grocer','groceries','grocery','pick n save','pick and save','metro market','trader joe','costco','sams','sam s club','aldi','woodman','meijer','kroger','whole foods','milk','eggs','bread','produce'],
-  'dining':   ['lunch','dinner','restaurant','cousins','jimmy john','mcdonald','culver','chipotle','subway','panera','buffalo wild','fast food','pizza','burger','dined','dinner out','ate out','take out','takeout','doordash','uber eats'],
-  'coffee':   ['coffee','starbucks','dunkin','caribou','cafe','latte','espresso','iced coffee'],
-  'personal': ['amazon','target','walmart','clothes','clothing','shoes','shopping','beauty','cosmetics','haircut','salon'],
-  'kids':     ['alivia','joslynn','daughter','daughter\'s','kid','kids','school','toy','toys','game','daycare','sport','sports'],
-  'fun':      ['movie','movies','concert','show','entertainment','netflix','disney','hulu','spotify','game','games','tickets','event'],
-  'home':     ['home depot','menards','lowes','hardware','repair','tool','tools','plumber','electrician','furniture','rugs','paint'],
-  'other':    []
-};
-
-/* Detect intent — is this a BILL PAYMENT or a regular EXPENSE? */
-function detectBillIntent(lower) {
-  // Trigger words for bill payments
-  const isBillIntent = /\b(paid|payment|pay|put|put down|towards?|on the|to the)\b/i.test(lower)
-                    && /\b(mortgage|verizon|hello fresh|hellofresh|hinckley|hinkley|hinckley springs|sun tan|ymca|progressive|aaa|acadia|we energies|wisconsin energies|choice home|spectrum|water bill|electric|gas bill|insurance|car insurance|boat insurance|life insurance|warranty|cable|internet|tanning|gym)\b/i.test(lower);
-  if (!isBillIntent) return null;
-
-  // Map spoken bill name → exact bill in our list
-  const map = [
-    { needles:['mortgage','house payment'],                                             billName:'Mortgage' },
-    { needles:['verizon','phone bill','cell phone','cell bill'],                        billName:'Verizon' },
-    { needles:['hello fresh','hellofresh','meal kit'],                                  billName:'Hello Fresh' },
-    { needles:['hinckley','hinkley','water delivery','water cooler'],                   billName:'Hinckley Springs' },
-    { needles:['sun tan','tanning','tan'],                                              billName:'Sun Tan City' },
-    { needles:['ymca','gym','gym bill'],                                                billName:'YMCA' },
-    { needles:['progressive auto','car insurance','auto insurance'],                    billName:'Progressive Auto' },
-    { needles:['progressive boat','boat insurance'],                                    billName:'Progressive Boat' },
-    { needles:['aaa','aaa life','life insurance'],                                      billName:'AAA Life' },
-    { needles:['acadia'],                                                               billName:'Acadia' },
-    { needles:['we energies','wisconsin energies','electric','electric bill','power bill','energy bill'], billName:'WE Energies' },
-    { needles:['choice home','warranty','home warranty'],                               billName:'Choice Home Warranty' },
-    { needles:['spectrum','cable','internet bill','internet'],                          billName:'Spectrum' },
-    { needles:['water bill','water'],                                                   billName:'Water Bill' }
-  ];
-  for (const m of map) {
-    for (const n of m.needles) {
-      if (lower.includes(n)) return m.billName;
-    }
-  }
-  return null;
-}
-
-function parseVoiceExpense(text) {
-  const lower = (text || '').toLowerCase().trim();
-  if (!lower) return null;
-
-  // 0) WHO — detect explicit name in speech (overrides device default)
-  let who = null;
-  // Michele variations (also catches "Michelle" misrecognition)
-  if (/\b(michele|michelle|mich|wife|the wife|her)\s+(spent|bought|got|paid|put|grabbed|picked up|ate|had|filled)/i.test(lower) ||
-      /\b(michele|michelle)\b/i.test(lower) ||
-      /\bfor michele\b/i.test(lower) ||
-      /\bfor my wife\b/i.test(lower)) {
-    who = 'Michele';
-  }
-  // Joint
-  else if (/\b(we|us|both|joint|together|the family|the kids|family)\s+(spent|bought|got|paid|ate|had|went)/i.test(lower) ||
-           /\bjoint\b/i.test(lower) ||
-           /\bboth of us\b/i.test(lower)) {
-    who = 'Joint';
-  }
-  // Justin / I / me — explicit Justin
-  else if (/\b(justin|froggy|frog dog|frog|me|myself)\b/i.test(lower) ||
-           /^(i\s+)/i.test(lower)) {
-    who = 'Justin';
-  }
-  // If still null, leave it — the caller will fall back to localStorage default
-
-  // 1) Amount: prefer numeric like "$10", "10.50", "10 dollars"
-  let amount = 0;
-  const numMatch = lower.match(/\$?\s*(\d+(?:\.\d{1,2})?)\s*(?:dollars?|bucks?|usd)?/);
-  if (numMatch) amount = +numMatch[1];
-
-  // 2) Word numbers (twenty five = 25, etc.)
-  if (!amount) {
-    let val = 0, gotOne = false;
-    const tokens = lower.replace(/[^a-z0-9\s]/g,' ').split(/\s+/);
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-      if (_wordNumbers[t] != null) {
-        if (t === 'hundred') val = (val || 1) * 100;
-        else val += _wordNumbers[t];
-        gotOne = true;
-      } else if (gotOne && t !== 'and') {
-        break; // end of number sequence
-      }
-    }
-    if (gotOne) amount = val;
-  }
-
-  // 3) Category by keyword scan (priority: gas > grocery > dining > coffee > kids > home > fun > personal > other)
-  let category = 'other';
-  const order = ['gas','grocery','dining','coffee','kids','home','fun','personal'];
-  outer: for (const cat of order) {
-    for (const kw of _categoryKeywords[cat]) {
-      if (lower.includes(kw)) { category = cat; break outer; }
-    }
-  }
-
-  // 4) Description: pull whatever follows "on" or "for" or "at" (the merchant/item)
-  let description = '';
-  const onMatch = lower.match(/(?:on|for|at|from)\s+(.{2,60}?)(?:\s+for\s+|\s+at\s+|\.|\?|!|$)/);
-  if (onMatch) description = onMatch[1].trim();
-  // Cleanup: capitalize first letter, trim filler
-  description = description.replace(/^the\s+/, '').replace(/\s+$/, '');
-  if (description) description = description.charAt(0).toUpperCase() + description.slice(1);
-
-  // If no description but transcript is short, use the transcript itself
-  if (!description && lower.length < 80) description = text.trim();
-
-  return { amount, category, description, who, transcript: text };
-}
-
-/* Apply parsed voice data to either the EXPENSE modal or the BILL PAYMENT modal */
-function applyParsedVoice(parsed, transcript) {
-  if (!parsed || !parsed.amount) {
-    showToast('🎤 Heard "' + transcript + '" — couldn\'t find a $ amount. Try again.', 'error');
-    return;
-  }
-
-  // Bill payment intent — route to the Pay Bill modal
-  const lower = (transcript || '').toLowerCase();
-  const billName = detectBillIntent(lower);
-  if (billName) {
-    const exists = bills.find(b => b.name === billName);
-    if (!exists) {
-      showToast('🎤 Heard "' + billName + '" but I don\'t see that bill. Logging as expense instead.', 'error');
-    } else {
-      openPayBillModal(billName);
-      setTimeout(() => {
-        try {
-          document.getElementById('payBillAmt').value = parsed.amount.toFixed(2);
-          if (parsed.who) document.getElementById('payBillWho').value = parsed.who;
-          const whoFinal = parsed.who || (document.getElementById('payBillWho').value || 'Justin');
-          showToast('🎤 ' + whoFinal + ' paying ' + f2(parsed.amount) + ' on ' + billName + ' — review & SAVE');
-        } catch(e) { console.error('voice paybill prefill', e); }
-      }, 200);
-      return;
-    }
-  }
-
-  // Default: log as expense
-  openExpenseModal();
-  setTimeout(() => {
-    try {
-      document.getElementById('expenseAmt').value  = parsed.amount.toFixed(2);
-      document.getElementById('expenseCat').value  = parsed.category;
-      document.getElementById('expenseDesc').value = parsed.description || transcript;
-      if (parsed.who) document.getElementById('expenseWho').value = parsed.who;
-      const whoFinal = parsed.who || (document.getElementById('expenseWho').value || 'Justin');
-      showToast('🎤 ' + whoFinal + ' · ' + f2(parsed.amount) + ' · ' + parsed.category + ' — review & SAVE');
-    } catch(e) { console.error('voice prefill', e); }
-  }, 150);
-}
-
-/* Fallback: open a simple modal where user dictates with the iOS keyboard mic */
-function openVoiceFallbackModal() {
-  let modal = document.getElementById('voiceFallbackModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.id = 'voiceFallbackModal';
-    modal.innerHTML = `
-      <div class="modal-card">
-        <button class="modal-close" onclick="closeModal('voiceFallbackModal')">×</button>
-        <h2>🎤 Type or Dictate</h2>
-        <div class="msub">Tap the mic icon on your keyboard to dictate, or just type it</div>
-        <div style="background:#1a1a2e;border:1px solid #2a3a5a;border-radius:6px;padding:10px 12px;margin-bottom:8px;color:#7fb3e8;font-size:0.82rem;line-height:1.4">📱 Tap the mic icon on your keyboard, then speak. Or just type it.</div>
-        <label for="voiceFallbackText">What did you spend / pay?</label>
-        <textarea id="voiceFallbackText" rows="3" style="width:100%;background:#1e1e1e;border:1px solid #333;border-radius:6px;color:#e8c84a;font-size:0.95rem;padding:10px;outline:none;font-family:inherit;resize:vertical;min-height:80px" placeholder='e.g. "I just paid 1000 to the mortgage" or "Michele spent 50 at Pick n Save for groceries"'></textarea>
-        <div class="modal-actions">
-          <button class="modal-btn cancel" onclick="closeModal('voiceFallbackModal')">Cancel</button>
-          <button class="modal-btn save" onclick="parseVoiceFallback()">PARSE</button>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-  document.getElementById('voiceFallbackText').value = '';
-  openModal('voiceFallbackModal');
-  setTimeout(()=>document.getElementById('voiceFallbackText').focus(), 100);
-}
-
-function parseVoiceFallback() {
-  const text = document.getElementById('voiceFallbackText').value.trim();
-  if (!text) return;
-  closeModal('voiceFallbackModal');
-  const parsed = parseVoiceExpense(text);
-  applyParsedVoice(parsed, text);
-}
-
-let _voiceTimeout = null;
-let _activeRecognition = null;
-
-function clearVoiceListening() {
-  const btn = document.querySelector('.add-pill.voice');
-  if (btn) btn.classList.remove('listening');
-  if (_voiceTimeout) { clearTimeout(_voiceTimeout); _voiceTimeout = null; }
-  if (_activeRecognition) {
-    try { _activeRecognition.abort(); } catch(e) {}
-    try { _activeRecognition.stop(); } catch(e) {}
-    _activeRecognition = null;
-  }
-}
-
-function startVoiceExpense() {
-  // iOS Safari has unreliable Web Speech support — just open dictation modal directly
-  if (_isIOS) {
-    openVoiceFallbackModal();
-    return;
-  }
-
-  const btn = document.querySelector('.add-pill.voice');
-  // If already listening, treat the tap as a CANCEL
-  if (btn && btn.classList.contains('listening')) {
-    clearVoiceListening();
-    showToast('🎤 Cancelled. Tap SAY IT to try again.');
-    return;
-  }
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    // Fall back to type/dictate modal
-    showToast('🎤 Voice API not available — opening dictation panel');
-    setTimeout(()=>openVoiceFallbackModal(), 300);
-    return;
-  }
-
-  const rec = new SR();
-  _activeRecognition = rec;
-  rec.lang = 'en-US';
-  rec.interimResults = false;
-  rec.maxAlternatives = 1;
-  rec.continuous = false;
-
-  if (btn) btn.classList.add('listening');
-  showToast('🎤 Listening... say what you spent OR what bill you paid');
-
-  // Hard timeout — iOS Safari sometimes never fires events. Auto-release after 8s.
-  _voiceTimeout = setTimeout(() => {
-    clearVoiceListening();
-    showToast('🎤 Mic timed out. Opening dictation panel as fallback.', 'error');
-    setTimeout(()=>openVoiceFallbackModal(), 600);
-  }, 8000);
-
-  rec.onresult = (event) => {
-    clearVoiceListening();
-    const transcript = event.results[0][0].transcript;
-    const parsed = parseVoiceExpense(transcript);
-    applyParsedVoice(parsed, transcript);
-  };
-  rec.onerror = (event) => {
-    clearVoiceListening();
-    if (event.error === 'no-speech') {
-      showToast('🎤 Didn\'t hear anything. Tap SAY IT and try again.', 'error');
-    } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-      showToast('🎤 Mic permission denied. Settings → Safari → Microphone → Allow', 'error');
-    } else if (event.error === 'audio-capture' || event.error === 'aborted') {
-      // Silently fall back to text dictation modal
-      setTimeout(()=>openVoiceFallbackModal(), 300);
-    } else {
-      showToast('🎤 Voice error: ' + event.error + ' — using text fallback', 'error');
-      setTimeout(()=>openVoiceFallbackModal(), 600);
-    }
-  };
-  rec.onend = () => {
-    clearVoiceListening();
-  };
-
-  try {
-    rec.start();
-  } catch(e) {
-    clearVoiceListening();
-    showToast('🎤 Mic could not start — opening dictation panel', 'error');
-    setTimeout(()=>openVoiceFallbackModal(), 400);
-  }
-}
-
-window.openVoiceFallbackModal = openVoiceFallbackModal;
-window.parseVoiceFallback     = parseVoiceFallback;
-window.clearVoiceListening    = clearVoiceListening;
-
-window.startVoiceExpense = startVoiceExpense;
-window.parseVoiceExpense = parseVoiceExpense;
-
-/* expose modal entry points */
-window.openSaleModal    = openSaleModal;
-window.openPaystubModal = openPaystubModal;
-window.openExpenseModal = openExpenseModal;
-window.saveSale         = saveSale;
-window.savePaystub      = savePaystub;
-window.saveExpense      = saveExpense;
-window.resetBudgets     = resetBudgets;
-window.renderMonthlySummary = renderMonthlySummary;
-
-/* ---------------- BOOTSTRAP ---------------- */
-async function boot() {
-  setSync('syncing', 'Connecting…');
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      await onAuthed();
-    } else {
-      setSync('error', 'Signed out');
-      document.getElementById('loginPass').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doSignIn();
-      });
-      document.getElementById('loginEmail').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doSignIn();
-      });
-    }
-  } catch (e) {
-    console.error('boot', e);
-    setSync('error', 'Connect error');
-  }
-  sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') location.reload();
-  });
-}
-document.addEventListener('DOMContentLoaded', boot);
-</script>
-</body>
-</html>
+  await saveKey('expenses'
