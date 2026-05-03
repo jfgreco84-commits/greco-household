@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.2 — BIZ TAB HEROES</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.3 — CLEAN PERSONAL TAB</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1286,6 +1286,7 @@ async function onAuthed() {
 const ANCHOR     = new Date(2026, 3, 15);
 const CH13       = 750;
 const MIN_OFFSET = -8;
+const EXPENSE_CUTOFF = '2026-05-01'; // Only show personal expenses on/after this date
 const MAX_OFFSET = 18;
 const SALARY_BASE = 3346.15;
 const BONUS_REG   = 1384.62;
@@ -1671,13 +1672,11 @@ function calc() {
   const net      = projNet - CH13;
   // Per-check bill share (monthly / 2 for biweekly)
   const billsPerCheck = bills.reduce((s,b) => s + ((+b.monthly || 0) / 2), 0);
-  const isPersonal = e => !e.billedTo || e.billedTo === 'personal';
+  const isPersonal = e => (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF;
   const expensesThisPeriod = expenses
     .filter(e => e.periodOffset === viewingOffset && isPersonal(e))
     .reduce((s,e) => s + (+e.amount || 0), 0);
-  const reimburseThisPeriod = expenses
-    .filter(e => e.periodOffset === viewingOffset && !isPersonal(e))
-    .reduce((s,e) => s + (+e.amount || 0), 0);
+  const reimburseThisPeriod = 0; // DBW/BSOL expenses live in their own tabs only
   const left = net - billsPerCheck - expensesThisPeriod;
 
   // Income / Deductions card text
@@ -2013,7 +2012,7 @@ function renderBudgets() {
     const b = budgets[key] || defaultBudgets[key];
     const cap = +b.limit || 0;
     const spent = expenses
-      .filter(e => e.periodOffset === viewingOffset && e.category === key && !e.isHeavy && (!e.billedTo || e.billedTo === 'personal'))
+      .filter(e => e.periodOffset === viewingOffset && e.category === key && !e.isHeavy && (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF)
       .reduce((s,e) => s + (+e.amount || 0), 0);
     totalCap += cap; totalSpent += spent;
     const pct = cap > 0 ? Math.min(100, (spent/cap)*100) : (spent>0 ? 100 : 0);
@@ -2050,10 +2049,11 @@ function renderBudgets() {
   const recentEl = document.getElementById('recentExpenses');
   if (recentEl) {
     const allExp = expenses
-      .filter(e => e.periodOffset === viewingOffset && !e.isHeavy)
+      .filter(e => e.periodOffset === viewingOffset && !e.isHeavy
+              && (!e.billedTo || e.billedTo === 'personal')
+              && (e.date||'') >= EXPENSE_CUTOFF)
       .sort((a,b) => (b.date || '').localeCompare(a.date || ''));
-    const personal  = allExp.filter(e => !e.billedTo || e.billedTo === 'personal');
-    const reimburse = allExp.filter(e => e.billedTo && e.billedTo !== 'personal');
+    const personal  = allExp; // already filtered to personal + cutoff above
     const whoCls  = w => w === 'Justin' ? 'j' : w === 'Michele' ? 'm' : 'b';
     const whoIcon = w => w === 'Justin' ? '🦊' : w === 'Michele' ? '💜' : w === 'Joint' ? '👫' : '🔘';
     const billedBadge = bt => bt === 'dbw' ? '<span class="billed-badge dbw">DBW</span>' : bt === 'bsol' ? '<span class="billed-badge bsol">BSOL</span>' : '';
@@ -2071,32 +2071,11 @@ function renderBudgets() {
       </div>`;
     };
     if (!allExp.length) {
-      recentEl.innerHTML = `<div class="rh"><span>Personal Expenses (0)</span></div><div class="recent-exp-empty">No expenses logged for this period yet — tap + EXPENSE to add one.</div>`;
+      recentEl.innerHTML = `<div class="rh"><span>Personal Expenses (0)</span></div><div class="recent-exp-empty">No personal expenses logged yet — tap + EXPENSE to add one.</div>`;
     } else {
-      const reimburseTotal = reimburse.reduce((s,e) => s + (+e.amount||0), 0);
-      const dbwExp  = reimburse.filter(e => e.billedTo === 'dbw');
-      const bsolExp = reimburse.filter(e => e.billedTo === 'bsol');
-      const dbwTotal  = dbwExp.reduce((s,e)  => s + (+e.amount||0), 0);
-      const bsolTotal = bsolExp.reduce((s,e) => s + (+e.amount||0), 0);
-      const makeReimburseGroup = (label, badge, items, total, groupId) => items.length ? `
-        <div class="reimburse-section">
-          <div class="reimburse-summary" onclick="toggleReimburseGroup('${groupId}')">
-            <span class="reimburse-summary-left">${badge} ${label} <span style="color:#666;font-size:0.7rem;font-weight:500">(${items.length} item${items.length===1?'':'s'})</span></span>
-            <span class="reimburse-summary-right">
-              <span class="reimburse-total">-${f2(total)}</span>
-              <span class="reimburse-chevron" id="chev_${groupId}">▼</span>
-            </span>
-          </div>
-          <div class="reimburse-detail" id="${groupId}">${items.map(expRow).join('')}</div>
-        </div>` : '';
-      const reimburseSection = (dbwExp.length || bsolExp.length) ? 
-        makeReimburseGroup('DBW Spiff', '<span class="billed-badge dbw">DBW</span>', dbwExp, dbwTotal, 'reimb_dbw') +
-        makeReimburseGroup('Best Solution', '<span class="billed-badge bsol">BSOL</span>', bsolExp, bsolTotal, 'reimb_bsol')
-        : '';
       recentEl.innerHTML = `
         <div class="rh"><span>Personal Expenses (${personal.length})</span></div>
-        ${personal.length ? personal.map(expRow).join('') : '<div class="recent-exp-empty">No personal expenses this period.</div>'}
-        ${reimburseSection}
+        ${personal.map(expRow).join('')}
       `;
     }
   }
