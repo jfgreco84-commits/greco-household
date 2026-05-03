@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.7 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.8 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1365,15 +1365,15 @@ let billsPaid = {}; // { '<periodOffset>': { '<billName>': { paidDate, paidBy } 
 
 /* ---- BUDGETS / EXPENSES ---- */
 const defaultBudgets = {
-  'gas':      { icon: '⛽',   label: 'Gas',           limit: 220 },
-  'grocery':  { icon: '🛒',   label: 'Groceries',     limit: 400 },
-  'dining':   { icon: '🍔',   label: 'Eating Out',    limit: 150 },
-  'coffee':   { icon: '☕',   label: 'Coffee/Quick',  limit: 50  },
-  'personal': { icon: '🛍️',  label: 'Personal',      limit: 100 },
-  'kids':     { icon: '👨‍👩‍👧', label: 'Kids',          limit: 100 },
-  'fun':      { icon: '🎮',   label: 'Entertainment', limit: 50  },
-  'home':     { icon: '🏠',   label: 'Home/Repairs',  limit: 50  },
-  'other':    { icon: '❓',   label: 'Other',         limit: 100 }
+  'gas':      { icon: '⛽',   label: 'Gas',           limit: 100 },
+  'grocery':  { icon: '🛒',   label: 'Groceries',     limit: 300 },
+  'dining':   { icon: '🍔',   label: 'Eating Out',    limit: 100 },
+  'coffee':   { icon: '☕',   label: 'Coffee/Quick',  limit: 30  },
+  'personal': { icon: '🛍️',  label: 'Personal',      limit: 75  },
+  'kids':     { icon: '👨‍👩‍👧', label: 'Kids',          limit: 75  },
+  'fun':      { icon: '🎮',   label: 'Entertainment', limit: 30  },
+  'home':     { icon: '🏠',   label: 'Home/Repairs',  limit: 40  },
+  'other':    { icon: '❓',   label: 'Other',         limit: 75  }
 };
 let budgets  = JSON.parse(JSON.stringify(defaultBudgets));
 let expenses = [];
