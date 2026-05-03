@@ -3107,4 +3107,58 @@ async function saveExpense() {
     isHeavy: false
   };
   expenses.push(entry);
-  await saveKey('expenses'
+  await saveKey('expenses', expenses);
+  calc();
+  closeModal('expenseModal');
+  showToast('✅ Expense logged: ' + desc + ' ($' + (+amtEl.value).toFixed(2) + ')');
+}
+window.openExpenseModal = openExpenseModal;
+window.saveExpense      = saveExpense;
+window.updateExpensePeriodLabel = updateExpensePeriodLabel;
+
+/* ---------------- VOICE EXPENSE ---------------- */
+let _voiceRecognition = null;
+function startVoiceExpense() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) { openExpenseModal(); return; }
+  const btn = document.querySelector('.add-pill.voice');
+  if (_voiceRecognition) {
+    try { _voiceRecognition.stop(); } catch(e) {}
+    _voiceRecognition = null;
+    if (btn) { btn.classList.remove('listening'); btn.innerHTML = '<span class="vmic">🎤</span> SAY IT'; }
+    return;
+  }
+  const rec = new SpeechRec();
+  rec.lang = 'en-US'; rec.interimResults = false; rec.maxAlternatives = 1;
+  _voiceRecognition = rec;
+  if (btn) { btn.classList.add('listening'); btn.innerHTML = '<span class="vmic">🎤</span> LISTENING...'; }
+  rec.onresult = (e) => {
+    const transcript = e.results[0][0].transcript.trim();
+    _voiceRecognition = null;
+    if (btn) { btn.classList.remove('listening'); btn.innerHTML = '<span class="vmic">🎤</span> SAY IT'; }
+    openExpenseModal();
+    setTimeout(() => {
+      const m = transcript.match(/^\$?([\d.]+)\s+(?:on\s+|for\s+)?(.+)$/i);
+      if (m && !isNaN(parseFloat(m[1]))) {
+        document.getElementById('expenseAmt').value  = parseFloat(m[1]).toFixed(2);
+        document.getElementById('expenseDesc').value = m[2] || transcript;
+      } else {
+        document.getElementById('expenseDesc').value = transcript;
+      }
+    }, 100);
+  };
+  rec.onerror = () => {
+    _voiceRecognition = null;
+    if (btn) { btn.classList.remove('listening'); btn.innerHTML = '<span class="vmic">🎤</span> SAY IT'; }
+    openExpenseModal();
+  };
+  rec.onend = () => {
+    _voiceRecognition = null;
+    if (btn) { btn.classList.remove('listening'); btn.innerHTML = '<span class="vmic">🎤</span> SAY IT'; }
+  };
+  try { rec.start(); } catch(e) { openExpenseModal(); }
+}
+window.startVoiceExpense = startVoiceExpense;
+
+</script>
+</html>
