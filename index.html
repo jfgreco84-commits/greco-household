@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.4 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.5 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1284,7 +1284,7 @@ async function onAuthed() {
 
 /* ---------------- CONSTANTS & DATA ---------------- */
 const ANCHOR     = new Date(2026, 3, 15);
-const CH13       = 750;
+const CH13       = 700;
 const MIN_OFFSET = -8;
 const EXPENSE_CUTOFF = '2026-05-01'; // Only show personal expenses on/after this date
 const MAX_OFFSET = 18;
@@ -1673,11 +1673,13 @@ function calc() {
   // True take-home: projected net minus Chapter 13
   const net      = projNet - CH13;
   // Per-check bill share (monthly / 2 for biweekly)
-  const billsPerCheck = bills.reduce((s,b) => s + ((+b.monthly || 0) / 2), 0);
+  const billsPerCheck = bills.reduce((s,b) => s + periodDue(b, viewingOffset), 0);
   const isPersonal = e => (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF;
-  const expensesThisPeriod = expenses
-    .filter(e => e.periodOffset === viewingOffset && isPersonal(e))
-    .reduce((s,e) => s + (+e.amount || 0), 0);
+  const expensesThisPeriod = isFuturePeriod()
+    ? 0
+    : expenses
+        .filter(e => e.periodOffset === viewingOffset && isPersonal(e))
+        .reduce((s,e) => s + (+e.amount || 0), 0);
   const reimburseThisPeriod = 0; // DBW/BSOL expenses live in their own tabs only
   const left = net - billsPerCheck - expensesThisPeriod;
 
@@ -1714,14 +1716,16 @@ function billPaidAmount(billName, periodOffset) {
 function periodDue(bill, offset) {
   if (offset === undefined) offset = viewingOffset;
   const mo = +bill.monthly || 0;
-  // Bills marked splitHalf show every period at half monthly (Mortgage, Hello Fresh, Acadia)
+  // Mortgage only: splits in half every check
   if (bill.splitHalf) return Math.round((mo / 2) * 100) / 100;
-  // Bills with no dueDay: legacy fallback (shouldn't happen with new defaults)
+  // Legacy fallback (no dueDay set)
   if (!bill.dueDay) return Math.round((mo / 2) * 100) / 100;
-  // Otherwise: show full monthly amount only in the period containing the due date
-  const {start, end} = getPeriod(offset);
-  const s = new Date(start); s.setHours(0,0,0,0);
-  const e = new Date(end);   e.setHours(23,59,59,999);
+  // Bill window = this check date → day before next check date
+  // e.g. May 1 check → May 1–14;  May 15 check → May 15–28
+  const {check: checkThis} = getPeriod(offset);
+  const {check: checkNext} = getPeriod(offset + 1);
+  const s = new Date(checkThis); s.setHours(0,0,0,0);
+  const e = new Date(checkNext); e.setDate(e.getDate() - 1); e.setHours(23,59,59,999);
   const inRange = (y, m) => {
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     if (bill.dueDay > daysInMonth) return false;
@@ -1732,6 +1736,14 @@ function periodDue(bill, offset) {
   const eY = e.getFullYear(), eM = e.getMonth();
   if (inRange(sY, sM) || (eM !== sM && inRange(eY, eM))) return mo;
   return 0;
+}
+/* Returns true when the viewed period's check date is still in the future */
+function isFuturePeriod(offset) {
+  if (offset === undefined) offset = viewingOffset;
+  const {check} = getPeriod(offset);
+  const todayNorm = new Date(today); todayNorm.setHours(0,0,0,0);
+  const c = new Date(check); c.setHours(0,0,0,0);
+  return c > todayNorm;
 }
 function billRemaining(bill, periodOffset) {
   return Math.max(0, periodDue(bill) - billPaidAmount(bill.name, periodOffset));
@@ -2015,7 +2027,7 @@ function renderBudgets() {
     const b = budgets[key] || defaultBudgets[key];
     const cap = +b.limit || 0;
     const spent = expenses
-      .filter(e => e.periodOffset === viewingOffset && e.category === key && !e.isHeavy && (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF)
+      .filter(e => !isFuturePeriod() && e.periodOffset === viewingOffset && e.category === key && !e.isHeavy && (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF)
       .reduce((s,e) => s + (+e.amount || 0), 0);
     totalCap += cap; totalSpent += spent;
     const pct = cap > 0 ? Math.min(100, (spent/cap)*100) : (spent>0 ? 100 : 0);
@@ -2051,11 +2063,13 @@ function renderBudgets() {
   // All expenses for the current viewing period (full scrollable list)
   const recentEl = document.getElementById('recentExpenses');
   if (recentEl) {
-    const allExp = expenses
-      .filter(e => e.periodOffset === viewingOffset && !e.isHeavy
-              && (!e.billedTo || e.billedTo === 'personal')
-              && (e.date||'') >= EXPENSE_CUTOFF)
-      .sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+    const allExp = isFuturePeriod()
+      ? []
+      : expenses
+          .filter(e => e.periodOffset === viewingOffset && !e.isHeavy
+                  && (!e.billedTo || e.billedTo === 'personal')
+                  && (e.date||'') >= EXPENSE_CUTOFF)
+          .sort((a,b) => (b.date || '').localeCompare(a.date || ''));
     const personal  = allExp; // already filtered to personal + cutoff above
     const whoCls  = w => w === 'Justin' ? 'j' : w === 'Michele' ? 'm' : 'b';
     const whoIcon = w => w === 'Justin' ? '🦊' : w === 'Michele' ? '💜' : w === 'Joint' ? '👫' : '🔘';
@@ -2074,7 +2088,10 @@ function renderBudgets() {
       </div>`;
     };
     if (!allExp.length) {
-      recentEl.innerHTML = `<div class="rh"><span>Personal Expenses (0)</span></div><div class="recent-exp-empty">No personal expenses logged yet — tap + EXPENSE to add one.</div>`;
+      const emptyMsg = isFuturePeriod()
+        ? 'This pay period hasn\'t started yet — expenses will appear here once it begins.'
+        : 'No personal expenses logged yet — tap + EXPENSE to add one.';
+      recentEl.innerHTML = `<div class="rh"><span>Personal Expenses (0)</span></div><div class="recent-exp-empty">${emptyMsg}</div>`;
     } else {
       recentEl.innerHTML = `
         <div class="rh"><span>Personal Expenses (${personal.length})</span></div>
