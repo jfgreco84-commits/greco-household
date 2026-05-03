@@ -583,12 +583,27 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   </div>
 </div>
 
-<div class="hero">
+<!-- Personal Hero -->
+<div class="hero" id="hero_personal">
   <div class="hnum"><div class="hlabel">Gross</div><div class="hval gold" id="heroGross">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Net</div><div class="hval green" id="heroNet">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Bills</div><div class="hval red" id="heroBills">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Personal Exp</div><div class="hval amber" id="heroExpenses">$0</div><div class="hsublabel" id="heroReimburse" style="color:#e8c84a"></div></div>
   <div class="hnum hero-divider"><div class="hlabel">→ Savings</div><div class="hval blue" id="heroLeft">$0</div></div>
+</div>
+
+<!-- DBW Spiff Hero -->
+<div class="hero" id="hero_dbw" style="display:none">
+  <div class="hnum"><div class="hlabel">Spiff Budget</div><div class="hval gold" id="dbwHeroSpiff">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">Expenses Out</div><div class="hval red" id="dbwHeroExp">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">Owed Back</div><div class="hval green" id="dbwHeroOwed">$0</div></div>
+</div>
+
+<!-- Best Solution Hero -->
+<div class="hero" id="hero_bsol" style="display:none">
+  <div class="hnum"><div class="hlabel">Inventory $</div><div class="hval gold" id="bsolHeroInv">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">Expenses Out</div><div class="hval red" id="bsolHeroExp">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">Net Position</div><div class="hval blue" id="bsolHeroNet">$0</div></div>
 </div>
 
 <div class="biz-nav" id="bizNav">
@@ -902,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.1 — FIXED LAYOUT</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.2 — BIZ TAB HEROES</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -3305,15 +3320,50 @@ function switchBizTab(tab) {
     const btn = document.getElementById('bizBtn_' + t);
     if (btn) btn.classList.toggle('active', t === tab);
   });
+  // Swap hero panels
+  const hp = document.getElementById('hero_personal');
+  const hd = document.getElementById('hero_dbw');
+  const hb = document.getElementById('hero_bsol');
+  if (hp) hp.style.display = (tab === 'personal') ? '' : 'none';
+  if (hd) hd.style.display = (tab === 'dbw')      ? '' : 'none';
+  if (hb) hb.style.display = (tab === 'bsol')     ? '' : 'none';
+  // Swap content sections
   const personalSec = document.getElementById('personalSection');
   const dbwSec      = document.getElementById('bizSection_dbw');
   const bsolSec     = document.getElementById('bizSection_bsol');
   if (personalSec) personalSec.style.display = (tab === 'personal') ? '' : 'none';
   if (dbwSec)      dbwSec.style.display      = (tab === 'dbw')      ? '' : 'none';
   if (bsolSec)     bsolSec.style.display     = (tab === 'bsol')     ? '' : 'none';
-  if (tab === 'dbw')  renderBizExpenses('dbw');
-  if (tab === 'bsol') renderBizExpenses('bsol');
+  if (tab === 'dbw')  { renderBizExpenses('dbw');  updateBizHero('dbw');  }
+  if (tab === 'bsol') { renderBizExpenses('bsol'); updateBizHero('bsol'); }
 }
+
+function updateBizHero(type) {
+  const typeExps = expenses.filter(e => e.billedTo === type);
+  const total = typeExps.reduce((s,e) => s + (+e.amount||0), 0);
+  if (type === 'dbw') {
+    // Spiff budget: to be linked later — show $0 until connected
+    const spiff = 0; // placeholder — will link to spiff sheet later
+    const owed = Math.max(0, total - spiff);
+    const expEl   = document.getElementById('dbwHeroExp');
+    const owedEl  = document.getElementById('dbwHeroOwed');
+    const spiffEl = document.getElementById('dbwHeroSpiff');
+    if (spiffEl) spiffEl.textContent = f0(spiff);
+    if (expEl)   expEl.textContent   = f0(total);
+    if (owedEl)  { owedEl.textContent = f0(total); owedEl.className = 'hval ' + (total > 0 ? 'green' : 'blue'); }
+  } else {
+    // Best Solution: inventory tracked separately later
+    const inv = 0; // placeholder — will link inventory later
+    const net = inv - total;
+    const invEl = document.getElementById('bsolHeroInv');
+    const expEl = document.getElementById('bsolHeroExp');
+    const netEl = document.getElementById('bsolHeroNet');
+    if (invEl) invEl.textContent = f0(inv);
+    if (expEl) expEl.textContent = f0(total);
+    if (netEl) { netEl.textContent = f0(Math.abs(net)); netEl.className = 'hval ' + (net >= 0 ? 'blue' : 'red'); }
+  }
+}
+window.updateBizHero = updateBizHero;
 window.switchBizTab = switchBizTab;
 
 function renderBizExpenses(type) {
