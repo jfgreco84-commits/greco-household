@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.5 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.6 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1741,9 +1741,9 @@ function periodDue(bill, offset) {
 function isFuturePeriod(offset) {
   if (offset === undefined) offset = viewingOffset;
   const {check} = getPeriod(offset);
-  const todayNorm = new Date(today); todayNorm.setHours(0,0,0,0);
-  const c = new Date(check); c.setHours(0,0,0,0);
-  return c > todayNorm;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const c   = new Date(check); c.setHours(0,0,0,0);
+  return c > now;
 }
 function billRemaining(bill, periodOffset) {
   return Math.max(0, periodDue(bill) - billPaidAmount(bill.name, periodOffset));
