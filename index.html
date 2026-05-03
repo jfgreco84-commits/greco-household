@@ -277,6 +277,12 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .recent-exp-amt { color:#e85a5a; font-weight:700; min-width:60px; text-align:right; }
 .recent-exp-date { color:#444; font-size:0.7rem; min-width:46px; text-align:right; }
 .recent-exp-empty { color:#333; font-size:0.78rem; padding:10px 6px; font-style:italic; }
+.billed-badge { display:inline-block; padding:2px 6px; border-radius:8px; font-size:0.6rem; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; margin-left:4px; flex-shrink:0; }
+.billed-badge.dbw { background:#3a2e0a; color:#e8c84a; border:1px solid #8b6f1a; }
+.billed-badge.bsol { background:#0e2033; color:#7fb3e8; border:1px solid #1e5080; }
+.reimburse-section { border-top:1px solid #2a1a0a; margin-top:8px; padding-top:8px; }
+.reimburse-header { font-size:0.6rem; color:#888; text-transform:uppercase; letter-spacing:1.2px; padding:8px 0 6px; display:flex; justify-content:space-between; }
+.reimburse-total { color:#e8c84a; font-weight:800; font-size:0.75rem; }
 .heavy-row { display:flex; align-items:center; gap:10px; padding:10px 6px; border-bottom:1px solid #1a1a1a; font-size:0.82rem; }
 .heavy-row:last-child { border-bottom:none; }
 .heavy-who { min-width:80px; font-size:0.72rem; font-weight:700; }
@@ -556,7 +562,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   <div class="hnum"><div class="hlabel">Gross</div><div class="hval gold" id="heroGross">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Net</div><div class="hval green" id="heroNet">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Bills</div><div class="hval red" id="heroBills">$0</div></div>
-  <div class="hnum hero-divider"><div class="hlabel">Expenses</div><div class="hval amber" id="heroExpenses">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">Personal Exp</div><div class="hval amber" id="heroExpenses">$0</div><div class="hsublabel" id="heroReimburse" style="color:#e8c84a"></div></div>
   <div class="hnum hero-divider"><div class="hlabel">→ Savings</div><div class="hval blue" id="heroLeft">$0</div></div>
 </div>
 
@@ -964,6 +970,12 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
       <option value="Justin">🦊 Justin</option>
       <option value="Michele">💜 Michele</option>
       <option value="Joint">👫 Joint / Both</option>
+    </select>
+    <label for="expenseBilledTo">Billed To</label>
+    <select id="expenseBilledTo">
+      <option value="personal">💳 Personal</option>
+      <option value="dbw">💼 DBW Spiff (reimbursed by work)</option>
+      <option value="bsol">🔑 Best Solution (business)</option>
     </select>
     <label for="expenseCat">Category</label>
     <select id="expenseCat"></select>
@@ -1586,8 +1598,12 @@ function calc() {
   const net      = projNet - CH13;
   // Per-check bill share (monthly / 2 for biweekly)
   const billsPerCheck = bills.reduce((s,b) => s + ((+b.monthly || 0) / 2), 0);
+  const isPersonal = e => !e.billedTo || e.billedTo === 'personal';
   const expensesThisPeriod = expenses
-    .filter(e => e.periodOffset === viewingOffset)
+    .filter(e => e.periodOffset === viewingOffset && isPersonal(e))
+    .reduce((s,e) => s + (+e.amount || 0), 0);
+  const reimburseThisPeriod = expenses
+    .filter(e => e.periodOffset === viewingOffset && !isPersonal(e))
     .reduce((s,e) => s + (+e.amount || 0), 0);
   const left = net - billsPerCheck - expensesThisPeriod;
 
@@ -1601,6 +1617,8 @@ function calc() {
   document.getElementById('heroNet').textContent      = f0(net);
   document.getElementById('heroBills').textContent    = f0(billsPerCheck);
   document.getElementById('heroExpenses').textContent = f0(expensesThisPeriod);
+  const reimburseEl = document.getElementById('heroReimburse');
+  if (reimburseEl) reimburseEl.textContent = reimburseThisPeriod > 0 ? '+' + f0(reimburseThisPeriod) + ' reimb' : '';
   const leftEl = document.getElementById('heroLeft');
   leftEl.textContent = (left >= 0 ? '+' : '') + f0(left);
   leftEl.className   = 'hval ' + (left >= 0 ? 'blue' : 'red');
@@ -1901,7 +1919,7 @@ function renderBudgets() {
     const b = budgets[key] || defaultBudgets[key];
     const cap = +b.limit || 0;
     const spent = expenses
-      .filter(e => e.periodOffset === viewingOffset && e.category === key && !e.isHeavy)
+      .filter(e => e.periodOffset === viewingOffset && e.category === key && !e.isHeavy && (!e.billedTo || e.billedTo === 'personal'))
       .reduce((s,e) => s + (+e.amount || 0), 0);
     totalCap += cap; totalSpent += spent;
     const pct = cap > 0 ? Math.min(100, (spent/cap)*100) : (spent>0 ? 100 : 0);
@@ -1937,30 +1955,43 @@ function renderBudgets() {
   // All expenses for the current viewing period (full scrollable list)
   const recentEl = document.getElementById('recentExpenses');
   if (recentEl) {
-    const recent = expenses
+    const allExp = expenses
       .filter(e => e.periodOffset === viewingOffset && !e.isHeavy)
       .sort((a,b) => (b.date || '').localeCompare(a.date || ''));
-    const whoCls = w => w === 'Justin' ? 'j' : w === 'Michele' ? 'm' : 'b';
+    const personal  = allExp.filter(e => !e.billedTo || e.billedTo === 'personal');
+    const reimburse = allExp.filter(e => e.billedTo && e.billedTo !== 'personal');
+    const whoCls  = w => w === 'Justin' ? 'j' : w === 'Michele' ? 'm' : 'b';
     const whoIcon = w => w === 'Justin' ? '🦊' : w === 'Michele' ? '💜' : w === 'Joint' ? '👫' : '🔘';
-    if (!recent.length) {
-      recentEl.innerHTML = `<div class="rh"><span>All Expenses (0)</span></div><div class="recent-exp-empty">No expenses logged for this period yet — tap + EXPENSE to add one.</div>`;
+    const billedBadge = bt => bt === 'dbw' ? '<span class="billed-badge dbw">DBW</span>' : bt === 'bsol' ? '<span class="billed-badge bsol">BSOL</span>' : '';
+    const expRow = e => {
+      const cat = defaultBudgets[e.category] || {icon:'❓',label:e.category||'Other'};
+      const desc = e.description || cat.label;
+      const dateLabel = e.date ? e.date.slice(5).replace('-','/') : '';
+      return `<div class="recent-exp-row">
+        <span class="recent-exp-who ${whoCls(e.who)}">${whoIcon(e.who)} ${e.who||'?'}</span>
+        <span class="recent-exp-cat" title="${cat.label}">${cat.icon}</span>
+        <span class="recent-exp-desc">${desc}${billedBadge(e.billedTo)}</span>
+        <span class="recent-exp-amt">-${f2(+e.amount||0)}</span>
+        <span class="recent-exp-date">${dateLabel}</span>
+        <button class="recent-exp-del" onclick="deleteExpense('${e.id}')" title="Delete expense">×</button>
+      </div>`;
+    };
+    if (!allExp.length) {
+      recentEl.innerHTML = `<div class="rh"><span>Personal Expenses (0)</span></div><div class="recent-exp-empty">No expenses logged for this period yet — tap + EXPENSE to add one.</div>`;
     } else {
-      const totalThisPeriod = recent.length;
+      const reimburseTotal = reimburse.reduce((s,e) => s + (+e.amount||0), 0);
+      const reimburseSection = reimburse.length ? `
+        <div class="reimburse-section">
+          <div class="reimburse-header">
+            <span>💼 Reimbursable (${reimburse.length})</span>
+            <span class="reimburse-total">${f2(reimburseTotal)} owed back</span>
+          </div>
+          ${reimburse.map(expRow).join('')}
+        </div>` : '';
       recentEl.innerHTML = `
-        <div class="rh"><span>All Expenses (${totalThisPeriod})</span></div>
-        ${recent.map(e => {
-          const cat = defaultBudgets[e.category] || {icon:'❓',label:e.category||'Other'};
-          const desc = e.description || cat.label;
-          const dateLabel = e.date ? e.date.slice(5).replace('-','/') : '';
-          return `<div class="recent-exp-row">
-            <span class="recent-exp-who ${whoCls(e.who)}">${whoIcon(e.who)} ${e.who||'?'}</span>
-            <span class="recent-exp-cat" title="${cat.label}">${cat.icon}</span>
-            <span class="recent-exp-desc">${desc}</span>
-            <span class="recent-exp-amt">-${f2(+e.amount||0)}</span>
-            <span class="recent-exp-date">${dateLabel}</span>
-            <button class="recent-exp-del" onclick="deleteExpense('${e.id}')" title="Delete expense">×</button>
-          </div>`;
-        }).join('')}
+        <div class="rh"><span>Personal Expenses (${personal.length})</span></div>
+        ${personal.length ? personal.map(expRow).join('') : '<div class="recent-exp-empty">No personal expenses this period.</div>'}
+        ${reimburseSection}
       `;
     }
   }
@@ -3053,9 +3084,10 @@ function openExpenseModal() {
     const b = defaultBudgets[k];
     return `<option value="${k}">${b.icon}  ${b.label}</option>`;
   }).join('');
-  document.getElementById('expenseAmt').value  = '';
-  document.getElementById('expenseDesc').value = '';
-  document.getElementById('expenseDate').value = todayISO();
+  document.getElementById('expenseAmt').value    = '';
+  document.getElementById('expenseDesc').value  = '';
+  document.getElementById('expenseDate').value  = todayISO();
+  document.getElementById('expenseBilledTo').value = 'personal';
   // Default WHO to last-used on this device, fall back to Justin
   try {
     const lastWho = localStorage.getItem('grecoLastWho') || 'Justin';
@@ -3081,11 +3113,12 @@ function updateExpensePeriodLabel() {
 }
 
 async function saveExpense() {
-  const who   = document.getElementById('expenseWho').value;
-  const cat   = document.getElementById('expenseCat').value;
-  const amtEl = document.getElementById('expenseAmt');
-  const desc  = document.getElementById('expenseDesc').value.trim();
-  const date  = document.getElementById('expenseDate').value || todayISO();
+  const who      = document.getElementById('expenseWho').value;
+  const billedTo = document.getElementById('expenseBilledTo').value || 'personal';
+  const cat      = document.getElementById('expenseCat').value;
+  const amtEl    = document.getElementById('expenseAmt');
+  const desc     = document.getElementById('expenseDesc').value.trim();
+  const date     = document.getElementById('expenseDate').value || todayISO();
   amtEl.classList.remove('req-err');
   if (amtEl.value === '' || isNaN(+amtEl.value) || +amtEl.value <= 0) {
     amtEl.classList.add('req-err');
@@ -3100,6 +3133,7 @@ async function saveExpense() {
     id,
     date,
     who,
+    billedTo,
     category: cat,
     amount: +amtEl.value,
     description: desc,
