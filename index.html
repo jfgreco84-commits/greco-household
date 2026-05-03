@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.6 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.7 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1620,7 +1620,7 @@ function applyPeriodData() {
   const salaryEl = document.getElementById('salaryBase');
   salaryEl.value = SALARY_BASE;
   salaryEl.readOnly = true;
-  document.getElementById('bonusAmt').value = known ? (known.bonus || 0) : 0;
+  document.getElementById('bonusAmt').value = known ? (known.bonus || 0) : BONUS_REG;
   document.getElementById('commAmt').value  = known ? (known.comm  || 0) : 0;
   calc();
 }
