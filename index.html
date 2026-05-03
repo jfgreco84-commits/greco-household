@@ -391,6 +391,22 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .accuracy-badge { display:inline-flex; align-items:center; gap:5px; background:#0d1f0d; border:1px solid #1a3a1a; border-radius:6px; padding:4px 10px; font-size:0.68rem; color:#4a9a4a; }
 .reset-btn { background:transparent; border:1px solid #333; color:#666; font-size:0.72rem; padding:5px 10px; border-radius:5px; cursor:pointer; min-height:36px; }
 .footer-bar { text-align:center; padding:14px; font-size:0.65rem; color:#333; letter-spacing:1px; border-top:1px solid #1a1a1a; margin-top:6px; display:flex; justify-content:center; align-items:center; gap:14px; flex-wrap:wrap; }
+/* ---- BIZ NAV (Personal / DBW / Best Solution) ---- */
+.biz-nav { display:flex; gap:6px; padding:10px 12px 6px; position:sticky; top:0; z-index:50; background:#0a0a0a; border-bottom:1px solid #1a1a1a; }
+.biz-nav-btn { flex:1; background:#1a1a1a; color:#555; border:1px solid #2a2a2a; border-radius:8px; padding:9px 6px; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; cursor:pointer; min-height:40px; }
+.biz-nav-btn:hover { background:#252525; color:#aaa; }
+.biz-nav-btn.active { background:#1e2e10; color:#7ecb40; border-color:#4a7a20; }
+.biz-nav-btn.active.dbw { background:#1a2040; color:#7fb3e8; border-color:#2a4080; }
+.biz-nav-btn.active.bsol { background:#2a1a0a; color:#e8a05a; border-color:#7a4a1a; }
+/* ---- DBW / BSOL expense sections ---- */
+.biz-exp-period { background:#111; border-radius:8px; margin:8px 12px; overflow:hidden; }
+.biz-exp-period-hdr { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:#181818; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; color:#666; text-transform:uppercase; }
+.biz-exp-period-hdr .biz-p-total { color:#e8c84a; font-size:0.85rem; }
+.biz-exp-row { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid #1a1a1a; font-size:0.8rem; }
+.biz-exp-row .biz-r-left { color:#bbb; }
+.biz-exp-row .biz-r-left small { display:block; color:#555; font-size:0.68rem; margin-top:1px; }
+.biz-exp-row .biz-r-amt { color:#e85a5a; font-weight:700; }
+.biz-empty-msg { padding:30px 20px; text-align:center; color:#333; font-size:0.8rem; }
 .footer-bar a, .footer-bar .signout-link { color:#666; text-decoration:none; font-size:0.65rem; cursor:pointer; background:none; border:none; letter-spacing:1px; }
 .footer-bar .signout-link:hover { color:#e8c84a; }
 .divider { border:none; border-top:1px solid #222; margin:8px 0; }
@@ -574,6 +590,13 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 
 <div class="main">
 
+<div class="biz-nav" id="bizNav">
+  <button class="biz-nav-btn active" id="bizBtn_personal" onclick="switchBizTab('personal')">🏠 Personal</button>
+  <button class="biz-nav-btn dbw"    id="bizBtn_dbw"      onclick="switchBizTab('dbw')">💼 DBW Spiff</button>
+  <button class="biz-nav-btn bsol"   id="bizBtn_bsol"     onclick="switchBizTab('bsol')">🔑 Best Solution</button>
+</div>
+
+<div id="personalSection">
   <div class="card">
     <div class="card-header">
       <span class="icon">📈</span><h2>Income</h2>
@@ -849,10 +872,34 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     </div>
   </div>
 
+</div><!-- /personalSection -->
+
+<!-- DBW Spiff Expenses -->
+<div id="bizSection_dbw" style="display:none">
+  <div class="card">
+    <div class="card-header">
+      <span class="icon">💼</span><h2>DBW Spiff Expenses</h2>
+      <span class="updated" id="dbwTotalLabel">$0 logged</span>
+    </div>
+    <div id="dbwExpList"><div class="biz-empty-msg">No DBW expenses logged yet.</div></div>
+  </div>
 </div>
 
+<!-- Best Solution Expenses -->
+<div id="bizSection_bsol" style="display:none">
+  <div class="card">
+    <div class="card-header">
+      <span class="icon">🔑</span><h2>Best Solution Expenses</h2>
+      <span class="updated" id="bsolTotalLabel">$0 logged</span>
+    </div>
+    <div id="bsolExpList"><div class="biz-empty-msg">No Best Solution expenses logged yet.</div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v4.8 — FULL 2026 COVERAGE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.0 — SMART BILLS + DBW/BSOL TABS</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1275,20 +1322,22 @@ let salesData = [];
 let SALES_LAST_UPDATED = 'Awaiting ship sheet';
 
 const defaultBills = [
-  { name:'Mortgage',             monthly:3575, note:'Monthly' },
-  { name:'Verizon',              monthly:355,  note:'Monthly' },
-  { name:'Hello Fresh',          monthly:109,  note:'x2/mo = $218' },
-  { name:'Hinckley Springs',     monthly:100,  note:'Monthly' },
-  { name:'Sun Tan City',         monthly:63,   note:'Monthly' },
-  { name:'YMCA',                 monthly:101,  note:'Monthly' },
-  { name:'Progressive (Auto)',   monthly:328,  note:'Monthly' },
-  { name:'Progressive (Boat)',   monthly:61,   note:'Monthly' },
-  { name:'AAA Life',             monthly:47,   note:'Monthly' },
-  { name:'Acadia',               monthly:250,  note:'x2/mo = $500' },
-  { name:'WE Energies',          monthly:400,  note:'Monthly' },
-  { name:'Choice Home Warranty', monthly:50,   note:'Monthly' },
-  { name:'Spectrum',             monthly:91,   note:'Monthly' },
-  { name:'Water Bill',           monthly:100,  note:'Quarterly ($300 / 3 mos)' },
+  // splitHalf:true  → shows every period at monthly/2 (mortgage splits in half; acadia/hellofresh every check)
+  // dueDay:N        → shows full monthly amount only in the period containing the Nth of the month
+  { name:'Mortgage',             monthly:3575, splitHalf:true, note:'Split in half each period ($1,788/check)' },
+  { name:'Verizon',              monthly:355,  dueDay:8,       note:'Due ~8th — full $355 when due' },
+  { name:'Hello Fresh',          monthly:218,  splitHalf:true, note:'$109/delivery · 2x per month' },
+  { name:'Hinckley Springs',     monthly:100,  dueDay:10,      note:'Due ~10th — full $100 when due' },
+  { name:'Sun Tan City',         monthly:63,   dueDay:5,       note:'Due ~5th — full $63 when due' },
+  { name:'YMCA',                 monthly:101,  dueDay:1,       note:'Due ~1st — full $101 when due' },
+  { name:'Progressive (Auto)',   monthly:328,  dueDay:10,      note:'Due ~10th — full $328 when due' },
+  { name:'Progressive (Boat)',   monthly:61,   dueDay:10,      note:'Due ~10th — full $61 when due' },
+  { name:'AAA Life',             monthly:47,   dueDay:1,       note:'Due ~1st — full $47 when due' },
+  { name:'Acadia',               monthly:500,  splitHalf:true, note:'$250 every check (both periods)' },
+  { name:'WE Energies',          monthly:400,  dueDay:20,      note:'Due ~20th — full $400 when due' },
+  { name:'Choice Home Warranty', monthly:50,   dueDay:1,       note:'Due ~1st — full $50 when due' },
+  { name:'Spectrum',             monthly:91,   dueDay:15,      note:'Due ~15th — full $91 when due' },
+  { name:'Water Bill',           monthly:100,  dueDay:20,      note:'Quarterly ~$100 when due' },
 ];
 let bills = JSON.parse(JSON.stringify(defaultBills));
 let billsPaid = {}; // { '<periodOffset>': { '<billName>': { paidDate, paidBy } } }
@@ -1643,8 +1692,27 @@ function billPayments(billName, periodOffset) {
 function billPaidAmount(billName, periodOffset) {
   return billPayments(billName, periodOffset).reduce((s, p) => s + (+p.amount || 0), 0);
 }
-function periodDue(bill) {
-  return Math.round(((+bill.monthly || 0) / 2) * 100) / 100;
+function periodDue(bill, offset) {
+  if (offset === undefined) offset = viewingOffset;
+  const mo = +bill.monthly || 0;
+  // Bills marked splitHalf show every period at half monthly (Mortgage, Hello Fresh, Acadia)
+  if (bill.splitHalf) return Math.round((mo / 2) * 100) / 100;
+  // Bills with no dueDay: legacy fallback (shouldn't happen with new defaults)
+  if (!bill.dueDay) return Math.round((mo / 2) * 100) / 100;
+  // Otherwise: show full monthly amount only in the period containing the due date
+  const {start, end} = getPeriod(offset);
+  const s = new Date(start); s.setHours(0,0,0,0);
+  const e = new Date(end);   e.setHours(23,59,59,999);
+  const inRange = (y, m) => {
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    if (bill.dueDay > daysInMonth) return false;
+    const d = new Date(y, m, bill.dueDay);
+    return d >= s && d <= e;
+  };
+  const sY = s.getFullYear(), sM = s.getMonth();
+  const eY = e.getFullYear(), eM = e.getMonth();
+  if (inRange(sY, sM) || (eM !== sM && inRange(eY, eM))) return mo;
+  return 0;
 }
 function billRemaining(bill, periodOffset) {
   return Math.max(0, periodDue(bill) - billPaidAmount(bill.name, periodOffset));
@@ -1655,7 +1723,8 @@ function isBillFullyPaid(bill, periodOffset) {
 }
 
 function renderBills() {
-  document.getElementById('billsGrid').innerHTML = bills.map((b) => {
+  const activeBills = bills.filter(b => periodDue(b) > 0);
+  document.getElementById('billsGrid').innerHTML = activeBills.map((b) => {
     const safeName = (b.name || '').replace(/'/g, "\\'");
     const paid = billPaidAmount(b.name);
     const total = periodDue(b);
@@ -1716,7 +1785,8 @@ function renderBills() {
 
 function updateBillsSummary() {
   let totalDue = 0, totalPaid = 0;
-  bills.forEach(b => {
+  const activeBills = bills.filter(b => periodDue(b) > 0);
+  activeBills.forEach(b => {
     totalDue += periodDue(b);
     totalPaid += billPaidAmount(b.name);
   });
@@ -1731,9 +1801,9 @@ function updateBillsSummary() {
   if (elLeft) elLeft.textContent = f0(remaining);
   if (elTot)  elTot.textContent  = f0(totalDue);
   if (elBar)  elBar.style.width  = pct + '%';
-  const fullyPaidCount = bills.filter(b => isBillFullyPaid(b)).length;
+  const fullyPaidCount = activeBills.filter(b => isBillFullyPaid(b)).length;
   if (elMeta) {
-    if (fullyPaidCount === bills.length && bills.length > 0) {
+    if (fullyPaidCount === activeBills.length && activeBills.length > 0) {
       elMeta.textContent = 'All bills fully paid this period! ✅';
       elMeta.classList.add('allpaid');
     } else {
@@ -2877,10 +2947,16 @@ function init() {
   document.getElementById('todayDate').textContent =
     new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
   const today = new Date();
-  for (let o=MIN_OFFSET; o<=MAX_OFFSET; o++) {
-    const {start,check}=getPeriod(o);
-    if (today>=start && today<=check){periodOffset=o;break;}
+  // Active period = most recent period whose CHECK DATE is on or before today.
+  // You stay on period N until check N+1 actually arrives (Justin's rule).
+  const todayNorm = new Date(today); todayNorm.setHours(0,0,0,0);
+  let bestOff = MIN_OFFSET;
+  for (let o = MIN_OFFSET; o <= MAX_OFFSET; o++) {
+    const {check} = getPeriod(o);
+    const c = new Date(check); c.setHours(0,0,0,0);
+    if (c <= todayNorm) bestOff = o; else break;
   }
+  periodOffset = bestOff;
   viewingOffset = periodOffset;
   renderBills();
   renderBudgets();
@@ -3217,6 +3293,77 @@ function toggleReimburseGroup(id) {
   if (chev) chev.textContent = detail.classList.contains('open') ? '▲' : '▼';
 }
 window.toggleReimburseGroup = toggleReimburseGroup;
+
+/* ---- BIZ TAB SWITCHER ---- */
+let activeBizTab = 'personal';
+function switchBizTab(tab) {
+  activeBizTab = tab;
+  ['personal','dbw','bsol'].forEach(t => {
+    const btn = document.getElementById('bizBtn_' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  const personalSec = document.getElementById('personalSection');
+  const dbwSec      = document.getElementById('bizSection_dbw');
+  const bsolSec     = document.getElementById('bizSection_bsol');
+  if (personalSec) personalSec.style.display = (tab === 'personal') ? '' : 'none';
+  if (dbwSec)      dbwSec.style.display      = (tab === 'dbw')      ? '' : 'none';
+  if (bsolSec)     bsolSec.style.display     = (tab === 'bsol')     ? '' : 'none';
+  if (tab === 'dbw')  renderBizExpenses('dbw');
+  if (tab === 'bsol') renderBizExpenses('bsol');
+}
+window.switchBizTab = switchBizTab;
+
+function renderBizExpenses(type) {
+  const listId    = type === 'dbw' ? 'dbwExpList'    : 'bsolExpList';
+  const labelId   = type === 'dbw' ? 'dbwTotalLabel' : 'bsolTotalLabel';
+  const badge     = type === 'dbw' ? '💼 DBW'        : '🔑 Best Solution';
+  const el = document.getElementById(listId);
+  const lbl = document.getElementById(labelId);
+  if (!el) return;
+
+  const typeExps = expenses.filter(e => e.billedTo === type);
+  if (typeExps.length === 0) {
+    el.innerHTML = '<div class="biz-empty-msg">No ' + badge + ' expenses logged yet.<br><small style="color:#333">Log an expense and set Billed To = ' + badge + '.</small></div>';
+    if (lbl) lbl.textContent = '$0 logged';
+    return;
+  }
+
+  // Group by period
+  const groups = {};
+  typeExps.forEach(e => {
+    const k = e.periodOffset !== undefined ? e.periodOffset : 0;
+    if (!groups[k]) groups[k] = [];
+    groups[k].push(e);
+  });
+
+  const sortedKeys = Object.keys(groups).map(Number).sort((a,b) => b - a);
+  let grandTotal = 0;
+
+  const html = sortedKeys.map(offset => {
+    const items = groups[offset];
+    const total = items.reduce((s,e) => s + (+e.amount||0), 0);
+    grandTotal += total;
+    const label = periodLabel(offset);
+    const rows = items
+      .sort((a,b) => (b.date||'').localeCompare(a.date||''))
+      .map(e => {
+        const who = e.who ? ' · ' + e.who : '';
+        return '<div class="biz-exp-row">' +
+          '<span class="biz-r-left">' + (e.description||'—') +
+          '<small>' + (e.date||'') + who + ' · ' + (e.category||'other') + '</small></span>' +
+          '<span class="biz-r-amt">-' + f2(+e.amount||0) + '</span>' +
+          '</div>';
+      }).join('');
+    return '<div class="biz-exp-period">' +
+      '<div class="biz-exp-period-hdr"><span>' + label + '</span>' +
+      '<span class="biz-p-total">-' + f2(total) + '</span></div>' +
+      rows + '</div>';
+  }).join('');
+
+  el.innerHTML = html;
+  if (lbl) lbl.textContent = '-' + f2(grandTotal) + ' total';
+}
+window.renderBizExpenses = renderBizExpenses;
 window.startVoiceExpense = startVoiceExpense;
 
 </script>
