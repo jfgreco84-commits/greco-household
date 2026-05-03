@@ -280,9 +280,15 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .billed-badge { display:inline-block; padding:2px 6px; border-radius:8px; font-size:0.6rem; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; margin-left:4px; flex-shrink:0; }
 .billed-badge.dbw { background:#3a2e0a; color:#e8c84a; border:1px solid #8b6f1a; }
 .billed-badge.bsol { background:#0e2033; color:#7fb3e8; border:1px solid #1e5080; }
-.reimburse-section { border-top:1px solid #2a1a0a; margin-top:8px; padding-top:8px; }
-.reimburse-header { font-size:0.6rem; color:#888; text-transform:uppercase; letter-spacing:1.2px; padding:8px 0 6px; display:flex; justify-content:space-between; }
-.reimburse-total { color:#e8c84a; font-weight:800; font-size:0.75rem; }
+.reimburse-section { border-top:1px solid #2a1a0a; margin-top:10px; padding-top:6px; }
+.reimburse-summary { display:flex; align-items:center; justify-content:space-between; padding:10px 8px; background:#1a1a12; border-radius:6px; cursor:pointer; border:1px solid #2a2a16; margin-bottom:0; user-select:none; }
+.reimburse-summary:hover { background:#222218; }
+.reimburse-summary-left { display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:700; }
+.reimburse-summary-right { display:flex; align-items:center; gap:8px; }
+.reimburse-total { color:#e8c84a; font-weight:800; font-size:0.88rem; }
+.reimburse-chevron { color:#555; font-size:0.75rem; transition:transform 0.2s; }
+.reimburse-detail { display:none; padding-top:4px; }
+.reimburse-detail.open { display:block; }
 .heavy-row { display:flex; align-items:center; gap:10px; padding:10px 6px; border-bottom:1px solid #1a1a1a; font-size:0.82rem; }
 .heavy-row:last-child { border-bottom:none; }
 .heavy-who { min-width:80px; font-size:0.72rem; font-weight:700; }
@@ -1980,14 +1986,25 @@ function renderBudgets() {
       recentEl.innerHTML = `<div class="rh"><span>Personal Expenses (0)</span></div><div class="recent-exp-empty">No expenses logged for this period yet — tap + EXPENSE to add one.</div>`;
     } else {
       const reimburseTotal = reimburse.reduce((s,e) => s + (+e.amount||0), 0);
-      const reimburseSection = reimburse.length ? `
+      const dbwExp  = reimburse.filter(e => e.billedTo === 'dbw');
+      const bsolExp = reimburse.filter(e => e.billedTo === 'bsol');
+      const dbwTotal  = dbwExp.reduce((s,e)  => s + (+e.amount||0), 0);
+      const bsolTotal = bsolExp.reduce((s,e) => s + (+e.amount||0), 0);
+      const makeReimburseGroup = (label, badge, items, total, groupId) => items.length ? `
         <div class="reimburse-section">
-          <div class="reimburse-header">
-            <span>💼 Reimbursable (${reimburse.length})</span>
-            <span class="reimburse-total">${f2(reimburseTotal)} owed back</span>
+          <div class="reimburse-summary" onclick="toggleReimburseGroup('${groupId}')">
+            <span class="reimburse-summary-left">${badge} ${label} <span style="color:#666;font-size:0.7rem;font-weight:500">(${items.length} item${items.length===1?'':'s'})</span></span>
+            <span class="reimburse-summary-right">
+              <span class="reimburse-total">-${f2(total)}</span>
+              <span class="reimburse-chevron" id="chev_${groupId}">▼</span>
+            </span>
           </div>
-          ${reimburse.map(expRow).join('')}
+          <div class="reimburse-detail" id="${groupId}">${items.map(expRow).join('')}</div>
         </div>` : '';
+      const reimburseSection = (dbwExp.length || bsolExp.length) ? 
+        makeReimburseGroup('DBW Spiff', '<span class="billed-badge dbw">DBW</span>', dbwExp, dbwTotal, 'reimb_dbw') +
+        makeReimburseGroup('Best Solution', '<span class="billed-badge bsol">BSOL</span>', bsolExp, bsolTotal, 'reimb_bsol')
+        : '';
       recentEl.innerHTML = `
         <div class="rh"><span>Personal Expenses (${personal.length})</span></div>
         ${personal.length ? personal.map(expRow).join('') : '<div class="recent-exp-empty">No personal expenses this period.</div>'}
@@ -3192,6 +3209,14 @@ function startVoiceExpense() {
   };
   try { rec.start(); } catch(e) { openExpenseModal(); }
 }
+function toggleReimburseGroup(id) {
+  const detail = document.getElementById(id);
+  const chev   = document.getElementById('chev_' + id);
+  if (!detail) return;
+  detail.classList.toggle('open');
+  if (chev) chev.textContent = detail.classList.contains('open') ? '▲' : '▼';
+}
+window.toggleReimburseGroup = toggleReimburseGroup;
 window.startVoiceExpense = startVoiceExpense;
 
 </script>
