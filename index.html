@@ -554,7 +554,6 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   </div>
   <div class="header-right">
     <button class="add-pill voice"   onclick="startVoiceExpense()" title="Speak an expense"><span class="vmic">🎤</span> SAY IT</button>
-    <button class="add-pill sale"    onclick="openSaleModal()">+ SALE</button>
     <button class="add-pill paystub" onclick="openPaystubModal()">+ PAYSTUB</button>
     <button class="add-pill expense" onclick="openExpenseModal()">+ EXPENSE</button>
     <span class="sync-status" id="syncStatus" title="Sync status">
@@ -808,51 +807,11 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     </div>
   </div>
 
+
   <div class="card full">
     <div class="card-header">
-      <span class="icon">📋</span><h2>2026 Sales Log</h2>
-      <span class="updated" id="salesUpdated">Last updated: —</span>
-    </div>
-    <div class="ytd-bar">
-      <div class="ytd-stat"><div class="ylab">YTD Sales</div><div class="yval yellow" id="ytdSale">$0</div></div>
-      <div class="ytd-stat"><div class="ylab">YTD COG</div><div class="yval" style="color:#888" id="ytdCog">$0</div></div>
-      <div class="ytd-stat"><div class="ylab">YTD Comm</div><div class="yval green" id="ytdComm">$0</div></div>
-      <div class="ytd-stat"><div class="ylab">Avg Markup</div><div class="yval blue" id="ytdMarkup">—</div></div>
-      <div class="ytd-stat"><div class="ylab">Orders</div><div class="yval" style="color:#aaa" id="ytdOrders">0</div></div>
-    </div>
-    <div class="filter-bar">
-      <span style="font-size:0.65rem;color:#555;margin-right:4px">FILTER:</span>
-      <button class="filter-btn active" id="filterAll" onclick="filterSales('all')">All Periods</button>
-      <span id="filterBtns"></span>
-    </div>
-    <div class="sales-wrap">
-      <table class="sales-table" id="salesTable" style="display:none">
-        <thead>
-          <tr>
-            <th>Date</th><th>Cust #</th><th>Company</th>
-            <th>Sale $</th><th>COG $</th><th>Markup</th><th>Comm $</th><th>Period</th><th>Note</th>
-          </tr>
-        </thead>
-        <tbody id="salesBody"></tbody>
-      </table>
-      <div class="sales-empty" id="salesEmpty">
-        <div class="empty-icon">📋</div>
-        <p style="color:#333;font-weight:700;margin-bottom:6px">No entries yet</p>
-        <p style="color:#2a2a2a;font-size:0.78rem">Drop a ship sheet and I'll update this table right away.</p>
-      </div>
-    </div>
-    <div class="sales-footer" id="salesFooter" style="display:none">
-      <span style="color:#555;font-size:0.7rem" id="salesCount"></span>
-      <span style="color:#555;font-size:0.7rem" id="salesPeriodTotal"></span>
-    </div>
-  </div>
-
-
-  <!-- ===== COMMISSION LOG ===== -->
-  <div class="card full">
-    <div class="card-header">
-      <span class="icon">⚡</span><h2>Commission Log — Ship Sheets</h2>
-      <span class="updated" id="clUpdated">Rep: 00W784 · 22W784 · 33W784</span>
+      <span class="icon">📋</span><h2>Sales Log</h2>
+      <span class="updated" id="clUpdated">Updated from Colin's ship sheets</span>
     </div>
     <div class="ytd-bar">
       <div class="ytd-stat"><div class="ylab">YTD Sales</div><div class="yval blue" id="clYtdSales">$0</div></div>
@@ -919,7 +878,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.11 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.12 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -2458,7 +2417,7 @@ function buildTracker() {
 }
 
 function buildSalesLog() {
-  document.getElementById('salesUpdated').textContent = 'Last updated: ' + SALES_LAST_UPDATED;
+  const _su = document.getElementById('salesUpdated'); if(_su) _su.textContent = 'Last updated: ' + SALES_LAST_UPDATED;
   const periodsInData = [...new Set(salesData.map(e=>e.periodOffset))].sort((a,b)=>a-b);
   document.getElementById('filterBtns').innerHTML = periodsInData.map(o =>
     `<button class="filter-btn" id="filter_${o}" onclick="filterSales(${o})">${periodLabel(o)}</button>`
