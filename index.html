@@ -267,6 +267,8 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .recent-exp .rh { font-size:0.62rem; color:#666; letter-spacing:1.2px; text-transform:uppercase; padding:14px 0 8px; border-top:1px solid #1e1e1e; display:flex; justify-content:space-between; align-items:center; }
 .recent-exp-row { display:flex; align-items:center; gap:10px; padding:8px 6px; border-bottom:1px solid #1a1a1a; font-size:0.8rem; }
 .recent-exp-row:last-child { border-bottom:none; }
+.recent-exp-edit { background:none; border:none; cursor:pointer; padding:2px 4px; font-size:0.85rem; opacity:0.55; transition:opacity 0.2s; }
+.recent-exp-edit:hover { opacity:1; }
 .recent-exp-del { background:none; border:none; color:#2a2a2a; font-size:1.1rem; cursor:pointer; padding:2px 5px; border-radius:3px; margin-left:auto; flex-shrink:0; line-height:1; transition:color 0.15s,background 0.15s; }
 .recent-exp-del:hover { color:#e85a5a; background:#2a1010; }
 .recent-exp-who { min-width:70px; font-size:0.7rem; font-weight:600; }
@@ -917,7 +919,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.10 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.11 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1376,6 +1378,7 @@ const defaultBudgets = {
   'other':    { icon: '❓',   label: 'Other',         limit: 75  }
 };
 let budgets  = JSON.parse(JSON.stringify(defaultBudgets));
+let _editingExpenseId = null;
 let expenses = [];
 let heavyProjects = [];
 let commissionLog = [];
@@ -2084,7 +2087,8 @@ function renderBudgets() {
         <span class="recent-exp-desc">${desc}${billedBadge(e.billedTo)}</span>
         <span class="recent-exp-amt">-${f2(+e.amount||0)}</span>
         <span class="recent-exp-date">${dateLabel}</span>
-        <button class="recent-exp-del" onclick="deleteExpense('${e.id}')" title="Delete expense">×</button>
+        <button class="recent-exp-edit" onclick="editExpense('${e.id}')" title="Edit">✏️</button>
+        <button class="recent-exp-del" onclick="deleteExpense('${e.id}')" title="Delete">×</button>
       </div>`;
     };
     if (!allExp.length) {
@@ -3189,6 +3193,8 @@ async function savePaystub() {
 
 /* ---------------- + ADD EXPENSE ---------------- */
 function openExpenseModal() {
+  _editingExpenseId = null;
+  document.getElementById('expenseModal').querySelector('h2').textContent = '+ Add Expense';
   const sel = document.getElementById('expenseCat');
   sel.innerHTML = Object.keys(defaultBudgets).map(k => {
     const b = defaultBudgets[k];
@@ -3222,6 +3228,25 @@ function updateExpensePeriodLabel() {
     `Will be logged to: <b>${start.toLocaleDateString('en-US',{month:'short',day:'numeric'})} → ${end.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</b>${note}`;
 }
 
+function editExpense(id) {
+  const e = expenses.find(x => x.id === id);
+  if (!e) return;
+  _editingExpenseId = id;
+  const sel = document.getElementById('expenseCat');
+  sel.innerHTML = Object.keys(defaultBudgets).map(k =>
+    `<option value="${k}">${defaultBudgets[k].icon} ${defaultBudgets[k].label}</option>`).join('');
+  document.getElementById('expenseWho').value      = e.who || 'Justin';
+  document.getElementById('expenseBilledTo').value = e.billedTo || 'personal';
+  document.getElementById('expenseCat').value      = e.category || 'other';
+  document.getElementById('expenseAmt').value      = e.amount || '';
+  document.getElementById('expenseDesc').value     = e.description || '';
+  document.getElementById('expenseDate').value     = e.date || todayISO();
+  document.getElementById('expenseModal').querySelector('h2').textContent = 'Edit Expense';
+  openModal('expenseModal');
+  setTimeout(() => document.getElementById('expenseAmt').focus(), 50);
+}
+window.editExpense = editExpense;
+
 async function saveExpense() {
   const who      = document.getElementById('expenseWho').value;
   const billedTo = document.getElementById('expenseBilledTo').value || 'personal';
@@ -3250,12 +3275,23 @@ async function saveExpense() {
     periodOffset: viewingOffset,  // always assign to the period you're viewing
     isHeavy: false
   };
-  expenses.push(entry);
+  if (_editingExpenseId) {
+    const idx = expenses.findIndex(x => x.id === _editingExpenseId);
+    if (idx !== -1) {
+      entry.id = _editingExpenseId;
+      entry.periodOffset = expenses[idx].periodOffset;
+      expenses[idx] = entry;
+    }
+    _editingExpenseId = null;
+    showToast('✅ Updated: ' + desc + ' ($' + (+amtEl.value).toFixed(2) + ')');
+  } else {
+    expenses.push(entry);
+    showToast('✅ Logged: ' + desc + ' ($' + (+amtEl.value).toFixed(2) + ')');
+  }
   await saveKey('expenses', expenses);
   calc();
   renderBudgets();
   closeModal('expenseModal');
-  showToast('✅ Expense logged: ' + desc + ' ($' + (+amtEl.value).toFixed(2) + ')');
 }
 window.openExpenseModal = openExpenseModal;
 window.saveExpense      = saveExpense;
