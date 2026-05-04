@@ -1424,6 +1424,18 @@ async function hydrateFromCloud() {
     if (expenses.length !== before) await saveKey('expenses', expenses);
     localStorage.setItem('testGasCleared_v2', '1');
   }
+  // ONE-TIME: reset commissionLog if Supabase has empty/stale data
+  if (!localStorage.getItem('clReset_v1') || commissionLog.length === 0) {
+    commissionLog = DEFAULT_COMMISSION_LOG;
+    await saveKey('commissionLog', DEFAULT_COMMISSION_LOG);
+    localStorage.setItem('clReset_v1', '1');
+  }
+  // ONE-TIME: reset runningTabs if Supabase has empty/stale data
+  if (!localStorage.getItem('tabsReset_v1') || runningTabs.length === 0) {
+    runningTabs = DEFAULT_TABS;
+    await saveKey('runningTabs', DEFAULT_TABS);
+    localStorage.setItem('tabsReset_v1', '1');
+  }
   // budgets
   const cloudBudgets = await loadKey('budgets', null);
   if (cloudBudgets && typeof cloudBudgets === 'object') budgets = cloudBudgets;
@@ -2638,12 +2650,14 @@ const DEFAULT_COMMISSION_LOG = [
   },
   {
     label:"Apr 29 – May 12, 2026", check:"May 15, 2026", periodOffset:1,
-    sales:11199.60, cog:6960.00, comm:740.17,
+    sales:18613.35, cog:11332.50, comm:1390.53,
     orders:[
       {date:"04/29/2026",acct:"00COL2019",company:"COLONNELLI BROTHERS INC",type:"RUN",sales:5599.80,cog:3480.00,markup:1.61,comm:447.98},
       {date:"04/29/2026",acct:"00COL2019",company:"COLONNELLI BROTHERS INC",type:"RUN",sales:5599.80,cog:3480.00,markup:1.61,comm:447.98},
       {date:"04/29/2026",acct:"00COL2019",company:"COLONNELLI BROTHERS INC",type:"RUN",sales:0,cog:0,markup:null,comm:-130.80},
-      {date:"04/29/2026",acct:"00ABO2020",company:"ABOVE & BELOW CONTRACTING LLC",type:"RUN",sales:0,cog:0,markup:null,comm:-25.00}
+      {date:"04/29/2026",acct:"00ABO2020",company:"ABOVE & BELOW CONTRACTING LLC",type:"RUN",sales:0,cog:0,markup:null,comm:-25.00},
+      {date:"05/01/2026",acct:"00WALSH88",company:"WALSH CONSTRUCTION",type:"RUN",sales:3264.00,cog:1972.50,markup:1.65,comm:235.38},
+      {date:"05/01/2026",acct:"00BHS2019",company:"BHS CONCRETE LLC",type:"RUN",sales:4149.75,cog:2400.00,markup:1.73,comm:414.98}
     ]
   }
 ];
