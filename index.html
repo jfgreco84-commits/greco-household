@@ -878,7 +878,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.12 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.13 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -2429,12 +2429,7 @@ function buildTracker() {
 }
 
 function buildSalesLog() {
-  const _su = document.getElementById('salesUpdated'); if(_su) _su.textContent = 'Last updated: ' + SALES_LAST_UPDATED;
-  const periodsInData = [...new Set(salesData.map(e=>e.periodOffset))].sort((a,b)=>a-b);
-  document.getElementById('filterBtns').innerHTML = periodsInData.map(o =>
-    `<button class="filter-btn" id="filter_${o}" onclick="filterSales(${o})">${periodLabel(o)}</button>`
-  ).join('');
-  renderSalesLog();
+  // Sales Log card removed — DOM elements gone, nothing to render
 }
 
 function filterSales(which) {
@@ -2445,45 +2440,8 @@ function filterSales(which) {
   renderSalesLog();
 }
 
-function renderSalesLog() {
-  const tbody  = document.getElementById('salesBody');
-  const empty  = document.getElementById('salesEmpty');
-  const table  = document.getElementById('salesTable');
-  const footer = document.getElementById('salesFooter');
-  const fp = n => n>0 ? n.toFixed(2)+'x' : '—';
-  const filtered = salesFilter==='all' ? salesData : salesData.filter(e=>e.periodOffset===salesFilter);
-  if (salesData.length===0) { empty.style.display='block'; table.style.display='none'; footer.style.display='none'; updateYTD([]); return; }
-  empty.style.display='none'; table.style.display='table'; footer.style.display='flex';
-  const groups = {};
-  filtered.forEach(e=>{ if(!groups[e.periodOffset]) groups[e.periodOffset]=[]; groups[e.periodOffset].push(e); });
-  const sortedPeriods = Object.keys(groups).map(Number).sort((a,b)=>b-a);
-  let html='';
-  sortedPeriods.forEach(po=>{
-    const entries = groups[po].sort((a,b)=>new Date(b.date)-new Date(a.date));
-    const {check} = getPeriod(po);
-    html += `<tr><td colspan="9" style="background:#0a120a;color:#4a7a4a;font-size:0.65rem;font-weight:700;letter-spacing:1px;padding:7px 12px;border-top:1px solid #1a3a1a;text-transform:uppercase">📅 ${periodLabel(po)} — Check: ${fmtShort(check)}</td></tr>`;
-    entries.forEach(e=>{
-      const mkp = (e.sale>0&&e.cog>0) ? e.sale/e.cog : 0;
-      html+=`<tr><td>${e.date}</td><td style="color:#555;font-size:0.75rem">${e.custNum||''}</td><td style="color:#ddd;font-weight:600">${e.company}</td><td class="sale-amt">${e.sale>0?f2(e.sale):'—'}</td><td style="color:#777">${e.cog>0?f2(e.cog):'—'}</td><td class="markup-val">${mkp>0?fp(mkp):'—'}</td><td class="comm-amt">${f2(e.comm)}</td><td class="period-label">${periodLabel(po)}</td><td style="font-size:0.72rem;color:#444">${e.note||''}</td></tr>`;
-    });
-    const ts=entries.reduce((s,e)=>s+e.sale,0), tc=entries.reduce((s,e)=>s+e.cog,0), tco=entries.reduce((s,e)=>s+e.comm,0);
-    html+=`<tr class="period-total"><td colspan="3" style="color:#4a7a4a">TOTAL — ${entries.length} order${entries.length!==1?'s':''}</td><td class="sale-amt">${ts>0?f2(ts):'—'}</td><td style="color:#555">${tc>0?f2(tc):'—'}</td><td class="markup-val">${tc>0?fp(ts/tc):'—'}</td><td class="comm-amt">${f2(tco)}</td><td colspan="2"></td></tr>`;
-  });
-  tbody.innerHTML = html;
-  const tComm = filtered.reduce((s,e)=>s+e.comm,0);
-  document.getElementById('salesCount').textContent = `${filtered.length} order${filtered.length!==1?'s':''} shown`;
-  document.getElementById('salesPeriodTotal').textContent = salesFilter!=='all' ? `Period comm: ${f2(tComm)}` : `YTD comm: ${f2(tComm)}`;
-  updateYTD(salesData);
-}
-
-function updateYTD(data) {
-  const ts=data.reduce((s,e)=>s+e.sale,0), tc=data.reduce((s,e)=>s+e.cog,0), tco=data.reduce((s,e)=>s+e.comm,0);
-  document.getElementById('ytdSale').textContent   = f0(ts);
-  document.getElementById('ytdCog').textContent    = f0(tc);
-  document.getElementById('ytdComm').textContent   = f0(tco);
-  document.getElementById('ytdMarkup').textContent = (ts>0&&tc>0) ? (ts/tc).toFixed(2)+'x' : '—';
-  document.getElementById('ytdOrders').textContent = data.length;
-}
+function renderSalesLog() { /* Sales Log card removed */ }
+function updateYTD(data) { /* Sales Log card removed */ }
 
 
 /* ============================================================
