@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.9 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.10 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -3253,6 +3253,7 @@ async function saveExpense() {
   expenses.push(entry);
   await saveKey('expenses', expenses);
   calc();
+  renderBudgets();
   closeModal('expenseModal');
   showToast('✅ Expense logged: ' + desc + ' ($' + (+amtEl.value).toFixed(2) + ')');
 }
