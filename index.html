@@ -917,7 +917,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.8 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.9 — BILLS BY DUE DATE</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -3247,7 +3247,7 @@ async function saveExpense() {
     category: cat,
     amount: +amtEl.value,
     description: desc,
-    periodOffset: offsetForDate(date),
+    periodOffset: viewingOffset,  // always assign to the period you're viewing
     isHeavy: false
   };
   expenses.push(entry);
