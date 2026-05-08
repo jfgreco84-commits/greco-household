@@ -403,6 +403,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .biz-nav-btn.active { background:#1e2e10; color:#7ecb40; border-color:#4a7a20; }
 .biz-nav-btn.active.dbw { background:#1a2040; color:#7fb3e8; border-color:#2a4080; }
 .biz-nav-btn.active.bsol { background:#2a1a0a; color:#e8a05a; border-color:#7a4a1a; }
+.biz-nav-btn.active.dotdyn { background:#0a1a2a; color:#5ab8e8; border-color:#1a6a9a; }
 /* ---- DBW / BSOL expense sections ---- */
 .biz-exp-period { background:#111; border-radius:8px; margin:8px 12px; overflow:hidden; }
 .biz-exp-period-hdr { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:#181818; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; color:#666; text-transform:uppercase; }
@@ -607,10 +608,18 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   <div class="hnum hero-divider"><div class="hlabel">Net Position</div><div class="hval blue" id="bsolHeroNet">$0</div></div>
 </div>
 
+<!-- Dot Dynasty Hero -->
+<div class="hero" id="hero_dotdyn" style="display:none">
+  <div class="hnum"><div class="hlabel">YTD Revenue</div><div class="hval gold" id="ddHeroRev">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">YTD Expenses</div><div class="hval red" id="ddHeroExp">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">Net Profit</div><div class="hval green" id="ddHeroNet">$0</div></div>
+</div>
+
 <div class="biz-nav" id="bizNav">
-  <button class="biz-nav-btn active" id="bizBtn_personal" onclick="switchBizTab('personal')">🏠 Personal</button>
-  <button class="biz-nav-btn dbw"    id="bizBtn_dbw"      onclick="switchBizTab('dbw')">💼 DBW Spiff</button>
-  <button class="biz-nav-btn bsol"   id="bizBtn_bsol"     onclick="switchBizTab('bsol')">🔑 Best Solution</button>
+  <button class="biz-nav-btn active"  id="bizBtn_personal" onclick="switchBizTab('personal')">🏠 Personal</button>
+  <button class="biz-nav-btn dbw"     id="bizBtn_dbw"      onclick="switchBizTab('dbw')">💼 DBW Spiff</button>
+  <button class="biz-nav-btn bsol"    id="bizBtn_bsol"     onclick="switchBizTab('bsol')">🔑 Best Solution ↗</button>
+  <button class="biz-nav-btn dotdyn"  id="bizBtn_dotdyn"   onclick="switchBizTab('dotdyn')">🔵 Dot Dynasty</button>
 </div>
 
 <div class="main">
@@ -875,10 +884,28 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   </div>
 </div>
 
+<div id="bizSection_dotdyn" style="display:none">
+  <div class="card full">
+    <div class="card-header">
+      <span class="icon">🔵</span><h2>Dot Dynasty LLC</h2>
+      <button class="reset-btn" onclick="openDotDynModal()">+ Add</button>
+    </div>
+    <div style="padding:4px 12px 8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="biz-nav-btn" id="ddTabExp"    onclick="setDotDynTab('expenses')"  style="flex:1;min-width:80px">💸 Expenses</button>
+      <button class="biz-nav-btn" id="ddTabRev"    onclick="setDotDynTab('revenue')"   style="flex:1;min-width:80px">💰 Revenue</button>
+      <button class="biz-nav-btn" id="ddTabEvents" onclick="setDotDynTab('events')"    style="flex:1;min-width:80px">📅 Events</button>
+    </div>
+    <div id="ddContent" style="padding:0 0 12px">
+      <div class="biz-empty-msg">Select a tab above to view Dot Dynasty data.</div>
+    </div>
+    <div id="ddTotalLabel" style="text-align:center;padding:8px;font-size:0.75rem;color:#666;letter-spacing:1px"></div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.14 — BILLS BY DUE DATE</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.15 — BILLS BY DUE DATE · DOT DYNASTY TAB ADDED</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1008,6 +1035,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
       <option value="personal">💳 Personal</option>
       <option value="dbw">💼 DBW Spiff (reimbursed by work)</option>
       <option value="bsol">🔑 Best Solution (business)</option>
+      <option value="dotdyn">🔵 Dot Dynasty LLC</option>
     </select>
     <label for="expenseCat">Category</label>
     <select id="expenseCat"></select>
@@ -1316,10 +1344,19 @@ const defaultBills = [
   { name:'AAA Life',             monthly:47,   dueDay:1,       note:'Due ~1st' },
   { name:'Acadia (1st check)',   monthly:250,  dueDay:1,       note:'$250 — 1st check of month' },
   { name:'Acadia (2nd check)',   monthly:250,  dueDay:15,      note:'$250 — 2nd check of month' },
-  { name:'WE Energies',          monthly:400,  dueDay:20,      note:'Due ~20th' },
+  { name:'WE Energies',          monthly:393,  dueDay:20,      note:'Due ~20th' },
   { name:'Choice Home Warranty', monthly:50,   dueDay:1,       note:'Due ~1st' },
   { name:'Spectrum',             monthly:91,   dueDay:15,      note:'Due ~15th' },
   { name:'Water Bill',           monthly:100,  dueDay:20,      note:'Quarterly — due ~20th' },
+  { name:'Capital One',          monthly:10,   dueDay:5,       note:'Due ~5th' },
+  { name:'Credit One (Card 1)',  monthly:38,   dueDay:6,       note:'Due ~6th' },
+  { name:'Credit One (Card 2)',  monthly:30,   dueDay:7,       note:'Due ~7th' },
+  { name:'Credit One (Card 3)',  monthly:30,   dueDay:7,       note:'Due ~7th' },
+  { name:'Netflix',              monthly:28,   dueDay:7,       note:'Due ~7th' },
+  { name:'Apple (iCloud)',       monthly:5.26, dueDay:7,       note:'Due ~7th' },
+  { name:'Prime Video',          monthly:12.65,dueDay:8,       note:'Due ~8th' },
+  { name:'Apple (Music)',        monthly:10.52,dueDay:8,       note:'Due ~8th' },
+  { name:'Affirm',               monthly:32.07,dueDay:8,       note:'Due ~8th' },
 ];
 let bills = JSON.parse(JSON.stringify(defaultBills));
 let billsPaid = {}; // { '<periodOffset>': { '<billName>': { paidDate, paidBy } } }
@@ -2090,7 +2127,7 @@ function renderMonthlySummary() {
   if (!months.includes(currentMonth)) months.unshift(currentMonth);
 
   const previouslySelected = sel.value || currentMonth;
-  sel.innerHTML = '<option value="ALL">All Time</option>' + months.map(m => {
+  sel.innerHTML = '<option value="ALL">📊 YTD — All Time</option>' + months.map(m => {
     const [y, mm] = m.split('-');
     const dt = new Date(+y, +mm - 1, 1);
     const label = dt.toLocaleDateString('en-US', {month:'long', year:'numeric'});
@@ -2143,6 +2180,39 @@ function renderMonthlySummary() {
 
   const grandTotal = filtered.reduce((s,e) => s + (+e.amount || 0), 0);
   document.getElementById('summaryGrandTotal').textContent = f0(grandTotal);
+
+  // ===== YTD RUNNING TALLY =====
+  const ytdEl = document.getElementById('summaryYTD');
+  if (ytdEl) {
+    const ytdTotal = expenses.reduce((s,e) => s + (+e.amount||0), 0);
+    const ytdJustin = expenses.filter(e=>e.who==='Justin').reduce((s,e)=>s+(+e.amount||0),0);
+    const ytdMichele = expenses.filter(e=>e.who==='Michele').reduce((s,e)=>s+(+e.amount||0),0);
+    const ytdJoint = expenses.filter(e=>e.who==='Joint').reduce((s,e)=>s+(+e.amount||0),0);
+    // Pay-period breakdown for current filter
+    const periodGroups = {};
+    filtered.forEach(e => {
+      const k = e.periodOffset !== undefined ? e.periodOffset : 0;
+      if (!periodGroups[k]) periodGroups[k] = 0;
+      periodGroups[k] += (+e.amount || 0);
+    });
+    const periodRows = Object.entries(periodGroups)
+      .sort((a,b) => +b[0] - +a[0])
+      .map(([off, amt]) => `<div class="summary-row"><span class="summary-cat">${periodLabel(+off)}</span><span class="summary-amt">${f0(amt)}</span></div>`)
+      .join('');
+    ytdEl.innerHTML = `
+      <div class="summary-col" style="background:#111;border:1px solid #222;border-radius:10px;padding:12px">
+        <div class="summary-head">📊 YTD TOTALS</div>
+        <div class="summary-total">${f0(ytdTotal)}</div>
+        <div class="summary-count" style="margin-bottom:8px">all tracked expenses</div>
+        <div class="summary-divider"></div>
+        <div class="summary-row"><span class="summary-cat">🦊 Justin</span><span class="summary-amt">${f0(ytdJustin)}</span></div>
+        <div class="summary-row"><span class="summary-cat">💜 Michele</span><span class="summary-amt">${f0(ytdMichele)}</span></div>
+        <div class="summary-row"><span class="summary-cat">👫 Joint</span><span class="summary-amt">${f0(ytdJoint)}</span></div>
+        <div class="summary-divider" style="margin-top:8px"></div>
+        <div style="font-size:0.62rem;letter-spacing:1px;text-transform:uppercase;color:#555;margin:6px 0 4px">By Pay Period${selected!=='ALL'?' (filtered)':' (all)'}</div>
+        ${periodRows || '<div style="color:#444;font-size:0.75rem">No periods yet</div>'}
+      </div>`;
+  }
 
   const vsEl = document.getElementById('summaryVsLast');
   if (selected === 'ALL') {
@@ -3285,32 +3355,53 @@ window.toggleReimburseGroup = toggleReimburseGroup;
 /* ---- BIZ TAB SWITCHER ---- */
 let activeBizTab = 'personal';
 function switchBizTab(tab) {
+  // Best Solution → redirect to standalone app
+  if (tab === 'bsol') {
+    window.open('https://jfgreco84-commits.github.io/best-solution-app/BEST_SOLUTION_APP.html', '_blank');
+    return;
+  }
+  // Dot Dynasty
   activeBizTab = tab;
-  ['personal','dbw','bsol'].forEach(t => {
+  ['personal','dbw','bsol','dotdyn'].forEach(t => {
     const btn = document.getElementById('bizBtn_' + t);
     if (btn) btn.classList.toggle('active', t === tab);
   });
   // Swap hero panels
-  const hp = document.getElementById('hero_personal');
-  const hd = document.getElementById('hero_dbw');
-  const hb = document.getElementById('hero_bsol');
-  if (hp) hp.style.display = (tab === 'personal') ? '' : 'none';
-  if (hd) hd.style.display = (tab === 'dbw')      ? '' : 'none';
-  if (hb) hb.style.display = (tab === 'bsol')     ? '' : 'none';
+  const hp  = document.getElementById('hero_personal');
+  const hd  = document.getElementById('hero_dbw');
+  const hb  = document.getElementById('hero_bsol');
+  const hdd = document.getElementById('hero_dotdyn');
+  if (hp)  hp.style.display  = (tab === 'personal') ? '' : 'none';
+  if (hd)  hd.style.display  = (tab === 'dbw')      ? '' : 'none';
+  if (hb)  hb.style.display  = (tab === 'bsol')     ? '' : 'none';
+  if (hdd) hdd.style.display = (tab === 'dotdyn')   ? '' : 'none';
   // Swap content sections
   const personalSec = document.getElementById('personalSection');
   const dbwSec      = document.getElementById('bizSection_dbw');
   const bsolSec     = document.getElementById('bizSection_bsol');
+  const dotdynSec   = document.getElementById('bizSection_dotdyn');
   if (personalSec) personalSec.style.display = (tab === 'personal') ? '' : 'none';
   if (dbwSec)      dbwSec.style.display      = (tab === 'dbw')      ? '' : 'none';
   if (bsolSec)     bsolSec.style.display     = (tab === 'bsol')     ? '' : 'none';
-  if (tab === 'dbw')  { renderBizExpenses('dbw');  updateBizHero('dbw');  }
-  if (tab === 'bsol') { renderBizExpenses('bsol'); updateBizHero('bsol'); }
+  if (dotdynSec)   dotdynSec.style.display   = (tab === 'dotdyn')   ? '' : 'none';
+  if (tab === 'dbw')    { renderBizExpenses('dbw');    updateBizHero('dbw');    }
+  if (tab === 'dotdyn') { renderBizExpenses('dotdyn'); updateBizHero('dotdyn'); }
 }
 
 function updateBizHero(type) {
   const typeExps = expenses.filter(e => e.billedTo === type);
   const total = typeExps.reduce((s,e) => s + (+e.amount||0), 0);
+  if (type === 'dotdyn') {
+    const revEl  = document.getElementById('ddHeroRev');
+    const expEl  = document.getElementById('ddHeroExp');
+    const netEl  = document.getElementById('ddHeroNet');
+    const rev = (window._ddRevenue || []).reduce((s,r) => s + (+r.amount||0), 0);
+    if (revEl) revEl.textContent = f0(rev);
+    if (expEl) expEl.textContent = f0(total);
+    const net = rev - total;
+    if (netEl) { netEl.textContent = f0(Math.abs(net)); netEl.className = 'hval ' + (net >= 0 ? 'green' : 'red'); }
+    return;
+  }
   if (type === 'dbw') {
     // Spiff budget: to be linked later — show $0 until connected
     const spiff = 0; // placeholder — will link to spiff sheet later
@@ -3337,6 +3428,7 @@ window.updateBizHero = updateBizHero;
 window.switchBizTab = switchBizTab;
 
 function renderBizExpenses(type) {
+  if (type === 'dotdyn') { renderDotDynContent(); updateBizHero('dotdyn'); return; }
   const listId    = type === 'dbw' ? 'dbwExpList'    : 'bsolExpList';
   const labelId   = type === 'dbw' ? 'dbwTotalLabel' : 'bsolTotalLabel';
   const badge     = type === 'dbw' ? '💼 DBW'        : '🔑 Best Solution';
@@ -3388,6 +3480,94 @@ function renderBizExpenses(type) {
 }
 window.renderBizExpenses = renderBizExpenses;
 window.startVoiceExpense = startVoiceExpense;
+
+/* ---- DOT DYNASTY TAB LOGIC ---- */
+let _ddTab = 'expenses';
+window._ddRevenue = JSON.parse(localStorage.getItem('ddRevenue') || '[]');
+
+function setDotDynTab(tab) {
+  _ddTab = tab;
+  ['expenses','revenue','events'].forEach(t => {
+    const b = document.getElementById('ddTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (b) b.classList.toggle('active', t === tab);
+  });
+  renderDotDynContent();
+}
+
+function renderDotDynContent() {
+  const el = document.getElementById('ddContent');
+  const lbl = document.getElementById('ddTotalLabel');
+  if (!el) return;
+
+  if (_ddTab === 'expenses') {
+    const typeExps = expenses.filter(e => e.billedTo === 'dotdyn');
+    if (typeExps.length === 0) {
+      el.innerHTML = '<div class="biz-empty-msg">No Dot Dynasty expenses logged yet.<br><small style="color:#333">Log an expense and set Billed To = Dot Dynasty.</small></div>';
+      if (lbl) lbl.textContent = '';
+      return;
+    }
+    const total = typeExps.reduce((s,e) => s + (+e.amount||0), 0);
+    const sorted = [...typeExps].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    el.innerHTML = sorted.map(e => {
+      const who = e.who ? ' · ' + e.who : '';
+      return '<div class="biz-exp-row">' +
+        '<span class="biz-r-left">' + (e.description||'—') +
+        '<small>' + (e.date||'') + who + ' · ' + (e.category||'other') + '</small></span>' +
+        '<span class="biz-r-amt">-' + f2(+e.amount||0) + '</span></div>';
+    }).join('');
+    if (lbl) lbl.textContent = '-' + f2(total) + ' total expenses';
+
+  } else if (_ddTab === 'revenue') {
+    const revList = window._ddRevenue || [];
+    if (revList.length === 0) {
+      el.innerHTML = '<div class="biz-empty-msg">No revenue logged yet.<br><button class="reset-btn" style="margin-top:10px" onclick="openDotDynModal()">+ Log Revenue</button></div>';
+      if (lbl) lbl.textContent = '';
+      return;
+    }
+    const total = revList.reduce((s,r) => s + (+r.amount||0), 0);
+    const sorted = [...revList].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    el.innerHTML = sorted.map(r => {
+      return '<div class="biz-exp-row">' +
+        '<span class="biz-r-left">' + (r.description||'—') +
+        '<small>' + (r.date||'') + ' · ' + (r.event||'') + '</small></span>' +
+        '<span class="biz-r-amt" style="color:#7ecb40">+' + f2(+r.amount||0) + '</span></div>';
+    }).join('');
+    if (lbl) lbl.textContent = '+' + f2(total) + ' total revenue';
+
+  } else if (_ddTab === 'events') {
+    const events = [
+      { name:'Cranberry Fest', date:'2026-05-xx', cost:450, status:'upcoming', note:'Booth fee — Dot Dynasty' },
+    ];
+    el.innerHTML = events.map(ev => {
+      return '<div class="biz-exp-row">' +
+        '<span class="biz-r-left">' + ev.name +
+        '<small>' + ev.date + ' · ' + ev.status + ' · ' + (ev.note||'') + '</small></span>' +
+        '<span class="biz-r-amt">-' + f2(ev.cost) + '</span></div>';
+    }).join('');
+    if (lbl) lbl.textContent = 'Trade shows & events';
+  }
+}
+
+function openDotDynModal() {
+  // Reuse expense modal with billedTo preset to dotdyn
+  openExpenseModal();
+  setTimeout(() => {
+    const bt = document.getElementById('expenseBilledTo');
+    if (bt) {
+      // Check if dotdyn option exists, if not add it
+      if (!bt.querySelector('option[value="dotdyn"]')) {
+        const opt = document.createElement('option');
+        opt.value = 'dotdyn'; opt.textContent = '🔵 Dot Dynasty';
+        bt.appendChild(opt);
+      }
+      bt.value = 'dotdyn';
+    }
+  }, 100);
+}
+
+window.setDotDynTab   = setDotDynTab;
+window.renderDotDynContent = renderDotDynContent;
+window.openDotDynModal = openDotDynModal;
 
 </script>
 </html>
