@@ -1537,6 +1537,14 @@ async function hydrateFromCloud() {
   const cloudRollovers = await loadKey('billRollovers', null);
   if (cloudRollovers && Array.isArray(cloudRollovers)) billRollovers = cloudRollovers;
   else { billRollovers = []; await saveKey('billRollovers', []); }
+  // Safety net: ensure runningTabs always has data regardless of reset flag state
+  if (!runningTabs || !runningTabs.length) {
+    const savedTabs = await loadKey('runningTabs', null);
+    runningTabs = (savedTabs && Array.isArray(savedTabs) && savedTabs.length)
+      ? savedTabs
+      : JSON.parse(JSON.stringify(DEFAULT_TABS));
+    await saveKey('runningTabs', runningTabs);
+  }
   // Migrate legacy isHeavy expenses → heavyProjects (status='paid')
   await migrateHeavyExpenses();
 }
