@@ -1358,6 +1358,7 @@ const defaultBills = [
   { name:'Amazon Prime',         monthly:15.07, dueDay:25,      note:'Due ~25th (AMEX)' },
   { name:'IV Nutrition',         monthly:68,    dueDay:1,       note:'~$34 twice/month — 1st & 15th' },
   { name:'Primo Brands/Water',   monthly:14.76, dueDay:21,      note:'Due ~21st — water delivery' },
+  { name:'Nextiva (VoIP)',       monthly:251.54,dueDay:1,       note:'Due ~1st — business phone line (on PNC)' },
 ];
 let bills = JSON.parse(JSON.stringify(defaultBills));
 let billsPaid = {}; // { '<periodOffset>': { '<billName>': { paidDate, paidBy } } }
