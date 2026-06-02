@@ -531,6 +531,25 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .tab-hist-empty { padding:14px 16px; color:#333; font-size:0.72rem; font-style:italic; }
 .tab-missed-badge { background:#3a1a1a; color:#e85a5a; border-radius:3px; font-size:0.6rem; font-weight:700; padding:1px 5px; letter-spacing:0.3px; }
 .tab-extra-badge { background:#1a3a2a; color:#5dbb8a; border-radius:3px; font-size:0.6rem; font-weight:700; padding:1px 5px; letter-spacing:0.3px; }
+
+/* ---- BILL ROLLOVERS ---- */
+.rollover-section { padding:10px 16px 4px; border-top:1px dashed #3a2a0a; background:#0f0d07; }
+.rollover-section-title { font-size:0.58rem; color:#8b6f1a; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+.rollover-section-title::after { content:''; flex:1; border-top:1px dashed #2a1e04; }
+.rollover-item { background:#1a1500; border:1px solid #3a2c08; border-left:3px solid #e8a05a; border-radius:6px; padding:10px 12px; margin-bottom:7px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.rollover-item.paid { border-left-color:#5dbb8a; opacity:0.7; }
+.rollover-name { flex:1; min-width:120px; }
+.rollover-name .rn-main { font-size:0.84rem; color:#e8a05a; font-weight:700; }
+.rollover-item.paid .rn-main { color:#5dbb8a; text-decoration:line-through; }
+.rollover-name .rn-meta { font-size:0.63rem; color:#666; margin-top:2px; }
+.rollover-amt { color:#e85a5a; font-weight:800; font-size:0.9rem; min-width:64px; text-align:right; }
+.rollover-item.paid .rollover-amt { color:#5dbb8a; }
+.rollover-pay-btn { background:#2a1a08; color:#e8a05a; border:1px solid #5a3a1e; border-radius:5px; padding:6px 12px; font-size:0.7rem; font-weight:800; cursor:pointer; min-height:34px; letter-spacing:0.3px; }
+.rollover-pay-btn:hover { background:#3a2a12; }
+.rollover-del { background:none; border:none; color:#2a2a2a; font-size:1.1rem; cursor:pointer; padding:3px 7px; border-radius:4px; line-height:1; }
+.rollover-del:hover { color:#e85a5a; background:#2a1010; }
+.bill-roll-btn { background:#1e1a08; color:#8b6f1a; border:1px solid #3a2e0a; border-radius:5px; padding:5px 9px; font-size:0.65rem; font-weight:700; cursor:pointer; min-height:32px; letter-spacing:0.3px; margin-left:4px; }
+.bill-roll-btn:hover { background:#2a2210; color:#e8a05a; }
 </style>
 </head>
 <body>
@@ -712,6 +731,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
       <div class="bills-summary-meta" id="billsSumMeta">0% paid · 0 of 0 bills fully paid</div>
     </div>
     <div class="bills-grid" id="billsGrid"></div>
+    <div id="billsRolloverSection"></div>
     <div class="bills-footer">
       <span class="note">Monthly ÷ 2 = per-check share</span>
       <div>
@@ -957,6 +977,29 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     <div id="billHistoryList"></div>
     <div class="modal-actions">
       <button class="modal-btn cancel" onclick="closeModal('billHistoryModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="rolloverModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal('rolloverModal')">×</button>
+    <h2>↩ Roll Bill to Next Period</h2>
+    <div class="msub" id="rolloverBillName">—</div>
+    <input type="hidden" id="rolloverBillId">
+    <div class="paybill-stats">
+      <div><span class="lbl">Remaining this period:</span> <span class="val red" id="rolloverRemainAmt">$0</span></div>
+    </div>
+    <label for="rolloverAmt">Amount to roll over *</label>
+    <input type="number" id="rolloverAmt" step="0.01" inputmode="decimal" placeholder="0.00">
+    <label for="rolloverNote">Note <span style="color:#444;text-transform:none;letter-spacing:0">(optional)</span></label>
+    <input type="text" id="rolloverNote" placeholder="e.g. tight check, catch up next period">
+    <div style="margin-top:14px;padding:10px 12px;background:#1a1500;border:1px solid #3a2c08;border-radius:6px;font-size:0.75rem;color:#8b6f1a;line-height:1.5;">
+      ⚠️ This will <strong style="color:#e8a05a">not</strong> mark the bill as paid — it just adds a reminder to your next period's bills section so you don't forget.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal('rolloverModal')">Cancel</button>
+      <button class="modal-btn save" onclick="saveRollover()" style="background:#e8a05a">ROLL IT →</button>
     </div>
   </div>
 </div>
@@ -1301,6 +1344,7 @@ let expenses = [];
 let heavyProjects = [];
 let commissionLog = [];
 let runningTabs = [];
+let billRollovers = []; // {id, billName, amount, fromPeriodOffset, fromPeriodLabel, note, paid}
 
 const DEFAULT_TABS = [
   {
@@ -1334,7 +1378,8 @@ const DEFAULT_TABS = [
       { id:'p_ac_21', date:'2026-03-20', amount:324,  note:'Via product 3/20/26' },
       { id:'p_ac_22', date:'2026-04-03', amount:0,    note:'MISSED', missed:true },
       { id:'p_ac_23', date:'2026-04-17', amount:918,  note:'$180 product + $738 cash' },
-      { id:'p_ac_24', date:'2026-05-01', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 1, 2026' }
+      { id:'p_ac_24', date:'2026-05-01', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 1, 2026' },
+      { id:'p_ac_25', date:'2026-05-29', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 29, 2026' }
     ]
   },
   {
@@ -1342,10 +1387,12 @@ const DEFAULT_TABS = [
     name: 'Martone — Best Solution',
     emoji: '💼',
     original: 10000,
-    perCheck: null,
-    note: 'Best Solution product inventory · Tab started May 1, 2026',
+    perCheck: 250,
+    note: 'Best Solution jewelry/glass polish inventory · $250/check',
     payments: [
-      { id:'p_bs_01', date:'2026-05-01', amount:250, note:'Via M&E Distributors — May 1, 2026' }
+      { id:'p_bs_01', date:'2026-05-01', amount:250, note:'Check payment — May 1, 2026' },
+      { id:'p_bs_02', date:'2026-05-15', amount:250, note:'Check payment — May 15, 2026' },
+      { id:'p_bs_03', date:'2026-05-29', amount:250, note:'Check payment — May 29, 2026' }
     ]
   }
 ];
@@ -1395,6 +1442,12 @@ async function hydrateFromCloud() {
     await saveKey('runningTabs', DEFAULT_TABS);
     localStorage.setItem('tabsReset_v1', '1');
   }
+  // v2: force-reseed to pick up Martone 3rd payment + Batman May-29
+  if (!localStorage.getItem('tabsReset_v2')) {
+    runningTabs = DEFAULT_TABS;
+    await saveKey('runningTabs', DEFAULT_TABS);
+    localStorage.setItem('tabsReset_v2', '1');
+  }
   // budgets
   const cloudBudgets = await loadKey('budgets', null);
   if (cloudBudgets && typeof cloudBudgets === 'object') budgets = cloudBudgets;
@@ -1422,13 +1475,21 @@ async function hydrateFromCloud() {
     await saveKey('commissionLog', DEFAULT_COMMISSION_LOG);
   }
   // runningTabs (Batman Acadia + Martone Best Solution debt trackers)
-  const cloudTabs = await loadKey('runningTabs', null);
-  if (cloudTabs && Array.isArray(cloudTabs) && cloudTabs.length) {
-    runningTabs = cloudTabs;
-  } else {
-    runningTabs = DEFAULT_TABS;
-    await saveKey('runningTabs', DEFAULT_TABS);
+  // Skip cloud load if we just force-reset this session (v2 reset takes priority)
+  if (localStorage.getItem('tabsReset_v2_loaded')) {
+    const cloudTabs = await loadKey('runningTabs', null);
+    if (cloudTabs && Array.isArray(cloudTabs) && cloudTabs.length) {
+      runningTabs = cloudTabs;
+    } else {
+      runningTabs = DEFAULT_TABS;
+      await saveKey('runningTabs', DEFAULT_TABS);
+    }
   }
+  localStorage.setItem('tabsReset_v2_loaded', '1');
+  // billRollovers
+  const cloudRollovers = await loadKey('billRollovers', null);
+  if (cloudRollovers && Array.isArray(cloudRollovers)) billRollovers = cloudRollovers;
+  else { billRollovers = []; await saveKey('billRollovers', []); }
   // Migrate legacy isHeavy expenses → heavyProjects (status='paid')
   await migrateHeavyExpenses();
 }
@@ -1705,9 +1766,11 @@ function renderBills() {
     if (fully) {
       actionHtml = `<button class="bill-paid-badge" onclick="openBillHistoryModal('${safeName}')" title="View payment history">✅ PAID</button>`;
     } else if (partial) {
-      actionHtml = `<button class="bill-pay-btn pay-more" onclick="openPayBillModal('${safeName}')">+ PAY MORE</button>`;
+      actionHtml = `<button class="bill-pay-btn pay-more" onclick="openPayBillModal('${safeName}')">+ PAY MORE</button>
+                    <button class="bill-roll-btn" onclick="openRolloverModal('${safeName}')" title="Roll remaining to next period">↩ Roll</button>`;
     } else {
-      actionHtml = `<button class="bill-pay-btn" onclick="openPayBillModal('${safeName}')">+ PAY</button>`;
+      actionHtml = `<button class="bill-pay-btn" onclick="openPayBillModal('${safeName}')">+ PAY</button>
+                    <button class="bill-roll-btn" onclick="openRolloverModal('${safeName}')" title="Roll to next period">↩ Roll</button>`;
     }
 
     // Progress bar (only if there are payments)
@@ -1745,7 +1808,86 @@ function renderBills() {
   }).join('');
   updateBillsSummary();
   calcBills();
+  renderRollovers();
 }
+
+/* ---- ROLLOVER FUNCTIONS ---- */
+function renderRollovers() {
+  const sec = document.getElementById('billsRolloverSection');
+  if (!sec) return;
+  // Show rollovers from prior periods that are still unpaid
+  const pending = billRollovers.filter(r => !r.paid && r.fromPeriodOffset < viewingOffset);
+  const paid    = billRollovers.filter(r =>  r.paid && r.fromPeriodOffset < viewingOffset);
+  if (!pending.length && !paid.length) { sec.innerHTML = ''; return; }
+  const f0r = n => '$' + Math.round(n).toLocaleString('en-US');
+  const rows = [...pending, ...paid].map(r => `
+    <div class="rollover-item${r.paid ? ' paid' : ''}">
+      <div class="rollover-name">
+        <div class="rn-main">↩ ${r.billName}</div>
+        <div class="rn-meta">Rolled from ${r.fromPeriodLabel}${r.note ? ' · ' + r.note : ''}</div>
+      </div>
+      <div class="rollover-amt">${f0r(r.amount)}</div>
+      ${r.paid
+        ? `<span style="color:#5dbb8a;font-size:0.72rem;font-weight:700">✅ PAID</span>`
+        : `<button class="rollover-pay-btn" onclick="payRollover('${r.id}')">✓ Mark Paid</button>`}
+      <button class="rollover-del" onclick="deleteRollover('${r.id}')" title="Remove">×</button>
+    </div>`).join('');
+  sec.innerHTML = `<div class="rollover-section">
+    <div class="rollover-section-title">⚠️ Carried Over from Previous Period${pending.length > 1 ? 's' : ''}</div>
+    ${rows}
+  </div>`;
+}
+
+function openRolloverModal(billName) {
+  const bill = bills.find(b => b.name === billName);
+  if (!bill) return;
+  const paid   = billPaidAmount(billName);
+  const remain = Math.max(0, periodDue(bill) - paid);
+  document.getElementById('rolloverBillId').value    = billName;
+  document.getElementById('rolloverBillName').textContent = billName;
+  document.getElementById('rolloverRemainAmt').textContent = '$' + remain.toFixed(2);
+  document.getElementById('rolloverAmt').value       = remain > 0 ? remain.toFixed(2) : '';
+  document.getElementById('rolloverNote').value      = '';
+  openModal('rolloverModal');
+}
+window.openRolloverModal = openRolloverModal;
+
+async function saveRollover() {
+  const billName = document.getElementById('rolloverBillId').value;
+  const amt      = parseFloat(document.getElementById('rolloverAmt').value);
+  const note     = document.getElementById('rolloverNote').value.trim();
+  if (!billName || isNaN(amt) || amt <= 0) {
+    document.getElementById('rolloverAmt').classList.add('req-err');
+    return;
+  }
+  const label = periodLabel(viewingOffset);
+  billRollovers.push({
+    id: 'ro_' + Date.now(),
+    billName,
+    amount: amt,
+    fromPeriodOffset: viewingOffset,
+    fromPeriodLabel: label,
+    note,
+    paid: false
+  });
+  await saveKey('billRollovers', billRollovers);
+  closeModal('rolloverModal');
+  renderRollovers();
+}
+window.saveRollover = saveRollover;
+
+async function payRollover(id) {
+  const r = billRollovers.find(x => x.id === id);
+  if (r) { r.paid = true; await saveKey('billRollovers', billRollovers); renderRollovers(); }
+}
+window.payRollover = payRollover;
+
+async function deleteRollover(id) {
+  billRollovers = billRollovers.filter(x => x.id !== id);
+  await saveKey('billRollovers', billRollovers);
+  renderRollovers();
+}
+window.deleteRollover = deleteRollover;
 
 function updateBillsSummary() {
   let totalDue = 0, totalPaid = 0;
@@ -2955,10 +3097,10 @@ window.closeModal = closeModal;
 // ESC + backdrop
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    ['saleModal','paystubModal','expenseModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','voiceFallbackModal','heavyProjectModal'].forEach(id => closeModal(id));
+    ['saleModal','paystubModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','rolloverModal','heavyProjectModal'].forEach(id => closeModal(id));
   }
 });
-['saleModal','paystubModal','expenseModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','voiceFallbackModal','heavyProjectModal'].forEach(id => {
+['saleModal','paystubModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','rolloverModal','heavyProjectModal'].forEach(id => {
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener('click', (e) => { if (e.target === el) closeModal(id); });
