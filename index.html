@@ -532,6 +532,27 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .tab-missed-badge { background:#3a1a1a; color:#e85a5a; border-radius:3px; font-size:0.6rem; font-weight:700; padding:1px 5px; letter-spacing:0.3px; }
 .tab-extra-badge { background:#1a3a2a; color:#5dbb8a; border-radius:3px; font-size:0.6rem; font-weight:700; padding:1px 5px; letter-spacing:0.3px; }
 
+/* ---- VS PAYSTUB BADGE ---- */
+.cl-vs-badge { display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:6px; font-size:0.68rem; border:1px solid #2a2a2a; background:#111; flex-wrap:wrap; min-width:160px; }
+.cl-vs-label { color:#555; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; font-size:0.6rem; }
+.cl-vs-val { font-weight:700; font-family:monospace; }
+.cl-vs-diff { font-weight:800; font-family:monospace; padding:1px 5px; border-radius:3px; font-size:0.65rem; }
+.cl-vs-tag { font-size:0.6rem; color:#555; }
+.cl-match { border-color:#1a3a2a; background:#0a1a10; }
+.cl-match .cl-vs-val { color:#5dbb8a; }
+.cl-match .cl-vs-diff { background:#1a3a2a; color:#5dbb8a; }
+.cl-match .cl-vs-tag { color:#3a7a5a; }
+.cl-vs-over { border-color:#1a2a3a; background:#090f1a; }
+.cl-vs-over .cl-vs-val { color:#7fb3e8; }
+.cl-vs-over .cl-vs-diff { background:#1a2a3a; color:#7fb3e8; }
+.cl-vs-over .cl-vs-tag { color:#4a7aaa; }
+.cl-vs-under { border-color:#3a1a1a; background:#160909; }
+.cl-vs-under .cl-vs-val { color:#e85a5a; }
+.cl-vs-under .cl-vs-diff { background:#3a1a1a; color:#e85a5a; }
+.cl-vs-under .cl-vs-tag { color:#aa4a4a; }
+.cl-vs-unknown { border-color:#1e1e1e; }
+.cl-vs-unknown .cl-vs-val { color:#444; font-style:italic; }
+
 /* ---- BILL ROLLOVERS ---- */
 .rollover-section { padding:10px 16px 4px; border-top:1px dashed #3a2a0a; background:#0f0d07; }
 .rollover-section-title { font-size:0.58rem; color:#8b6f1a; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
@@ -2836,7 +2857,26 @@ function renderCommissionLog() {
 
     // Card
     const isLast = pi === commissionLog.length - 1;
-    const commCls = p.comm < 0 ? 'cl-neg' : (p.comm >= 2000 ? 'yellow' : '');
+    const commCls = p.comm < 0 ? 'cl-neg' : (p.comm >= 2000 ? 'cl-pos' : '');
+
+    // vs-Paystub comparison
+    const known = knownData[String(p.periodOffset)];
+    let vsPaystubHtml = '';
+    if (known && typeof known.comm === 'number') {
+      const diff = known.comm - p.comm;
+      const absDiff = Math.abs(diff);
+      const diffFmt = (diff >= 0 ? '+' : '−') + '$' + absDiff.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      const diffCls = absDiff < 1 ? 'cl-match' : diff > 0 ? 'cl-vs-over' : 'cl-vs-under';
+      const diffLabel = absDiff < 1 ? '✓ Match' : diff > 0 ? '▲ Paystub higher' : '▼ Paystub lower';
+      vsPaystubHtml = `<div class="cl-vs-badge ${diffCls}">
+        <span class="cl-vs-label">Paystub</span>
+        <span class="cl-vs-val">${$(known.comm)}</span>
+        <span class="cl-vs-diff">${diffFmt}</span>
+        <span class="cl-vs-tag">${diffLabel}</span>
+      </div>`;
+    } else {
+      vsPaystubHtml = `<div class="cl-vs-badge cl-vs-unknown"><span class="cl-vs-label">Paystub</span><span class="cl-vs-val">not entered</span></div>`;
+    }
 
     let rows = '';
     p.orders.forEach(o => {
@@ -2863,8 +2903,9 @@ function renderCommissionLog() {
           <div class="cl-period-check">CHECK DATE: ${p.check}</div>
         </div>
         <div class="cl-period-meta">
-          <div class="cl-pm-item"><div class="cl-pm-label">Sales</div><div class="cl-pm-val blue">${$(p.sales)}</div></div>
-          <div class="cl-pm-item"><div class="cl-pm-label">Commission</div><div class="cl-pm-val ${commCls}">${$(p.comm)}</div></div>
+          <div class="cl-pm-item"><div class="cl-pm-label">Ship Sheet</div><div class="cl-pm-val blue">${$(p.sales)}</div></div>
+          <div class="cl-pm-item"><div class="cl-pm-label">SS Comm</div><div class="cl-pm-val ${commCls}">${$(p.comm)}</div></div>
+          ${vsPaystubHtml}
         </div>
         <span class="cl-chevron">▼</span>
       </div>
