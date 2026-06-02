@@ -901,7 +901,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.15 — BILLS BY DUE DATE · DOT DYNASTY TAB ADDED</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.16 — 12 BILLS ADDED · NEXTIVA · RUNNING TABS FIX</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1350,7 +1350,7 @@ const defaultBills = [
   { name:'Chewy (Pet Food)',     monthly:43.71, dueDay:18,      note:'Recurring ~18th' },
   { name:'Ring (AI Solo)',       monthly:5.28,  dueDay:18,      note:'Due ~18th' },
   { name:'Ring (Multi Plan)',    monthly:10.54, dueDay:18,      note:'Due ~18th' },
-  { name:'Cricut',               monthly:10.54, dueDay:1,       note:'Due ~1st' },
+  { name:'Cricut',               monthly:10.54, dueDay:29,      note:'Due ~29th' },
   { name:'Microsoft 365',        monthly:10.54, dueDay:17,      note:'Due ~17th' },
   { name:'Google One',           monthly:19.99, dueDay:14,      note:'Due ~14th' },
   { name:'YouTube Premium',      monthly:14.82, dueDay:12,      note:'Due ~12th' },
@@ -1444,6 +1444,34 @@ async function hydrateFromCloud() {
   const cloudBills = await loadKey('bills', null);
   if (cloudBills && Array.isArray(cloudBills)) bills = cloudBills;
   else await saveKey('bills', bills);
+  // ONE-TIME v516: merge new/updated bills from Jun 2026 reconciliation into cloud list
+  if (!localStorage.getItem('billsMerge_v516')) {
+    let billsDirty = false;
+    // Add any new bills not already present (match by name)
+    defaultBills.forEach(def => {
+      if (!bills.find(b => b.name === def.name)) {
+        bills.push(JSON.parse(JSON.stringify(def)));
+        billsDirty = true;
+      }
+    });
+    // Update amounts that changed
+    const updates = [
+      { name:'Verizon',              monthly:344,   dueDay:8  },
+      { name:'Choice Home Warranty', monthly:49.25, dueDay:22 },
+      { name:'Spectrum',             monthly:100.55,dueDay:15 },
+      { name:'Credit One (Card 3)',  monthly:25,    dueDay:27 },
+      { name:'Netflix',              monthly:26.36, dueDay:7  },
+    ];
+    updates.forEach(u => {
+      const b = bills.find(x => x.name === u.name);
+      if (b && (b.monthly !== u.monthly || b.dueDay !== u.dueDay)) {
+        b.monthly = u.monthly; b.dueDay = u.dueDay;
+        billsDirty = true;
+      }
+    });
+    if (billsDirty) await saveKey('bills', bills);
+    localStorage.setItem('billsMerge_v516', '1');
+  }
   // knownData
   const cloudKnown = await loadKey('knownData', null);
   if (cloudKnown && typeof cloudKnown === 'object') knownData = cloudKnown;
