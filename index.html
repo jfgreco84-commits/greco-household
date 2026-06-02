@@ -554,9 +554,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     <div class="sub">FAMILY PAYCHECK &amp; BUDGET MANAGER — 2026</div>
   </div>
   <div class="header-right">
-    <button class="add-pill voice"   onclick="startVoiceExpense()" title="Speak an expense"><span class="vmic">🎤</span> SAY IT</button>
     <button class="add-pill paystub" onclick="openPaystubModal()">+ PAYSTUB</button>
-    <button class="add-pill expense" onclick="openExpenseModal()">+ EXPENSE</button>
     <span class="sync-status" id="syncStatus" title="Sync status">
       <span class="sync-dot" id="syncDot"></span>
       <span id="syncLabel">…</span>
@@ -590,8 +588,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   <div class="hnum"><div class="hlabel">Gross</div><div class="hval gold" id="heroGross">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Net</div><div class="hval green" id="heroNet">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Bills</div><div class="hval red" id="heroBills">$0</div></div>
-  <div class="hnum hero-divider"><div class="hlabel">Personal Exp</div><div class="hval amber" id="heroExpenses">$0</div><div class="hsublabel" id="heroReimburse" style="color:#e8c84a"></div></div>
-  <div class="hnum hero-divider"><div class="hlabel">→ Savings</div><div class="hval blue" id="heroLeft">$0</div></div>
+<div class="hnum hero-divider"><div class="hlabel">→ Savings</div><div class="hval blue" id="heroLeft">$0</div></div>
 </div>
 
 <!-- DBW Spiff Hero -->
@@ -727,32 +724,6 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     </div>
   </div>
 
-  <div class="card full">
-    <div class="card-header">
-      <span class="icon">💰</span><h2>Budgets — This Period</h2>
-      <span style="font-size:0.65rem;color:#444" id="budgetPeriodLabel">—</span>
-      <button class="reset-btn" onclick="resetBudgets()">↺ Reset</button>
-    </div>
-    <div class="budget-grid" id="budgetGrid"></div>
-    <div class="recent-exp" id="recentExpenses"></div>
-    <div class="budgets-footer">
-      <span class="note">Tap any limit to edit. Add expenses with + EXPENSE.</span>
-      <div class="totals-row">
-        <div class="stat-block">
-          <span class="stat-lbl">Spent</span>
-          <span class="stat-val red" id="budgetSpentTotal">$0</span>
-        </div>
-        <div class="stat-block">
-          <span class="stat-lbl">Budget</span>
-          <span class="stat-val yellow" id="budgetCapTotal">$0</span>
-        </div>
-        <div class="stat-block">
-          <span class="stat-lbl">Left</span>
-          <span class="stat-val green" id="budgetLeftTotal">$0</span>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="card full">
     <div class="card-header">
@@ -778,22 +749,6 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     </div>
   </div>
 
-  <div class="card full">
-    <div class="card-header">
-      <span class="icon">📊</span><h2>Monthly Summary</h2>
-      <div class="summary-controls">
-        <select id="summaryMonth" class="summary-month-sel" onchange="renderMonthlySummary()"></select>
-      </div>
-    </div>
-    <div class="summary-grid" id="summaryBody"></div>
-    <div class="summary-footer">
-      <div>
-        <span class="grand-lbl">Grand Total:</span>
-        <span class="grand-val" id="summaryGrandTotal">$0</span>
-      </div>
-      <div id="summaryVsLast"></div>
-    </div>
-  </div>
 
   <div class="card full">
     <div class="card-header">
@@ -1019,40 +974,6 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   </div>
 </div>
 
-<div class="modal-overlay" id="expenseModal">
-  <div class="modal-card">
-    <button class="modal-close" onclick="closeModal('expenseModal')">×</button>
-    <h2>+ Add Expense</h2>
-    <div class="msub">Log a spend against a budget</div>
-    <label for="expenseWho">Who *</label>
-    <select id="expenseWho">
-      <option value="Justin">🦊 Justin</option>
-      <option value="Michele">💜 Michele</option>
-      <option value="Joint">👫 Joint / Both</option>
-    </select>
-    <label for="expenseBilledTo">Billed To</label>
-    <select id="expenseBilledTo">
-      <option value="personal">💳 Personal</option>
-      <option value="dbw">💼 DBW Spiff (reimbursed by work)</option>
-      <option value="bsol">🔑 Best Solution (business)</option>
-      <option value="dotdyn">🔵 Dot Dynasty LLC</option>
-    </select>
-    <label for="expenseCat">Category</label>
-    <select id="expenseCat"></select>
-    <label for="expenseAmt">Amount $ *</label>
-    <input type="number" id="expenseAmt" step="0.01" inputmode="decimal" placeholder="0.00">
-    <label for="expenseDesc">Description <span style="color:#444;text-transform:none;letter-spacing:0">(optional)</span></label>
-    <input type="text" id="expenseDesc" placeholder="e.g. Kwik Trip, Cousin Subs">
-    <label for="expenseDate">Date</label>
-    <input type="date" id="expenseDate">
-    <label>Period</label>
-    <div class="modal-readonly" id="expensePeriodLabel">—</div>
-    <div class="modal-actions">
-      <button class="modal-btn cancel" onclick="closeModal('expenseModal')">Cancel</button>
-      <button class="modal-btn save" onclick="saveExpense()">SAVE</button>
-    </div>
-  </div>
-</div>
 
 <div class="modal-overlay" id="editIncomeModal">
   <div class="modal-card">
