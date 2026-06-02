@@ -716,8 +716,8 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
         <span class="rv" style="color:#777">-$62.27</span>
       </div>
       <div class="row">
-        <span class="rl" style="color:#777">Chapter 13</span>
-        <span class="rv" style="color:#777">-$750.00</span>
+        <span class="rl" style="color:#777">Bkrp C13T</span>
+        <span class="rv" style="color:#777">-$692.31</span>
       </div>
       <hr class="divider">
       <div class="row">
@@ -1258,7 +1258,7 @@ async function onAuthed() {
 
 /* ---------------- CONSTANTS & DATA ---------------- */
 const ANCHOR     = new Date(2026, 3, 15);
-const CH13       = 700;
+const CH13       = 692.31;
 const MIN_OFFSET = -8;
 const EXPENSE_CUTOFF = '2026-05-01'; // Only show personal expenses on/after this date
 const MAX_OFFSET = 18;
@@ -1272,9 +1272,11 @@ let salesFilter  = 'all';
 let paystubPts = [
   { gross:4668.28,  net:3215  },
   { gross:4784.42,  net:3286  },
+  { gross:5941.57,  net:3286  },
   { gross:6032.17,  net:4032  },
   { gross:6811.87,  net:4496  },
   { gross:7499.82,  net:4213  },
+  { gross:8790.66,  net:4982  },
   { gross:9088.97,  net:5836  },
   { gross:9756.35,  net:6182  },
   { gross:13674.79, net:8093  },
@@ -1309,7 +1311,8 @@ let knownData = {
   '-2': { salary:SALARY_BASE, bonus:BONUS_REG,   comm:-62.49,   net:3215,  note:'Apr 3 check (chargeback)' },
   '-1': { salary:SALARY_BASE, bonus:12392.36,    comm:2080.79,  net:10034, note:'Apr 17 check (+$11,008 extra bonus!)' },
   '0':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:2769.05,  net:4213,  note:'May 1 check — actual stub confirmed' },
-  '1':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:3006.16,  net:4455,  note:'May 15 check — comm from PP recap (ending May 12) — net estimated' },
+  '1':  { salary:SALARY_BASE, bonus:2438.35,     comm:3006.16,  net:4982,  note:'May 15 check — actual stub confirmed' },
+  '2':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1210.80,  net:3286,  note:'May 29 check — actual stub confirmed' },
 };
 
 let salesData = [];
