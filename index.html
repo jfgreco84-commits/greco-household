@@ -901,7 +901,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.16 — 12 BILLS ADDED · NEXTIVA · RUNNING TABS FIX</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.17 — BATMAN MAY-15 PAYMENT ADDED</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1416,7 +1416,8 @@ const DEFAULT_TABS = [
       { id:'p_ac_22', date:'2026-04-03', amount:0,    note:'MISSED', missed:true },
       { id:'p_ac_23', date:'2026-04-17', amount:918,  note:'$180 product + $738 cash' },
       { id:'p_ac_24', date:'2026-05-01', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 1, 2026' },
-      { id:'p_ac_25', date:'2026-05-29', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 29, 2026' }
+      { id:'p_ac_25', date:'2026-05-15', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 15, 2026' },
+      { id:'p_ac_26', date:'2026-05-29', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 29, 2026' }
     ]
   },
   {
@@ -1519,6 +1520,13 @@ async function hydrateFromCloud() {
     runningTabs = DEFAULT_TABS;
     await saveKey('runningTabs', DEFAULT_TABS);
     localStorage.setItem('tabsReset_v2', '1');
+  }
+  // v3: force-reseed to pick up Batman May-15 payment
+  if (!localStorage.getItem('tabsReset_v3')) {
+    runningTabs = DEFAULT_TABS;
+    await saveKey('runningTabs', DEFAULT_TABS);
+    localStorage.setItem('tabsReset_v3', '1');
+    localStorage.removeItem('tabsReset_v2_loaded'); // ensure cloud-load gate re-checks this session
   }
   // budgets
   const cloudBudgets = await loadKey('budgets', null);
