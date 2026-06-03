@@ -907,7 +907,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.21 — defensive init: all sections now isolated</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.22 — all null crashes fixed in renderBudgets</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -2220,7 +2220,8 @@ window.unmarkBillPaid       = unmarkBillPaid;
 function renderBudgets() {
   const grid = document.getElementById('budgetGrid');
   if (!grid) return;
-  document.getElementById('budgetPeriodLabel').textContent = periodLabel(viewingOffset);
+  const _bpl = document.getElementById('budgetPeriodLabel');
+  if (_bpl) _bpl.textContent = periodLabel(viewingOffset);
   let totalSpent = 0, totalCap = 0;
   // Make sure all default cats exist on the live budgets object
   Object.keys(defaultBudgets).forEach(k => {
@@ -2257,12 +2258,14 @@ function renderBudgets() {
   }).join('');
   grid.innerHTML = html;
   renderHeavyProjects();
-  document.getElementById('budgetSpentTotal').textContent = f0(totalSpent);
-  document.getElementById('budgetCapTotal').textContent   = f0(totalCap);
+  const _bst = document.getElementById('budgetSpentTotal'); if (_bst) _bst.textContent = f0(totalSpent);
+  const _bct = document.getElementById('budgetCapTotal');   if (_bct) _bct.textContent = f0(totalCap);
   const totalLeft = totalCap - totalSpent;
   const leftEl = document.getElementById('budgetLeftTotal');
-  leftEl.textContent = (totalLeft>=0?'':'-') + f0(Math.abs(totalLeft));
-  leftEl.className = 'stat-val ' + (totalLeft>=0 ? 'green' : 'red');
+  if (leftEl) {
+    leftEl.textContent = (totalLeft>=0?'':'-') + f0(Math.abs(totalLeft));
+    leftEl.className = 'stat-val ' + (totalLeft>=0 ? 'green' : 'red');
+  }
   // All expenses for the current viewing period (full scrollable list)
   const recentEl = document.getElementById('recentExpenses');
   if (recentEl) {
@@ -2365,13 +2368,15 @@ function renderMonthlySummary() {
     </div>`;
   };
 
-  document.getElementById('summaryBody').innerHTML =
+  const _sb = document.getElementById('summaryBody');
+  if (_sb) _sb.innerHTML =
     renderCol('Justin', byWho.Justin, 'col-j', '🦊') +
     renderCol('Michele', byWho.Michele, 'col-m', '💜') +
     renderCol('Joint', byWho.Joint, 'col-b', '👫');
 
   const grandTotal = filtered.reduce((s,e) => s + (+e.amount || 0), 0);
-  document.getElementById('summaryGrandTotal').textContent = f0(grandTotal);
+  const _sgt = document.getElementById('summaryGrandTotal');
+  if (_sgt) _sgt.textContent = f0(grandTotal);
 
   // ===== YTD RUNNING TALLY =====
   const ytdEl = document.getElementById('summaryYTD');
