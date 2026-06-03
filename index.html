@@ -907,7 +907,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.18 — ACTUAL STUB · 401K · TABS FIX · BS TAB</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.19 — CALC FIX · ACTUAL STUB · 401K · TABS</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1761,57 +1761,9 @@ function calc() {
   const bonus    = +document.getElementById('bonusAmt').value   || 0;
   const comm     = +document.getElementById('commAmt').value    || 0;
   const gross    = salary + bonus + comm;
-
-  // ── Actual vs Predicted ──────────────────────────────────────────────────
-  const knownPeriod = knownData[String(viewingOffset)];
-  const isActual    = !!(knownPeriod && knownPeriod.net != null && knownPeriod.net > 0);
-
-  let displayNet, takeHome;
-  if (isActual) {
-    // Real stub data — use the confirmed take-home directly
-    displayNet = knownPeriod.net;
-    takeHome   = knownPeriod.net;
-  } else {
-    // No stub yet — interpolate from paystub history
-    displayNet = projectedNet(gross);
-    takeHome   = displayNet - CH13;
-  }
-
-  // ── 401k Contribution (5% of gross — informational, already baked into projection) ──
-  const contrib401k    = gross * 0.05;
-  const contrib401kEl  = document.getElementById('contrib401kAmt');
-  if (contrib401kEl) contrib401kEl.textContent = '-' + f2(contrib401k);
-
-  // ── Update deductions section labels dynamically ──────────────────────────
-  const labelEl       = document.getElementById('netSectionLabel');
-  const badgeEl       = document.getElementById('netAccuracyBadge');
-  const depositLbl    = document.getElementById('netDepositLabel');
-  const subLbl        = document.getElementById('netSubLabel');
-  const bottomLbl     = document.getElementById('netBottomLabel');
-  const deductSection = document.getElementById('deductBreakdown');
-  const row401k       = document.getElementById('row401kContrib');
-
-  if (isActual) {
-    const stubNote = knownPeriod.note || 'confirmed stub';
-    if (labelEl)       { labelEl.textContent  = 'ACTUAL STUB'; labelEl.style.color = '#5dbb8a'; }
-    if (badgeEl)       { badgeEl.textContent  = '✓ Actual stub confirmed'; badgeEl.style.background = 'rgba(93,187,138,0.15)'; badgeEl.style.color = '#5dbb8a'; badgeEl.style.border = '1px solid rgba(93,187,138,0.35)'; }
-    if (depositLbl)      depositLbl.textContent = 'Actual Net Deposit';
-    if (subLbl)          subLbl.textContent     = stubNote;
-    if (bottomLbl)       bottomLbl.textContent  = 'Take-Home (Actual)';
-    // Hide the deduction breakdown — everything is baked into the actual net
-    if (deductSection)   deductSection.style.display = 'none';
-  } else {
-    const ptCount = paystubPts ? paystubPts.length : 0;
-    if (labelEl)       { labelEl.textContent  = 'PROJECTED NET'; labelEl.style.color = ''; }
-    if (badgeEl)       { badgeEl.textContent  = `~ Based on ${ptCount} real paystubs`; badgeEl.style.background = ''; badgeEl.style.color = ''; badgeEl.style.border = ''; }
-    if (depositLbl)      depositLbl.textContent = 'Projected Net Deposit';
-    if (subLbl)          subLbl.textContent     = 'Interpolated from your actual check history';
-    if (bottomLbl)       bottomLbl.textContent  = 'Est. Net (after CH13)';
-    // Show deduction breakdown with 401k contribution
-    if (deductSection)   deductSection.style.display = '';
-    if (row401k)         row401k.style.display       = '';
-  }
-
+  const projNet  = projectedNet(gross);
+  // True take-home: projected net minus Chapter 13
+  const net      = projNet - CH13;
   // Per-check bill share (monthly / 2 for biweekly)
   const billsPerCheck = bills.reduce((s,b) => s + periodDue(b, viewingOffset), 0);
   const isPersonal = e => (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF;
@@ -1820,17 +1772,17 @@ function calc() {
     : expenses
         .filter(e => e.periodOffset === viewingOffset && isPersonal(e))
         .reduce((s,e) => s + (+e.amount || 0), 0);
-  const reimburseThisPeriod = 0;
-  const left = takeHome - billsPerCheck - expensesThisPeriod;
+  const reimburseThisPeriod = 0; // DBW/BSOL expenses live in their own tabs only
+  const left = net - billsPerCheck - expensesThisPeriod;
 
   // Income / Deductions card text
   document.getElementById('grossPay').textContent  = f2(gross);
-  document.getElementById('netPay').textContent    = f2(displayNet);
-  document.getElementById('afterCh13').textContent = f2(takeHome);
+  document.getElementById('netPay').textContent    = f2(projNet);
+  document.getElementById('afterCh13').textContent = f2(net);
 
   // Hero stats
   document.getElementById('heroGross').textContent    = f0(gross);
-  document.getElementById('heroNet').textContent      = f0(takeHome);
+  document.getElementById('heroNet').textContent      = f0(net);
   document.getElementById('heroBills').textContent    = f0(billsPerCheck);
   document.getElementById('heroExpenses').textContent = f0(expensesThisPeriod);
   const reimburseEl = document.getElementById('heroReimburse');
@@ -1839,9 +1791,38 @@ function calc() {
   leftEl.textContent = (left >= 0 ? '+' : '') + f0(left);
   leftEl.className   = 'hval ' + (left >= 0 ? 'blue' : 'red');
 
-  // Bills footer
+  // Bills footer (still part of the bills card)
   const bb = document.getElementById('billsBiweekly');
   if (bb) bb.textContent = f0(billsPerCheck);
+
+  // ── Deductions panel: actual vs predicted + 401k display ──────────────────
+  try {
+    const kp        = knownData[String(viewingOffset)];
+    const isActual  = !!(kp && kp.net != null && kp.net > 0);
+    const ptCount   = (paystubPts || []).length;
+
+    const el = id => document.getElementById(id);
+    if (el('contrib401kAmt'))  el('contrib401kAmt').textContent = '-' + f2(gross * 0.05);
+
+    if (isActual) {
+      if (el('netSectionLabel'))  { el('netSectionLabel').textContent = 'ACTUAL STUB'; el('netSectionLabel').style.color = '#5dbb8a'; }
+      if (el('netAccuracyBadge')) { el('netAccuracyBadge').textContent = '✓ Actual stub confirmed'; el('netAccuracyBadge').className = 'accuracy-badge actual-badge'; }
+      if (el('netDepositLabel'))  el('netDepositLabel').textContent = 'Actual Net Deposit';
+      if (el('netSubLabel'))      el('netSubLabel').textContent = kp.note || 'From your confirmed paystub';
+      if (el('netBottomLabel'))   el('netBottomLabel').textContent = 'Take-Home (Actual)';
+      if (el('deductBreakdown'))  el('deductBreakdown').style.display = 'none';
+      // Show actual net in place of projected
+      el('netPay').textContent    = f2(kp.net);
+      el('afterCh13').textContent = f2(kp.net);
+    } else {
+      if (el('netSectionLabel'))  { el('netSectionLabel').textContent = 'PROJECTED NET'; el('netSectionLabel').style.color = ''; }
+      if (el('netAccuracyBadge')) { el('netAccuracyBadge').textContent = '~ Based on ' + ptCount + ' real paystubs'; el('netAccuracyBadge').className = 'accuracy-badge'; }
+      if (el('netDepositLabel'))  el('netDepositLabel').textContent = 'Projected Net Deposit';
+      if (el('netSubLabel'))      el('netSubLabel').textContent = 'Interpolated from your actual check history';
+      if (el('netBottomLabel'))   el('netBottomLabel').textContent = 'Est. Net (after CH13)';
+      if (el('deductBreakdown'))  el('deductBreakdown').style.display = '';
+    }
+  } catch(e) { /* never crash the core calc */ }
 }
 
 /* ---------------- BILL PAYMENT HELPERS ---------------- */
