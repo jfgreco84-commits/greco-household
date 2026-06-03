@@ -907,7 +907,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.20 — ROOT CAUSE FIX: heroExpenses null crash</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.21 — defensive init: all sections now isolated</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -3227,15 +3227,15 @@ function init() {
   }
   periodOffset = bestOff;
   viewingOffset = periodOffset;
-  renderBills();
-  renderBudgets();
-  renderHeavyProjects();
-  calc();
-  updatePeriodBar();
-  buildTracker();
-  buildSalesLog();
-  renderCommissionLog();
-  renderTabs();
+  try { renderBills();         } catch(e) { console.warn('renderBills',e.message); }
+  try { renderBudgets();       } catch(e) { console.warn('renderBudgets',e.message); }
+  try { renderHeavyProjects(); } catch(e) { console.warn('renderHeavyProjects',e.message); }
+  try { calc();                } catch(e) { console.warn('calc',e.message); }
+  try { updatePeriodBar();     } catch(e) { console.warn('updatePeriodBar',e.message); }
+  try { buildTracker();        } catch(e) { console.warn('buildTracker',e.message); }
+  try { buildSalesLog();       } catch(e) { console.warn('buildSalesLog',e.message); }
+  try { renderCommissionLog(); } catch(e) { console.warn('renderCommissionLog',e.message); }
+  try { renderTabs();          } catch(e) { console.warn('renderTabs',e.message); }
 }
 
 /* ---------------- HELPERS for ADDING DATA (immediate save) ---------------- */
