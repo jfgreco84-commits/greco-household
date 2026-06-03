@@ -907,7 +907,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.19 — CALC FIX · ACTUAL STUB · 401K · TABS</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.20 — ROOT CAUSE FIX: heroExpenses null crash</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1784,7 +1784,8 @@ function calc() {
   document.getElementById('heroGross').textContent    = f0(gross);
   document.getElementById('heroNet').textContent      = f0(net);
   document.getElementById('heroBills').textContent    = f0(billsPerCheck);
-  document.getElementById('heroExpenses').textContent = f0(expensesThisPeriod);
+  const heroExpEl = document.getElementById('heroExpenses');
+  if (heroExpEl) heroExpEl.textContent = f0(expensesThisPeriod);
   const reimburseEl = document.getElementById('heroReimburse');
   if (reimburseEl) reimburseEl.textContent = reimburseThisPeriod > 0 ? '+' + f0(reimburseThisPeriod) + ' reimb' : '';
   const leftEl = document.getElementById('heroLeft');
