@@ -655,7 +655,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 <div class="biz-nav" id="bizNav">
   <button class="biz-nav-btn active"  id="bizBtn_personal" onclick="switchBizTab('personal')">🏠 Personal</button>
   <button class="biz-nav-btn dbw"     id="bizBtn_dbw"      onclick="switchBizTab('dbw')">💼 DBW Spiff</button>
-  <button class="biz-nav-btn bsol"    id="bizBtn_bsol"     onclick="switchBizTab('bsol')">🔑 Best Solution ↗</button>
+  <a href="https://jfgreco84-commits.github.io/best-solution-app/BEST_SOLUTION_APP.html" target="_blank" rel="noopener" class="biz-nav-btn bsol" id="bizBtn_bsol" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">🔑 Best Solution ↗</a>
   <button class="biz-nav-btn dotdyn"  id="bizBtn_dotdyn"   onclick="switchBizTab('dotdyn')">🔵 Dot Dynasty</button>
 </div>
 
@@ -694,34 +694,40 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   <div class="card">
     <div class="card-header"><span class="icon">✂️</span><h2>Deductions</h2></div>
     <div class="card-body">
-      <p class="slabel">PROJECTED NET</p>
+      <p class="slabel" id="netSectionLabel">PROJECTED NET</p>
       <div class="row" style="padding:6px 0">
-        <span class="accuracy-badge">✓ Based on 8 real paystubs</span>
+        <span class="accuracy-badge" id="netAccuracyBadge">~ Based on paystubs</span>
       </div>
       <div class="row">
-        <span class="rl bold">Projected Net Deposit</span>
+        <span class="rl bold" id="netDepositLabel">Projected Net Deposit</span>
         <span class="rv green" id="netPay">$0.00</span>
       </div>
       <div class="row" style="padding:3px 0">
-        <span class="rl" style="color:#333;font-size:0.72rem">Interpolated from your actual check history</span>
+        <span class="rl" style="color:#333;font-size:0.72rem" id="netSubLabel">Interpolated from your actual check history</span>
+      </div>
+      <div id="deductBreakdown">
+        <hr class="divider">
+        <p class="slabel">FIXED DEDUCTIONS (per check)</p>
+        <div class="row" id="row401kContrib">
+          <span class="rl" style="color:#777">401k Contrib (5%)</span>
+          <span class="rv" style="color:#777" id="contrib401kAmt">-$0.00</span>
+        </div>
+        <div class="row">
+          <span class="rl" style="color:#777">401k Loan</span>
+          <span class="rv" style="color:#777">-$38.16</span>
+        </div>
+        <div class="row">
+          <span class="rl" style="color:#777">Dental + Vision</span>
+          <span class="rv" style="color:#777">-$62.27</span>
+        </div>
+        <div class="row">
+          <span class="rl" style="color:#777">Bkrp C13T</span>
+          <span class="rv" style="color:#777">-$692.31</span>
+        </div>
       </div>
       <hr class="divider">
-      <p class="slabel">FIXED DEDUCTIONS (per check)</p>
       <div class="row">
-        <span class="rl" style="color:#777">401k Loan</span>
-        <span class="rv" style="color:#777">-$38.16</span>
-      </div>
-      <div class="row">
-        <span class="rl" style="color:#777">Dental + Vision</span>
-        <span class="rv" style="color:#777">-$62.27</span>
-      </div>
-      <div class="row">
-        <span class="rl" style="color:#777">Bkrp C13T</span>
-        <span class="rv" style="color:#777">-$692.31</span>
-      </div>
-      <hr class="divider">
-      <div class="row">
-        <span class="rl green">Net</span>
+        <span class="rl green" id="netBottomLabel">Net</span>
         <span class="rv green" id="afterCh13">$0.00</span>
       </div>
     </div>
@@ -901,7 +907,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.17 — BATMAN MAY-15 PAYMENT ADDED</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.18 — ACTUAL STUB · 401K · TABS FIX · BS TAB</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1526,7 +1532,8 @@ async function hydrateFromCloud() {
     runningTabs = DEFAULT_TABS;
     await saveKey('runningTabs', DEFAULT_TABS);
     localStorage.setItem('tabsReset_v3', '1');
-    localStorage.removeItem('tabsReset_v2_loaded'); // ensure cloud-load gate re-checks this session
+    // NOTE: do NOT remove tabsReset_v2_loaded — the cloud-load gate below will
+    // re-read from Supabase (which now has the updated DEFAULT_TABS we just saved)
   }
   // budgets
   const cloudBudgets = await loadKey('budgets', null);
@@ -1754,9 +1761,57 @@ function calc() {
   const bonus    = +document.getElementById('bonusAmt').value   || 0;
   const comm     = +document.getElementById('commAmt').value    || 0;
   const gross    = salary + bonus + comm;
-  const projNet  = projectedNet(gross);
-  // True take-home: projected net minus Chapter 13
-  const net      = projNet - CH13;
+
+  // ── Actual vs Predicted ──────────────────────────────────────────────────
+  const knownPeriod = knownData[String(viewingOffset)];
+  const isActual    = !!(knownPeriod && knownPeriod.net != null && knownPeriod.net > 0);
+
+  let displayNet, takeHome;
+  if (isActual) {
+    // Real stub data — use the confirmed take-home directly
+    displayNet = knownPeriod.net;
+    takeHome   = knownPeriod.net;
+  } else {
+    // No stub yet — interpolate from paystub history
+    displayNet = projectedNet(gross);
+    takeHome   = displayNet - CH13;
+  }
+
+  // ── 401k Contribution (5% of gross — informational, already baked into projection) ──
+  const contrib401k    = gross * 0.05;
+  const contrib401kEl  = document.getElementById('contrib401kAmt');
+  if (contrib401kEl) contrib401kEl.textContent = '-' + f2(contrib401k);
+
+  // ── Update deductions section labels dynamically ──────────────────────────
+  const labelEl       = document.getElementById('netSectionLabel');
+  const badgeEl       = document.getElementById('netAccuracyBadge');
+  const depositLbl    = document.getElementById('netDepositLabel');
+  const subLbl        = document.getElementById('netSubLabel');
+  const bottomLbl     = document.getElementById('netBottomLabel');
+  const deductSection = document.getElementById('deductBreakdown');
+  const row401k       = document.getElementById('row401kContrib');
+
+  if (isActual) {
+    const stubNote = knownPeriod.note || 'confirmed stub';
+    if (labelEl)       { labelEl.textContent  = 'ACTUAL STUB'; labelEl.style.color = '#5dbb8a'; }
+    if (badgeEl)       { badgeEl.textContent  = '✓ Actual stub confirmed'; badgeEl.style.background = 'rgba(93,187,138,0.15)'; badgeEl.style.color = '#5dbb8a'; badgeEl.style.border = '1px solid rgba(93,187,138,0.35)'; }
+    if (depositLbl)      depositLbl.textContent = 'Actual Net Deposit';
+    if (subLbl)          subLbl.textContent     = stubNote;
+    if (bottomLbl)       bottomLbl.textContent  = 'Take-Home (Actual)';
+    // Hide the deduction breakdown — everything is baked into the actual net
+    if (deductSection)   deductSection.style.display = 'none';
+  } else {
+    const ptCount = paystubPts ? paystubPts.length : 0;
+    if (labelEl)       { labelEl.textContent  = 'PROJECTED NET'; labelEl.style.color = ''; }
+    if (badgeEl)       { badgeEl.textContent  = `~ Based on ${ptCount} real paystubs`; badgeEl.style.background = ''; badgeEl.style.color = ''; badgeEl.style.border = ''; }
+    if (depositLbl)      depositLbl.textContent = 'Projected Net Deposit';
+    if (subLbl)          subLbl.textContent     = 'Interpolated from your actual check history';
+    if (bottomLbl)       bottomLbl.textContent  = 'Est. Net (after CH13)';
+    // Show deduction breakdown with 401k contribution
+    if (deductSection)   deductSection.style.display = '';
+    if (row401k)         row401k.style.display       = '';
+  }
+
   // Per-check bill share (monthly / 2 for biweekly)
   const billsPerCheck = bills.reduce((s,b) => s + periodDue(b, viewingOffset), 0);
   const isPersonal = e => (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF;
@@ -1765,17 +1820,17 @@ function calc() {
     : expenses
         .filter(e => e.periodOffset === viewingOffset && isPersonal(e))
         .reduce((s,e) => s + (+e.amount || 0), 0);
-  const reimburseThisPeriod = 0; // DBW/BSOL expenses live in their own tabs only
-  const left = net - billsPerCheck - expensesThisPeriod;
+  const reimburseThisPeriod = 0;
+  const left = takeHome - billsPerCheck - expensesThisPeriod;
 
   // Income / Deductions card text
   document.getElementById('grossPay').textContent  = f2(gross);
-  document.getElementById('netPay').textContent    = f2(projNet);
-  document.getElementById('afterCh13').textContent = f2(net);
+  document.getElementById('netPay').textContent    = f2(displayNet);
+  document.getElementById('afterCh13').textContent = f2(takeHome);
 
   // Hero stats
   document.getElementById('heroGross').textContent    = f0(gross);
-  document.getElementById('heroNet').textContent      = f0(net);
+  document.getElementById('heroNet').textContent      = f0(takeHome);
   document.getElementById('heroBills').textContent    = f0(billsPerCheck);
   document.getElementById('heroExpenses').textContent = f0(expensesThisPeriod);
   const reimburseEl = document.getElementById('heroReimburse');
@@ -1784,7 +1839,7 @@ function calc() {
   leftEl.textContent = (left >= 0 ? '+' : '') + f0(left);
   leftEl.className   = 'hval ' + (left >= 0 ? 'blue' : 'red');
 
-  // Bills footer (still part of the bills card)
+  // Bills footer
   const bb = document.getElementById('billsBiweekly');
   if (bb) bb.textContent = f0(billsPerCheck);
 }
@@ -3562,11 +3617,7 @@ window.toggleReimburseGroup = toggleReimburseGroup;
 /* ---- BIZ TAB SWITCHER ---- */
 let activeBizTab = 'personal';
 function switchBizTab(tab) {
-  // Best Solution → redirect to standalone app
-  if (tab === 'bsol') {
-    window.open('https://jfgreco84-commits.github.io/best-solution-app/BEST_SOLUTION_APP.html', '_blank');
-    return;
-  }
+  // Note: 'bsol' is now an <a> tag and never calls this function
   // Dot Dynasty
   activeBizTab = tab;
   ['personal','dbw','bsol','dotdyn'].forEach(t => {
