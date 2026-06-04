@@ -628,7 +628,8 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
   <div class="hnum"><div class="hlabel">Gross</div><div class="hval gold" id="heroGross">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Net</div><div class="hval green" id="heroNet">$0</div></div>
   <div class="hnum hero-divider"><div class="hlabel">Bills</div><div class="hval red" id="heroBills">$0</div></div>
-<div class="hnum hero-divider"><div class="hlabel">→ Savings</div><div class="hval blue" id="heroLeft">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">Expenses</div><div class="hval red" id="heroExpenses">$0</div></div>
+  <div class="hnum hero-divider"><div class="hlabel">→ Savings</div><div class="hval blue" id="heroLeft">$0</div></div>
 </div>
 
 <!-- DBW Spiff Hero -->
@@ -851,6 +852,52 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     </div>
   </div>
 
+  <!-- BUDGETS CARD -->
+  <div class="card full">
+    <div class="card-header">
+      <span class="icon">💰</span><h2>Category Budgets</h2>
+      <span class="updated" id="budgetPeriodLabel">—</span>
+    </div>
+    <div class="budget-grid" id="budgetGrid"></div>
+    <div class="budgets-footer">
+      <span class="note">Tap a budget amount to edit it for this period.</span>
+      <div class="totals-row">
+        <div class="stat-block">
+          <span class="stat-lbl">Spent</span>
+          <span class="stat-val yellow" id="budgetSpentTotal">$0</span>
+        </div>
+        <div class="stat-block" style="margin-left:14px">
+          <span class="stat-lbl">Budget</span>
+          <span class="stat-val" style="color:#bbb" id="budgetCapTotal">$0</span>
+        </div>
+        <div class="stat-block" style="margin-left:14px">
+          <span class="stat-lbl">Left</span>
+          <span class="stat-val green" id="budgetLeftTotal">$0</span>
+        </div>
+      </div>
+    </div>
+    <div class="recent-exp" id="recentExpenses"></div>
+  </div>
+
+  <!-- MONTHLY SUMMARY CARD -->
+  <div class="card full">
+    <div class="card-header">
+      <span class="icon">📊</span><h2>Monthly Summary</h2>
+      <select id="summaryMonth" onchange="renderMonthlySummary()" style="background:#1a1a1a;color:#bbb;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:0.72rem"></select>
+    </div>
+    <div class="summary-grid" id="summaryBody"></div>
+    <div class="summary-footer">
+      <div>
+        <span class="grand-lbl">Total Spend:</span>
+        <span class="grand-val" id="summaryGrandTotal">$0</span>
+      </div>
+      <div id="summaryVsLast"></div>
+    </div>
+    <div style="padding:0 16px 14px">
+      <div id="summaryYTD" style="margin-top:10px"></div>
+    </div>
+  </div>
+
   <!-- RUNNING TABS CARD -->
   <div class="card full">
     <div class="card-header">
@@ -907,7 +954,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.22 — all null crashes fixed in renderBudgets</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.23 — budgetGrid + expenseModal added; all modal null crashes fixed</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1095,6 +1142,40 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
       <button class="modal-btn cancel" onclick="closeModal('heavyProjectModal')">Cancel</button>
       <button class="modal-btn" id="hpDeleteBtn" onclick="deleteHeavyProject()" style="display:none;background:#3a1818;color:#e85a5a;border:1px solid #5a2828;margin-right:auto">DELETE</button>
       <button class="modal-btn save" onclick="saveHeavyProject()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal('expenseModal')">×</button>
+    <h2>+ Add Expense</h2>
+    <div class="msub">Log a personal or biz expense</div>
+    <label for="expenseWho">Who spent it?</label>
+    <select id="expenseWho">
+      <option value="Justin">🦊 Justin</option>
+      <option value="Michele">💜 Michele</option>
+      <option value="Joint">👫 Joint / Both</option>
+    </select>
+    <label for="expenseBilledTo">Billed To</label>
+    <select id="expenseBilledTo">
+      <option value="personal">🏠 Personal</option>
+      <option value="dbw">💼 DBW Spiff</option>
+      <option value="bsol">🔑 Best Solution</option>
+    </select>
+    <label for="expenseCat">Category</label>
+    <select id="expenseCat"></select>
+    <label for="expenseAmt">Amount $ *</label>
+    <input type="number" id="expenseAmt" step="0.01" inputmode="decimal" placeholder="0.00">
+    <label for="expenseDesc">Description <span style="color:#444;text-transform:none;letter-spacing:0">(optional)</span></label>
+    <input type="text" id="expenseDesc" placeholder="e.g. Gas, Groceries, Lunch">
+    <label for="expenseDate">Date</label>
+    <input type="date" id="expenseDate" onchange="updateExpensePeriodLabel()">
+    <label>Period</label>
+    <div class="modal-readonly" id="expensePeriodLabel">—</div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal('expenseModal')">Cancel</button>
+      <button class="modal-btn save" onclick="saveExpense()">SAVE</button>
     </div>
   </div>
 </div>
@@ -1775,22 +1856,23 @@ function calc() {
   const reimburseThisPeriod = 0; // DBW/BSOL expenses live in their own tabs only
   const left = net - billsPerCheck - expensesThisPeriod;
 
-  // Income / Deductions card text
-  document.getElementById('grossPay').textContent  = f2(gross);
-  document.getElementById('netPay').textContent    = f2(projNet);
-  document.getElementById('afterCh13').textContent = f2(net);
+  // Income / Deductions card text + Hero stats
+  try {
+    document.getElementById('grossPay').textContent  = f2(gross);
+    document.getElementById('netPay').textContent    = f2(projNet);
+    document.getElementById('afterCh13').textContent = f2(net);
 
-  // Hero stats
-  document.getElementById('heroGross').textContent    = f0(gross);
-  document.getElementById('heroNet').textContent      = f0(net);
-  document.getElementById('heroBills').textContent    = f0(billsPerCheck);
-  const heroExpEl = document.getElementById('heroExpenses');
-  if (heroExpEl) heroExpEl.textContent = f0(expensesThisPeriod);
-  const reimburseEl = document.getElementById('heroReimburse');
-  if (reimburseEl) reimburseEl.textContent = reimburseThisPeriod > 0 ? '+' + f0(reimburseThisPeriod) + ' reimb' : '';
-  const leftEl = document.getElementById('heroLeft');
-  leftEl.textContent = (left >= 0 ? '+' : '') + f0(left);
-  leftEl.className   = 'hval ' + (left >= 0 ? 'blue' : 'red');
+    document.getElementById('heroGross').textContent    = f0(gross);
+    document.getElementById('heroNet').textContent      = f0(net);
+    document.getElementById('heroBills').textContent    = f0(billsPerCheck);
+    const heroExpEl = document.getElementById('heroExpenses');
+    if (heroExpEl) heroExpEl.textContent = f0(expensesThisPeriod);
+    const leftEl = document.getElementById('heroLeft');
+    if (leftEl) {
+      leftEl.textContent = (left >= 0 ? '+' : '') + f0(left);
+      leftEl.className   = 'hval ' + (left >= 0 ? 'blue' : 'red');
+    }
+  } catch(e) { console.warn('calc hero/income', e.message); }
 
   // Bills footer (still part of the bills card)
   const bb = document.getElementById('billsBiweekly');
@@ -2055,8 +2137,10 @@ function updateBillsHeroStats() {
 
 function calcBills() {
   const total = bills.reduce((s,b)=>s+(b.monthly||0),0);
-  document.getElementById('billsMonthly').textContent  = f0(total);
-  document.getElementById('billsBiweekly').textContent = f0(total/2);
+  const bm = document.getElementById('billsMonthly');
+  if (bm) bm.textContent = f0(total);
+  const bw = document.getElementById('billsBiweekly');
+  if (bw) bw.textContent = f0(total/2);
   calc();
 }
 function resetBills() {
@@ -2924,6 +3008,8 @@ const DEFAULT_COMMISSION_LOG = [
 
 
 function renderCommissionLog() {
+  const clUpdEl = document.getElementById('clUpdated');
+  if (clUpdEl && SALES_LAST_UPDATED) clUpdEl.textContent = 'Updated: ' + SALES_LAST_UPDATED;
   if (!commissionLog || !commissionLog.length) {
     document.getElementById('clBody').style.display = 'none';
     document.getElementById('clEmpty').style.display = 'block';
@@ -3030,7 +3116,7 @@ function renderCommissionLog() {
         <td class="r" style="color:#e8c84a;font-family:monospace">${$(o.sales)}</td>
         <td class="r" style="font-family:monospace;color:#888">${$(o.cog)}</td>
         <td class="r" style="font-family:monospace;color:#7fb3e8">${mkp(o.markup)}</td>
-        <td class="r" style="font-family:monospace;font-weight:700" class="${neg ? 'cl-neg' : 'cl-pos'}">${$(o.comm)}</td>
+        <td class="r ${neg ? 'cl-neg' : 'cl-pos'}" style="font-family:monospace;font-weight:700">${$(o.comm)}</td>
       </tr>`;
     });
 
@@ -3232,8 +3318,6 @@ function init() {
   }
   periodOffset = bestOff;
   viewingOffset = periodOffset;
-  try { renderBills();         } catch(e) { console.warn('renderBills',e.message); }
-  try { renderBudgets();       } catch(e) { console.warn('renderBudgets',e.message); }
   try { renderHeavyProjects(); } catch(e) { console.warn('renderHeavyProjects',e.message); }
   try { calc();                } catch(e) { console.warn('calc',e.message); }
   try { updatePeriodBar();     } catch(e) { console.warn('updatePeriodBar',e.message); }
@@ -3278,10 +3362,10 @@ window.closeModal = closeModal;
 // ESC + backdrop
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    ['saleModal','paystubModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','rolloverModal','heavyProjectModal'].forEach(id => closeModal(id));
+    ['saleModal','paystubModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','rolloverModal','heavyProjectModal','tabPayModal','expenseModal'].forEach(id => closeModal(id));
   }
 });
-['saleModal','paystubModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','rolloverModal','heavyProjectModal'].forEach(id => {
+['saleModal','paystubModal','payBillModal','billHistoryModal','editBillsModal','editIncomeModal','rolloverModal','heavyProjectModal','tabPayModal','expenseModal'].forEach(id => {
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener('click', (e) => { if (e.target === el) closeModal(id); });
@@ -3447,7 +3531,9 @@ async function savePaystub() {
 /* ---------------- + ADD EXPENSE ---------------- */
 function openExpenseModal() {
   _editingExpenseId = null;
-  document.getElementById('expenseModal').querySelector('h2').textContent = '+ Add Expense';
+  const em = document.getElementById('expenseModal');
+  if (!em) return;
+  em.querySelector('h2').textContent = '+ Add Expense';
   const sel = document.getElementById('expenseCat');
   sel.innerHTML = Object.keys(defaultBudgets).map(k => {
     const b = defaultBudgets[k];
@@ -3494,7 +3580,8 @@ function editExpense(id) {
   document.getElementById('expenseAmt').value      = e.amount || '';
   document.getElementById('expenseDesc').value     = e.description || '';
   document.getElementById('expenseDate').value     = e.date || todayISO();
-  document.getElementById('expenseModal').querySelector('h2').textContent = 'Edit Expense';
+  const _em = document.getElementById('expenseModal');
+  if (_em) _em.querySelector('h2').textContent = 'Edit Expense';
   openModal('expenseModal');
   setTimeout(() => document.getElementById('expenseAmt').focus(), 50);
 }
