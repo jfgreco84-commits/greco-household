@@ -852,33 +852,6 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     </div>
   </div>
 
-  <!-- BUDGETS CARD -->
-  <div class="card full">
-    <div class="card-header">
-      <span class="icon">💰</span><h2>Category Budgets</h2>
-      <span class="updated" id="budgetPeriodLabel">—</span>
-    </div>
-    <div class="budget-grid" id="budgetGrid"></div>
-    <div class="budgets-footer">
-      <span class="note">Tap a budget amount to edit it for this period.</span>
-      <div class="totals-row">
-        <div class="stat-block">
-          <span class="stat-lbl">Spent</span>
-          <span class="stat-val yellow" id="budgetSpentTotal">$0</span>
-        </div>
-        <div class="stat-block" style="margin-left:14px">
-          <span class="stat-lbl">Budget</span>
-          <span class="stat-val" style="color:#bbb" id="budgetCapTotal">$0</span>
-        </div>
-        <div class="stat-block" style="margin-left:14px">
-          <span class="stat-lbl">Left</span>
-          <span class="stat-val green" id="budgetLeftTotal">$0</span>
-        </div>
-      </div>
-    </div>
-    <div class="recent-exp" id="recentExpenses"></div>
-  </div>
-
   <!-- MONTHLY SUMMARY CARD -->
   <div class="card full">
     <div class="card-header">
@@ -954,7 +927,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.23 — budgetGrid + expenseModal added; all modal null crashes fixed</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.24 — Category Budgets card removed</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
