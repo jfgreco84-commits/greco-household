@@ -529,6 +529,11 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 .tab-hist-amt { color:#e85a5a; font-weight:700; white-space:nowrap; }
 .tab-hist-amt.zero { color:#555; }
 .tab-hist-empty { padding:14px 16px; color:#333; font-size:0.72rem; font-style:italic; }
+.tab-hist-actions { display:flex; gap:2px; white-space:nowrap; }
+.tab-hist-edit, .tab-hist-del { background:none; border:none; cursor:pointer; padding:2px 5px; border-radius:4px; font-size:0.72rem; line-height:1; opacity:0.55; }
+.tab-hist-edit { color:#7aa7d8; }
+.tab-hist-del { color:#e85a5a; }
+.tab-hist-edit:hover, .tab-hist-del:hover { opacity:1; background:#1a1a1a; }
 .tab-missed-badge { background:#3a1a1a; color:#e85a5a; border-radius:3px; font-size:0.6rem; font-weight:700; padding:1px 5px; letter-spacing:0.3px; }
 .tab-extra-badge { background:#1a3a2a; color:#5dbb8a; border-radius:3px; font-size:0.6rem; font-weight:700; padding:1px 5px; letter-spacing:0.3px; }
 
@@ -927,7 +932,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.24 — Category Budgets card removed</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.25 — Editable payment history (edit/delete any payment) on running tabs; Batman Jun-8 $500 payment recorded</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1171,6 +1176,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
       <label for="tabPayMissed" style="color:#e85a5a;font-size:0.78rem;font-weight:700;cursor:pointer;margin:0">Mark as MISSED / skipped (no payment made)</label>
     </div>
     <input type="hidden" id="tabPayId">
+    <input type="hidden" id="tabPayEditId">
     <div class="modal-actions" style="margin-top:18px">
       <button class="modal-btn cancel" onclick="closeModal('tabPayModal')">Cancel</button>
       <button class="modal-btn save" onclick="submitTabPayment()">SAVE PAYMENT</button>
@@ -1477,7 +1483,8 @@ const DEFAULT_TABS = [
       { id:'p_ac_23', date:'2026-04-17', amount:918,  note:'$180 product + $738 cash' },
       { id:'p_ac_24', date:'2026-05-01', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 1, 2026' },
       { id:'p_ac_25', date:'2026-05-15', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 15, 2026' },
-      { id:'p_ac_26', date:'2026-05-29', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 29, 2026' }
+      { id:'p_ac_26', date:'2026-05-29', amount:250,  note:'Via payment to Martone on Batman\'s behalf — May 29, 2026' },
+      { id:'p_ac_27', date:'2026-06-08', amount:500,  note:'$500 payment to Batman — June 8, 2026' }
     ]
   },
   {
@@ -1641,6 +1648,27 @@ async function hydrateFromCloud() {
       ? savedTabs
       : JSON.parse(JSON.stringify(DEFAULT_TABS));
     await saveKey('runningTabs', runningTabs);
+  }
+  // Ensure every payment has a stable id so Edit/Delete always work (no-op for current data)
+  let _pmtIdsDirty = false;
+  (runningTabs || []).forEach(t => (t.payments || []).forEach((p, i) => {
+    if (!p.id) { p.id = 'p_' + t.id + '_' + i; _pmtIdsDirty = true; }
+  }));
+  if (_pmtIdsDirty) await saveKey('runningTabs', runningTabs);
+  // v4: append Batman June-8 $500 payment. SURGICAL append (not a full reseed) so it
+  // does NOT wipe any payments the user edited/added via the UI. Use this pattern for
+  // future payment additions instead of the older "runningTabs = DEFAULT_TABS" reseed.
+  if (!localStorage.getItem('tabsReset_v4')) {
+    const ac = runningTabs.find(t => t.id === 'acadia');
+    if (ac) {
+      ac.payments = ac.payments || [];
+      if (!ac.payments.find(p => p.id === 'p_ac_27')) {
+        ac.payments.push({ id:'p_ac_27', date:'2026-06-08', amount:500, note:'$500 payment to Batman — June 8, 2026' });
+        ac.payments.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        await saveKey('runningTabs', runningTabs);
+      }
+    }
+    localStorage.setItem('tabsReset_v4', '1');
   }
   // Migrate legacy isHeavy expenses → heavyProjects (status='paid')
   await migrateHeavyExpenses();
@@ -3183,6 +3211,10 @@ function renderTabs() {
             <span class="tab-hist-date">${p.date}</span>
             <span class="tab-hist-note">${p.note||''}${isMissed?'<span class="tab-missed-badge" style="margin-left:6px">MISSED</span>':isExtra?'<span class="tab-extra-badge" style="margin-left:6px">EXTRA</span>':''}</span>
             <span class="tab-hist-amt${isMissed?' zero':''}">${isMissed?'—':'-'+fmt(+p.amount)}</span>
+            <span class="tab-hist-actions">
+              <button class="tab-hist-edit" title="Edit payment" onclick="openTabEditModal('${tab.id}','${p.id}')">✎</button>
+              <button class="tab-hist-del" title="Delete payment" onclick="deleteTabPayment('${tab.id}','${p.id}')">🗑</button>
+            </span>
           </div>`;
         }).join('')
       : '<div class="tab-hist-empty">No payments recorded yet.</div>';
@@ -3227,17 +3259,38 @@ function openTabPayModal(tabId) {
   const tab = runningTabs.find(t => t.id === tabId);
   if (!tab) return;
   document.getElementById('tabPayId').value = tabId;
+  document.getElementById('tabPayEditId').value = '';   // add mode
   document.getElementById('tabPayModalTitle').textContent = '+ Payment — ' + tab.name;
   document.getElementById('tabPayAmt').value = tab.perCheck || '';
   document.getElementById('tabPayDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('tabPayNote').value = tab.perCheck ? 'Check payment' : '';
   document.getElementById('tabPayMissed').checked = false;
+  tabPayMissedToggle();
   openModal('tabPayModal');
 }
 window.openTabPayModal = openTabPayModal;
 
+function openTabEditModal(tabId, pmtId) {
+  const tab = runningTabs.find(t => t.id === tabId);
+  if (!tab) return;
+  const p = (tab.payments || []).find(x => x.id === pmtId);
+  if (!p) return;
+  const isMissed = p.missed || +p.amount === 0;
+  document.getElementById('tabPayId').value = tabId;
+  document.getElementById('tabPayEditId').value = pmtId;   // edit mode
+  document.getElementById('tabPayModalTitle').textContent = 'Edit Payment — ' + tab.name;
+  document.getElementById('tabPayAmt').value = isMissed ? '' : p.amount;
+  document.getElementById('tabPayDate').value = p.date || new Date().toISOString().split('T')[0];
+  document.getElementById('tabPayNote').value = (p.note && p.note !== 'MISSED' && p.note !== 'Payment') ? p.note : '';
+  document.getElementById('tabPayMissed').checked = isMissed;
+  tabPayMissedToggle();
+  openModal('tabPayModal');
+}
+window.openTabEditModal = openTabEditModal;
+
 async function submitTabPayment() {
   const tabId = document.getElementById('tabPayId').value;
+  const editId = document.getElementById('tabPayEditId').value;
   const isMissed = document.getElementById('tabPayMissed').checked;
   const date = document.getElementById('tabPayDate').value;
   const note = document.getElementById('tabPayNote').value.trim();
@@ -3247,18 +3300,46 @@ async function submitTabPayment() {
   const tab = runningTabs.find(t => t.id === tabId);
   if (!tab) return;
   if (!tab.payments) tab.payments = [];
-  tab.payments.push({
-    id: 'p_' + Date.now(),
-    date,
-    amount: isMissed ? 0 : amt,
-    note: note || (isMissed ? 'MISSED' : 'Payment'),
-    missed: isMissed || undefined
-  });
+  if (editId) {
+    // EDIT existing payment in place (keeps its id + position in history)
+    const p = tab.payments.find(x => x.id === editId);
+    if (p) {
+      p.date = date;
+      p.amount = isMissed ? 0 : amt;
+      p.note = note || (isMissed ? 'MISSED' : 'Payment');
+      p.missed = isMissed || undefined;
+    }
+  } else {
+    // ADD new payment
+    tab.payments.push({
+      id: 'p_' + Date.now(),
+      date,
+      amount: isMissed ? 0 : amt,
+      note: note || (isMissed ? 'MISSED' : 'Payment'),
+      missed: isMissed || undefined
+    });
+  }
+  // keep history chronological so edited/added dates land in the right spot
+  tab.payments.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   await saveKey('runningTabs', runningTabs);
   closeModal('tabPayModal');
   renderTabs();
 }
 window.submitTabPayment = submitTabPayment;
+
+async function deleteTabPayment(tabId, pmtId) {
+  const tab = runningTabs.find(t => t.id === tabId);
+  if (!tab || !tab.payments) return;
+  const p = tab.payments.find(x => x.id === pmtId);
+  if (!p) return;
+  const isMissed = p.missed || +p.amount === 0;
+  const label = (p.date || '') + (isMissed ? ' — (missed/skipped)' : ' — $' + (+p.amount).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}));
+  if (!confirm('Delete this payment?\n\n' + label + (p.note ? '\n' + p.note : '') + '\n\nThis updates the running balance and cannot be undone.')) return;
+  tab.payments = tab.payments.filter(x => x.id !== pmtId);
+  await saveKey('runningTabs', runningTabs);
+  renderTabs();
+}
+window.deleteTabPayment = deleteTabPayment;
 
 function tabPayMissedToggle() {
   const isMissed = document.getElementById('tabPayMissed').checked;
