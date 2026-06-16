@@ -743,6 +743,10 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
           <span class="rv" style="color:#777">-$692.31</span>
         </div>
       </div>
+      <div class="row" id="garnishRow" style="display:none">
+        <span class="rl red">⚠️ Wage Garnishment (20%)</span>
+        <span class="rv red" id="garnishAmt">-$0.00</span>
+      </div>
       <hr class="divider">
       <div class="row">
         <span class="rl green" id="netBottomLabel">Net</span>
@@ -954,7 +958,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.29 — Multi-device concurrency FIXED: expenses, bill payments, tab payments &amp; rollovers are now stored as individual rows (app_items) instead of one big list, so two phones can edit at once without overwriting each other. Deletes use tombstones (no resurrection) and changes sync live between phones. Falls back to the old blob storage if needed.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.30 — Added 20% wage garnishment starting the Jun 26 check (offset 4+): shows as a deduction line and reduces take-home + projected savings. Also fixed a long-standing double-count of Chapter-13 on FUTURE checks (projected net was ~$692 too low). Multi-device concurrency + per-row storage from v5.29.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1480,6 +1484,11 @@ sb.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.relo
 /* ---------------- CONSTANTS & DATA ---------------- */
 const ANCHOR     = new Date(2026, 3, 15);
 const CH13       = 692.31;
+// Wage garnishment — 20% of the net check (WI standard = 20% of disposable earnings),
+// starting the June 26, 2026 check (period offset 4) and every check after. This is
+// applied ON TOP of the existing Chapter-13 deduction. Set RATE to 0 to turn it off.
+const GARNISH_RATE         = 0.20;
+const GARNISH_START_OFFSET = 4;
 const MIN_OFFSET = -8;
 const EXPENSE_CUTOFF = '2026-05-01'; // Only show personal expenses on/after this date
 const MAX_OFFSET = 18;
@@ -2061,8 +2070,16 @@ function calc() {
   const comm     = +document.getElementById('commAmt').value    || 0;
   const gross    = salary + bonus + comm;
   const projNet  = projectedNet(gross);
-  // True take-home: projected net minus Chapter 13
-  const net      = projNet - CH13;
+  const _kp       = knownData[String(viewingOffset)];
+  const _isActual = !!(_kp && _kp.net != null && _kp.net > 0);
+  // Base take-home before garnishment = the net check. projectedNet() is interpolated from
+  // real Net Pay stubs that ALREADY have Chapter-13 removed, so do NOT subtract CH13 again
+  // (that was a long-standing double-count that under-stated every future check by ~$692).
+  const baseNet  = _isActual ? _kp.net : projNet;
+  // 20% wage garnishment starting the June 26 check (offset 4), on top of Chapter 13
+  const garnishActive = (viewingOffset >= GARNISH_START_OFFSET) && GARNISH_RATE > 0;
+  const garnish  = garnishActive ? Math.round(baseNet * GARNISH_RATE * 100) / 100 : 0;
+  const net      = baseNet - garnish; // final take-home after garnishment
   // Per-check bill share (monthly / 2 for biweekly)
   const billsPerCheck = bills.reduce((s,b) => s + periodDue(b, viewingOffset), 0);
   const isPersonal = e => (!e.billedTo || e.billedTo === 'personal') && (e.date||'') >= EXPENSE_CUTOFF;
@@ -2112,9 +2129,9 @@ function calc() {
       if (el('netSubLabel'))      el('netSubLabel').textContent = kp.note || 'From your confirmed paystub';
       if (el('netBottomLabel'))   el('netBottomLabel').textContent = 'Take-Home (Actual)';
       if (el('deductBreakdown'))  el('deductBreakdown').style.display = 'none';
-      // Show actual net in place of projected
+      // Show actual net deposit, then the garnished take-home below
       el('netPay').textContent    = f2(kp.net);
-      el('afterCh13').textContent = f2(kp.net);
+      el('afterCh13').textContent = f2(net);
     } else {
       if (el('netSectionLabel'))  { el('netSectionLabel').textContent = 'PROJECTED NET'; el('netSectionLabel').style.color = ''; }
       if (el('netAccuracyBadge')) { el('netAccuracyBadge').textContent = '~ Based on ' + ptCount + ' real paystubs'; el('netAccuracyBadge').className = 'accuracy-badge'; }
@@ -2122,6 +2139,12 @@ function calc() {
       if (el('netSubLabel'))      el('netSubLabel').textContent = 'Interpolated from your actual check history';
       if (el('netBottomLabel'))   el('netBottomLabel').textContent = 'Est. Net (after CH13)';
       if (el('deductBreakdown'))  el('deductBreakdown').style.display = '';
+    }
+    // Wage garnishment row (periods on/after the garnishment start date)
+    if (el('garnishRow')) el('garnishRow').style.display = garnishActive ? '' : 'none';
+    if (el('garnishAmt')) el('garnishAmt').textContent = '-' + f2(garnish);
+    if (garnishActive && el('netBottomLabel')) {
+      el('netBottomLabel').textContent = isActual ? 'Take-Home (after garnish)' : 'Est. Net (after garnish)';
     }
   } catch(e) { /* never crash the core calc */ }
 }
