@@ -610,6 +610,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
     <div class="sub">FAMILY PAYCHECK &amp; BUDGET MANAGER — 2026</div>
   </div>
   <div class="header-right">
+    <button class="add-pill expense" onclick="openExpenseModal()">+ EXPENSE</button>
     <button class="add-pill paystub" onclick="openPaystubModal()">+ PAYSTUB</button>
     <span class="sync-status" id="syncStatus" title="Sync status">
       <span class="sync-dot" id="syncDot"></span>
@@ -791,6 +792,16 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 
   <div class="card full">
     <div class="card-header">
+      <span class="icon">🧮</span><h2>Personal Expenses</h2>
+      <span class="updated" style="margin-left:auto;font-size:0.7rem;color:#666">This pay period · feeds Savings</span>
+      <button class="reset-btn" onclick="openExpenseModal()" style="background:#3a1e1e;color:#e85a5a;border:1px solid #8b3030">+ EXPENSE</button>
+    </div>
+    <div id="recentExpenses" class="recent-exp"></div>
+  </div>
+
+
+  <div class="card full">
+    <div class="card-header">
       <span class="icon">🏗️</span><h2>Household Projects</h2>
       <span class="updated" style="margin-left:auto;font-size:0.7rem;color:#666">Big one-time things — paid or upcoming</span>
       <button class="reset-btn" onclick="openHeavyProjectModal()" style="background:#3a1f0e;color:#e8a05a;border:1px solid #5a3a1e">+ ADD PROJECT</button>
@@ -943,7 +954,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.26 — Added 12 recurring charges from the Finance Review (Claude, Apollo, Canva, Mailchimp, EZ Texting, Zoho, Perplexity, Walmart+, Ruma Sport, Next Insurance, Rugiet, Anthropic API); every section now collapses behind a click; bills are removable in Edit</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.27 — Jun-12 paystub applied (offset 3); paystubs filed; Sales Log reconciled to 6/12 check; RESTORED personal expense entry + list + Monthly Summary (were orphaned); stay-signed-in session restore; fixed mortgage "pay remainder" math</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1324,7 +1335,10 @@ async function doSignOut() {
 window.doSignIn  = doSignIn;
 window.doSignOut = doSignOut;
 
+let _authedStarted = false;
 async function onAuthed() {
+  if (_authedStarted) return;   // idempotent — manual sign-in and session-restore can't double-run
+  _authedStarted = true;
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('signOutLink').style.display = 'inline-block';
   setSync('syncing', 'Loading…');
@@ -1332,6 +1346,21 @@ async function onAuthed() {
   setSync('synced', 'Synced');
   init();
 }
+
+/* ---------------- SESSION RESTORE ---------------- */
+// Supabase persists the session, so skip the login screen if already signed in.
+function _bootSessionRestore() {
+  sb.auth.getSession()
+    .then(({ data: { session } }) => { if (session && session.user) onAuthed(); })
+    .catch(e => console.warn('session restore', e && e.message));
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _bootSessionRestore);
+} else {
+  _bootSessionRestore();
+}
+// If the session ends elsewhere (sign-out / expired refresh), return to the login screen.
+sb.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.reload(); });
 
 /* ---------------- CONSTANTS & DATA ---------------- */
 const ANCHOR     = new Date(2026, 3, 15);
@@ -1390,6 +1419,7 @@ let knownData = {
   '0':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:2769.05,  net:4213,  note:'May 1 check — actual stub confirmed' },
   '1':  { salary:SALARY_BASE, bonus:2438.35,     comm:3006.16,  net:4982,  note:'May 15 check — actual stub confirmed' },
   '2':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1210.80,  net:3286,  note:'May 29 check — actual stub confirmed' },
+  '3':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1143.64,  net:3246,  note:'Jun 12 check — actual stub confirmed' },
 };
 
 let salesData = [];
@@ -1581,6 +1611,15 @@ async function hydrateFromCloud() {
   const cloudKnown = await loadKey('knownData', null);
   if (cloudKnown && typeof cloudKnown === 'object') knownData = cloudKnown;
   else await saveKey('knownData', knownData);
+  // ONE-TIME v526: add the Jun-12 actual paystub (offset 3) to cloud if missing.
+  // SURGICAL — only adds offset 3 when it isn't already a confirmed stub; never overwrites edits.
+  if (!localStorage.getItem('knownMerge_v526')) {
+    if (!knownData['3'] || !(knownData['3'].net > 0)) {
+      knownData['3'] = { salary:SALARY_BASE, bonus:BONUS_REG, comm:1143.64, net:3246, note:'Jun 12 check — actual stub confirmed' };
+      await saveKey('knownData', knownData);
+    }
+    localStorage.setItem('knownMerge_v526', '1');
+  }
   // salesData
   const cloudSales = await loadKey('salesData', null);
   if (cloudSales && Array.isArray(cloudSales)) salesData = cloudSales;
@@ -1821,7 +1860,7 @@ function updatePeriodBar() {
   document.getElementById('btnNext').disabled = (periodOffset >= MAX_OFFSET);
   viewingOffset = periodOffset;
   applyPeriodData();
-  renderBudgets();
+  refreshExpenseViews();
   renderBills();
 }
 
@@ -2219,10 +2258,11 @@ function payBillQuickFill(kind) {
   const bill = bills.find(b => b.name === _payingBillName);
   if (!bill) return;
   const paid = billPaidAmount(bill.name);
-  const remain = Math.max(0, bill.monthly - paid);
+  const due = periodDue(bill); // amount due THIS period (mortgage = ½ monthly; dueDay bills = full)
+  const remain = Math.max(0, due - paid);
   const inp = document.getElementById('payBillAmt');
   if (kind === 'remain') inp.value = remain.toFixed(2);
-  else if (kind === 'half') inp.value = (bill.monthly / 2).toFixed(2);
+  else if (kind === 'half') inp.value = (due / 2).toFixed(2);
   else if (kind === 'clear') inp.value = '';
   inp.focus();
 }
@@ -2447,6 +2487,55 @@ function renderBudgets() {
     }
   }
   renderMonthlySummary();
+}
+
+/* ---------------- PERSONAL EXPENSES LIST ---------------- */
+// Standalone render for the personal-expenses card (previously trapped inside the
+// now-dead renderBudgets). Safe no-op if the container isn't present.
+function renderRecentExpenses() {
+  const recentEl = document.getElementById('recentExpenses');
+  if (!recentEl) return;
+  const allExp = isFuturePeriod()
+    ? []
+    : expenses
+        .filter(e => e.periodOffset === viewingOffset && !e.isHeavy
+                && (!e.billedTo || e.billedTo === 'personal')
+                && (e.date||'') >= EXPENSE_CUTOFF)
+        .sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  const whoCls  = w => w === 'Justin' ? 'j' : w === 'Michele' ? 'm' : 'b';
+  const whoIcon = w => w === 'Justin' ? '🦊' : w === 'Michele' ? '💜' : w === 'Joint' ? '👫' : '🔘';
+  const billedBadge = bt => bt === 'dbw' ? '<span class="billed-badge dbw">DBW</span>' : bt === 'bsol' ? '<span class="billed-badge bsol">BSOL</span>' : '';
+  const total = allExp.reduce((s,e)=>s+(+e.amount||0),0);
+  const expRow = e => {
+    const cat = defaultBudgets[e.category] || {icon:'❓',label:e.category||'Other'};
+    const desc = e.description || cat.label;
+    const dateLabel = e.date ? e.date.slice(5).replace('-','/') : '';
+    return `<div class="recent-exp-row">
+      <span class="recent-exp-who ${whoCls(e.who)}">${whoIcon(e.who)} ${e.who||'?'}</span>
+      <span class="recent-exp-cat" title="${cat.label}">${cat.icon}</span>
+      <span class="recent-exp-desc">${desc}${billedBadge(e.billedTo)}</span>
+      <span class="recent-exp-amt">-${f2(+e.amount||0)}</span>
+      <span class="recent-exp-date">${dateLabel}</span>
+      <button class="recent-exp-edit" onclick="editExpense('${e.id}')" title="Edit">✏️</button>
+      <button class="recent-exp-del" onclick="deleteExpense('${e.id}')" title="Delete">×</button>
+    </div>`;
+  };
+  if (!allExp.length) {
+    const emptyMsg = isFuturePeriod()
+      ? 'This pay period hasn\'t started yet — expenses will appear here once it begins.'
+      : 'No personal expenses logged yet — tap + EXPENSE to add one.';
+    recentEl.innerHTML = `<div class="rh"><span>Personal Expenses (0)</span><span></span></div><div class="recent-exp-empty">${emptyMsg}</div>`;
+  } else {
+    recentEl.innerHTML = `
+      <div class="rh"><span>Personal Expenses (${allExp.length})</span><span style="color:#e85a5a;font-weight:700">-${f2(total)}</span></div>
+      ${allExp.map(expRow).join('')}
+    `;
+  }
+}
+// Refresh everything driven by the expenses array (list + monthly summary)
+function refreshExpenseViews() {
+  try { renderRecentExpenses(); } catch(e) { console.warn('renderRecentExpenses', e.message); }
+  try { renderMonthlySummary(); } catch(e) { console.warn('renderMonthlySummary', e.message); }
 }
 
 /* ---------------- MONTHLY SUMMARY RENDER ---------------- */
@@ -3053,11 +3142,14 @@ const DEFAULT_COMMISSION_LOG = [
   },
   {
     label:"May 27 – Jun 09, 2026", check:"Jun 12, 2026", periodOffset:3,
-    sales:3801.00, cog:2360.30, comm:288.28,
+    sales:3801.00, cog:2360.30, comm:1143.64,
     orders:[
-      // Period in progress — ship sheets through 6/1
+      // Itemized ship sheets received through 6/1
       {date:"05/28/2026",acct:"00GME2019",company:"G & M EARTH MOVING INC",type:"RUN",sales:3645.00,cog:2277.50,markup:1.60,comm:269.25},
-      {date:"06/01/2026",acct:"22BIEH0",company:"BIEHN'S FLOOR WORKS & DESIGN",type:"RUN",sales:156.00,cog:82.80,markup:1.88,comm:19.03}
+      {date:"06/01/2026",acct:"22BIEH0",company:"BIEHN'S FLOOR WORKS & DESIGN",type:"RUN",sales:156.00,cog:82.80,markup:1.88,comm:19.03},
+      // Reconciliation to the 6/12 paycheck (Comm $1,143.64). Ship sheets for 6/2–6/9
+      // not yet itemized — drop those sheets and I'll replace this RECAP row with detail.
+      {date:"06/09/2026",acct:"RECAP",company:"Various — per 6/12 paycheck (ship sheets 6/2–6/9 pending)",type:"RUN",sales:0,cog:0,markup:null,comm:855.36}
     ]
   }
 ];
@@ -3409,6 +3501,7 @@ async function deleteExpense(id) {
   if (expenses.length === before) return; // nothing changed
   await saveKey('expenses', expenses);
   calc();
+  refreshExpenseViews();
 }
 window.deleteExpense = deleteExpense;
 
@@ -3483,6 +3576,7 @@ function init() {
   try { buildSalesLog();       } catch(e) { console.warn('buildSalesLog',e.message); }
   try { renderCommissionLog(); } catch(e) { console.warn('renderCommissionLog',e.message); }
   try { renderTabs();          } catch(e) { console.warn('renderTabs',e.message); }
+  try { refreshExpenseViews(); } catch(e) { console.warn('refreshExpenseViews',e.message); }
   try { initCollapsibles();    } catch(e) { console.warn('initCollapsibles',e.message); }
 }
 
@@ -3789,7 +3883,7 @@ async function saveExpense() {
   }
   await saveKey('expenses', expenses);
   calc();
-  renderBudgets();
+  refreshExpenseViews();
   closeModal('expenseModal');
 }
 window.openExpenseModal = openExpenseModal;
