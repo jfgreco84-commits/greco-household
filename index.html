@@ -958,7 +958,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.30 — Added 20% wage garnishment starting the Jun 26 check (offset 4+): shows as a deduction line and reduces take-home + projected savings. Also fixed a long-standing double-count of Chapter-13 on FUTURE checks (projected net was ~$692 too low). Multi-device concurrency + per-row storage from v5.29.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.31 — Added 2 missing recurring debits (Comenity Pay $20 ~9th, Comn Cap Auto Pay $10 ~5th) at real PNC-statement amounts. 20% wage garnishment (Jun 26 check on, on TOP of Chapter-13) + Ch-13 future-check fix from v5.30; multi-device concurrency from v5.29.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1603,6 +1603,9 @@ const defaultBills = [
   { name:'Walmart+',               monthly:7,     dueDay:1,  note:'Membership (NSB) — Excel shows ~$7, confirm' },
   { name:'Next Insurance',         monthly:71,    dueDay:1,  note:'Dot Dynasty liability — ~est day, confirm' },
   { name:'Rugiet Health',          monthly:50,    dueDay:1,  note:'Supplement (PNC) — ~est day, confirm' },
+  // ---- Added Jun 16 2026 — recurring credit-card debits from the Finance Review (amounts off the PNC statement) ----
+  { name:'Comenity Pay',           monthly:20,    dueDay:9,  note:'Store card min (PNC, acct *8500) — also a ~$30 Comenity charge on *4566; tell me if that 2nd card should be added' },
+  { name:'Comn Cap Auto Pay',      monthly:10,    dueDay:5,  note:'Comenity Capital autopay (PNC, acct *3377) — recent actual $10/mo' },
 ];
 let bills = JSON.parse(JSON.stringify(defaultBills));
 let billsPaid = {}; // { '<periodOffset>': { '<billName>': { paidDate, paidBy } } }
@@ -1733,6 +1736,18 @@ async function hydrateFromCloud() {
     });
     if (added) await saveKey('bills', bills);
     localStorage.setItem('billsMerge_v526', '1');
+  }
+  // ONE-TIME v530: add Comenity Pay + Comn Cap Auto Pay (append-only, never overwrites edits)
+  if (!localStorage.getItem('billsMerge_v530')) {
+    let added = false;
+    defaultBills.forEach(def => {
+      if (!bills.find(b => b.name === def.name)) {
+        bills.push(JSON.parse(JSON.stringify(def)));
+        added = true;
+      }
+    });
+    if (added) await saveKey('bills', bills);
+    localStorage.setItem('billsMerge_v530', '1');
   }
   // knownData
   const cloudKnown = await loadKey('knownData', null);
