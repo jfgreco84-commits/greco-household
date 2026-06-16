@@ -954,7 +954,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.27 — Jun-12 paystub applied (offset 3); paystubs filed; Sales Log reconciled to 6/12 check; RESTORED personal expense entry + list + Monthly Summary (were orphaned); stay-signed-in session restore; fixed mortgage "pay remainder" math</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.28 — Data-loss fixes: a failed/offline read no longer overwrites your cloud data with blanks (loadKey throws, hydrate aborts safely); the + PAYMENT button on Running Tabs no longer gets wiped on reload (removed the every-load DEFAULT_TABS reseed). Concurrent two-device editing still needs a schema change — see notes.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1287,17 +1287,15 @@ async function saveKey(key, value) {
   }
 }
 
+// Returns the stored value, or `fallback` ONLY for a genuine "no row yet" (new user).
+// A real read error (network/DB) THROWS so hydrateFromCloud can abort safely instead
+// of mistaking a failed read for "empty" and overwriting the cloud with blanks.
 async function loadKey(key, fallback) {
-  try {
-    const { data, error } = await sb.from('app_data')
-      .select('data_value').eq('data_key', key).maybeSingle();
-    if (error) { console.warn('loadKey', key, error); return fallback; }
-    if (!data) return null;
-    return data.data_value;
-  } catch (e) {
-    console.warn('loadKey ex', e);
-    return fallback;
-  }
+  const { data, error } = await sb.from('app_data')
+    .select('data_value').eq('data_key', key).maybeSingle();
+  if (error) throw new Error('loadKey ' + key + ': ' + (error.message || error));
+  if (!data) return fallback;        // genuine no-row → safe to seed default
+  return data.data_value;
 }
 
 let _billsSaveTimer = null;
@@ -1343,7 +1341,7 @@ async function onAuthed() {
   document.getElementById('signOutLink').style.display = 'inline-block';
   setSync('syncing', 'Loading…');
   await hydrateFromCloud();
-  setSync('synced', 'Synced');
+  if (!_hydrateFailed) setSync('synced', 'Synced');
   init();
 }
 
@@ -1561,7 +1559,10 @@ let _editingHeavyId = null;
 let _hpStatus = 'upcoming';
 
 /* ---------------- HYDRATE FROM CLOUD ---------------- */
+let _hydrateFailed = false;
 async function hydrateFromCloud() {
+  _hydrateFailed = false;
+  try {
   // bills
   const cloudBills = await loadKey('bills', null);
   if (cloudBills && Array.isArray(cloudBills)) bills = cloudBills;
@@ -1652,10 +1653,14 @@ async function hydrateFromCloud() {
     localStorage.setItem('clReset_v2', '1');
     localStorage.setItem('clReset_v2_loaded', '1');
   }
-  // ONE-TIME: reset runningTabs if Supabase has empty/stale data
-  if (!localStorage.getItem('tabsReset_v1') || runningTabs.length === 0) {
-    runningTabs = DEFAULT_TABS;
-    await saveKey('runningTabs', DEFAULT_TABS);
+  // ONE-TIME seed for brand-new devices only.
+  // (Previously this ALSO re-fired on `runningTabs.length === 0`, which is true on
+  // EVERY load — runningTabs isn't loaded from the cloud until further below — so it
+  // silently reseeded DEFAULT_TABS over the cloud and wiped any payment added via the
+  // + PAYMENT button. The cloud-load + safety-net below already handle the empty case.)
+  if (!localStorage.getItem('tabsReset_v1')) {
+    runningTabs = JSON.parse(JSON.stringify(DEFAULT_TABS));
+    await saveKey('runningTabs', runningTabs);
     localStorage.setItem('tabsReset_v1', '1');
   }
   // v2: force-reseed to pick up Martone 3rd payment + Batman May-29
@@ -1748,6 +1753,14 @@ async function hydrateFromCloud() {
   }
   // Migrate legacy isHeavy expenses → heavyProjects (status='paid')
   await migrateHeavyExpenses();
+  } catch (e) {
+    // A read failed (offline / DB error). Keep in-memory defaults and DO NOT save —
+    // never overwrite the cloud with blanks just because a read failed.
+    console.error('hydrateFromCloud failed:', e);
+    _hydrateFailed = true;
+    setSync('error', 'Load failed — offline');
+    try { showToast('⚠️ Couldn\'t load your latest data — you appear to be offline. Avoid edits until it reconnects, then reload.', 'error'); } catch(_e){}
+  }
 }
 
 /* ---------------- HEAVY EXPENSE MIGRATION → projects ---------------- */
