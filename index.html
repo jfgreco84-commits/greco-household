@@ -954,7 +954,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.28 — Data-loss fixes: a failed/offline read no longer overwrites your cloud data with blanks (loadKey throws, hydrate aborts safely); the + PAYMENT button on Running Tabs no longer gets wiped on reload (removed the every-load DEFAULT_TABS reseed). Concurrent two-device editing still needs a schema change — see notes.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.29 — Multi-device concurrency FIXED: expenses, bill payments, tab payments &amp; rollovers are now stored as individual rows (app_items) instead of one big list, so two phones can edit at once without overwriting each other. Deletes use tombstones (no resurrection) and changes sync live between phones. Falls back to the old blob storage if needed.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1311,6 +1311,122 @@ function queueBudgetsSave() {
   _budgetsSaveTimer = setTimeout(() => { saveKey('budgets', budgets); }, 500);
 }
 
+/* ============ PER-ROW STORAGE (app_items) — concurrent-safe multi-device ============ */
+/* Each expense / bill payment / tab payment / rollover is its OWN row, so two phones
+   editing different things can never clobber each other (the old whole-list blob did).
+   Deletes are tombstones (deleted=true) so a delete on one phone can't be resurrected by
+   the other. The in-memory structures (expenses[], billsPaid{}, runningTabs[].payments,
+   billRollovers[]) and every render/calc stay exactly the same — only load/save change. */
+async function loadItems(collection) {
+  const { data, error } = await sb.from('app_items')
+    .select('id,data').eq('collection', collection).eq('deleted', false);
+  if (error) throw new Error('loadItems ' + collection + ': ' + (error.message || error));
+  return (data || []).map(r => r.data);
+}
+async function saveItem(collection, item) {
+  if (!item || item.id == null) { console.warn('saveItem missing id', collection, item); return false; }
+  setSync('syncing', 'Saving…');
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) { setSync('error', 'No user'); return false; }
+    const { error } = await sb.from('app_items').upsert({
+      collection, id: String(item.id), user_id: user.id, data: item,
+      deleted: false, updated_at: new Date().toISOString()
+    }, { onConflict: 'collection,id' });
+    if (error) { console.error('saveItem', collection, error); setSync('error', 'Sync error'); return false; }
+    setSync('synced', 'Synced'); return true;
+  } catch (e) { console.error('saveItem ex', e); setSync('error', 'Sync error'); return false; }
+}
+async function deleteItem(collection, id) {
+  setSync('syncing', 'Saving…');
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) { setSync('error', 'No user'); return false; }
+    const { error } = await sb.from('app_items')
+      .update({ deleted: true, updated_at: new Date().toISOString() })
+      .eq('collection', collection).eq('id', String(id));
+    if (error) { console.error('deleteItem', collection, error); setSync('error', 'Sync error'); return false; }
+    setSync('synced', 'Synced'); return true;
+  } catch (e) { console.error('deleteItem ex', e); setSync('error', 'Sync error'); return false; }
+}
+// rows → billsPaid object { periodOffset: { billName: { payments:[{id,amount,date,paidBy}] } } }
+function rebuildBillsPaidFromRows(rows) {
+  const obj = {};
+  (rows || []).forEach(p => {
+    if (p.periodOffset == null || p.billName == null) return;
+    const period = String(p.periodOffset), bill = p.billName;
+    if (!obj[period]) obj[period] = {};
+    if (!obj[period][bill]) obj[period][bill] = { payments: [] };
+    obj[period][bill].payments.push({ id: p.id, amount: p.amount, date: p.date, paidBy: p.paidBy });
+  });
+  return obj;
+}
+// attach tabPayments rows onto the in-memory runningTabs definitions (matched by tabId)
+function attachTabPaymentsFromRows(rows) {
+  const byTab = {};
+  (rows || []).forEach(p => {
+    if (!p.tabId) return;
+    (byTab[p.tabId] = byTab[p.tabId] || []).push({ id:p.id, date:p.date, amount:p.amount, note:p.note, missed:p.missed });
+  });
+  (runningTabs || []).forEach(t => {
+    t.payments = (byTab[t.id] || []).sort((a,b) => (a.date || '').localeCompare(b.date || ''));
+  });
+}
+// Load authoritative state from rows (overwrites the blob-loaded copies).
+async function loadStateFromItems() {
+  expenses      = await loadItems('expenses');
+  billsPaid     = rebuildBillsPaidFromRows(await loadItems('billPayments'));
+  billRollovers = await loadItems('rollovers');
+  attachTabPaymentsFromRows(await loadItems('tabPayments'));
+}
+// One-time-per-device safety net: copy any blob item not already a row (covers edits made
+// in the window between the server migration and this device first loading the new client).
+async function migrateStragglersToItems() {
+  const seed = async (collection, items) => {
+    if (!items || !items.length) return;
+    let existing;
+    try {
+      const res = await sb.from('app_items').select('id').eq('collection', collection);
+      existing = new Set((res.data || []).map(r => r.id));
+    } catch (e) { return; }
+    for (const it of items) {
+      if (it && it.id != null && !existing.has(String(it.id))) await saveItem(collection, it);
+    }
+  };
+  await seed('expenses', expenses);
+  await seed('rollovers', billRollovers);
+  const bp = [];
+  Object.keys(billsPaid || {}).forEach(period => Object.keys(billsPaid[period] || {}).forEach(billName =>
+    ((billsPaid[period][billName] || {}).payments || []).forEach(p => bp.push({ ...p, periodOffset: period, billName }))));
+  await seed('billPayments', bp);
+  const tp = [];
+  (runningTabs || []).forEach(t => (t.payments || []).forEach(p => tp.push({ ...p, tabId: t.id })));
+  await seed('tabPayments', tp);
+}
+// Realtime: when the OTHER phone changes something, re-load that collection and re-render.
+function reloadItemCollection(collection) {
+  (async () => {
+    try {
+      if (collection === 'expenses')          { expenses = await loadItems('expenses'); refreshExpenseViews(); calc(); }
+      else if (collection === 'billPayments') { billsPaid = rebuildBillsPaidFromRows(await loadItems('billPayments')); renderBills(); calc(); }
+      else if (collection === 'tabPayments')  { attachTabPaymentsFromRows(await loadItems('tabPayments')); renderTabs(); }
+      else if (collection === 'rollovers')    { billRollovers = await loadItems('rollovers'); renderRollovers(); renderBills(); }
+    } catch (e) { console.warn('reloadItemCollection', collection, e && e.message); }
+  })();
+}
+let _itemsChannel = null;
+function subscribeItemsRealtime() {
+  if (_itemsChannel) return;
+  try {
+    _itemsChannel = sb.channel('app_items_live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_items' }, payload => {
+        const row = payload.new || payload.old;
+        if (row && row.collection) reloadItemCollection(row.collection);
+      })
+      .subscribe();
+  } catch (e) { console.warn('realtime subscribe failed', e && e.message); }
+}
+
 /* ---------------- AUTH FLOW ---------------- */
 async function doSignIn() {
   const email = document.getElementById('loginEmail').value.trim();
@@ -1343,6 +1459,7 @@ async function onAuthed() {
   await hydrateFromCloud();
   if (!_hydrateFailed) setSync('synced', 'Synced');
   init();
+  if (!_hydrateFailed) subscribeItemsRealtime(); // live multi-device sync
 }
 
 /* ---------------- SESSION RESTORE ---------------- */
@@ -1753,6 +1870,17 @@ async function hydrateFromCloud() {
   }
   // Migrate legacy isHeavy expenses → heavyProjects (status='paid')
   await migrateHeavyExpenses();
+  // ---- Per-row storage cutover: seed any straggler blob items once, then load from rows.
+  // Wrapped so an app_items hiccup falls back to the blob copies already loaded above. ----
+  try {
+    if (!localStorage.getItem('itemsMigrated_v1')) {
+      await migrateStragglersToItems();
+      try { localStorage.setItem('itemsMigrated_v1', '1'); } catch(_e){}
+    }
+    await loadStateFromItems();
+  } catch (e) {
+    console.warn('app_items unavailable — using blob fallback:', e && e.message);
+  }
   } catch (e) {
     // A read failed (offline / DB error). Keep in-memory defaults and DO NOT save —
     // never overwrite the cloud with blanks just because a read failed.
@@ -2161,7 +2289,7 @@ async function saveRollover() {
     return;
   }
   const label = periodLabel(viewingOffset);
-  billRollovers.push({
+  const ro = {
     id: 'ro_' + Date.now(),
     billName,
     amount: amt,
@@ -2169,8 +2297,9 @@ async function saveRollover() {
     fromPeriodLabel: label,
     note,
     paid: false
-  });
-  await saveKey('billRollovers', billRollovers);
+  };
+  billRollovers.push(ro);
+  await saveItem('rollovers', ro);   // per-row
   closeModal('rolloverModal');
   renderRollovers();
 }
@@ -2178,13 +2307,13 @@ window.saveRollover = saveRollover;
 
 async function payRollover(id) {
   const r = billRollovers.find(x => x.id === id);
-  if (r) { r.paid = true; await saveKey('billRollovers', billRollovers); renderRollovers(); }
+  if (r) { r.paid = true; await saveItem('rollovers', r); renderRollovers(); }
 }
 window.payRollover = payRollover;
 
 async function deleteRollover(id) {
   billRollovers = billRollovers.filter(x => x.id !== id);
-  await saveKey('billRollovers', billRollovers);
+  await deleteItem('rollovers', id);   // per-row: tombstone
   renderRollovers();
 }
 window.deleteRollover = deleteRollover;
@@ -2299,10 +2428,10 @@ async function savePayment() {
   const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
     ? crypto.randomUUID()
     : ('pay_' + Date.now() + '_' + Math.random().toString(36).slice(2,8));
-  billsPaid[periodKey][_payingBillName].payments.push({
-    id, amount: +amtEl.value, date, paidBy: who
-  });
-  await saveKey('billsPaid', billsPaid);
+  const pmt = { id, amount: +amtEl.value, date, paidBy: who };
+  billsPaid[periodKey][_payingBillName].payments.push(pmt);
+  // per-row: save just this payment, tagged with its period + bill so it can be rebuilt
+  await saveItem('billPayments', { ...pmt, periodOffset: periodKey, billName: _payingBillName });
   renderBills();
   calc();
   closeModal('payBillModal');
@@ -2342,7 +2471,7 @@ async function deletePayment(billName, paymentId) {
   if (billsPaid[periodKey] && Object.keys(billsPaid[periodKey]).length === 0) {
     delete billsPaid[periodKey];
   }
-  await saveKey('billsPaid', billsPaid);
+  await deleteItem('billPayments', paymentId);   // per-row: tombstone just this payment
   // Re-open history to refresh, but only if the bill still has the modal open
   if (billsPaid[periodKey] && billsPaid[periodKey][billName]) {
     openBillHistoryModal(billName);
@@ -3460,6 +3589,7 @@ async function submitTabPayment() {
   const tab = runningTabs.find(t => t.id === tabId);
   if (!tab) return;
   if (!tab.payments) tab.payments = [];
+  let savedPmt = null;
   if (editId) {
     // EDIT existing payment in place (keeps its id + position in history)
     const p = tab.payments.find(x => x.id === editId);
@@ -3468,20 +3598,23 @@ async function submitTabPayment() {
       p.amount = isMissed ? 0 : amt;
       p.note = note || (isMissed ? 'MISSED' : 'Payment');
       p.missed = isMissed || undefined;
+      savedPmt = p;
     }
   } else {
     // ADD new payment
-    tab.payments.push({
+    savedPmt = {
       id: 'p_' + Date.now(),
       date,
       amount: isMissed ? 0 : amt,
       note: note || (isMissed ? 'MISSED' : 'Payment'),
       missed: isMissed || undefined
-    });
+    };
+    tab.payments.push(savedPmt);
   }
   // keep history chronological so edited/added dates land in the right spot
   tab.payments.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-  await saveKey('runningTabs', runningTabs);
+  // per-row: save just this payment, tagged with its tabId
+  if (savedPmt) await saveItem('tabPayments', { id: savedPmt.id, date: savedPmt.date, amount: savedPmt.amount, note: savedPmt.note, missed: savedPmt.missed, tabId: tab.id });
   closeModal('tabPayModal');
   renderTabs();
 }
@@ -3496,7 +3629,7 @@ async function deleteTabPayment(tabId, pmtId) {
   const label = (p.date || '') + (isMissed ? ' — (missed/skipped)' : ' — $' + (+p.amount).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}));
   if (!confirm('Delete this payment?\n\n' + label + (p.note ? '\n' + p.note : '') + '\n\nThis updates the running balance and cannot be undone.')) return;
   tab.payments = tab.payments.filter(x => x.id !== pmtId);
-  await saveKey('runningTabs', runningTabs);
+  await deleteItem('tabPayments', pmtId);   // per-row: tombstone just this payment
   renderTabs();
 }
 window.deleteTabPayment = deleteTabPayment;
@@ -3512,7 +3645,7 @@ async function deleteExpense(id) {
   const before = expenses.length;
   expenses = expenses.filter(e => e.id !== id);
   if (expenses.length === before) return; // nothing changed
-  await saveKey('expenses', expenses);
+  await deleteItem('expenses', id);   // per-row: tombstone just this expense
   calc();
   refreshExpenseViews();
 }
@@ -3894,7 +4027,7 @@ async function saveExpense() {
     expenses.push(entry);
     showToast('✅ Logged: ' + desc + ' ($' + (+amtEl.value).toFixed(2) + ')');
   }
-  await saveKey('expenses', expenses);
+  await saveItem('expenses', entry);   // per-row: save just this expense (concurrent-safe)
   calc();
   refreshExpenseViews();
   closeModal('expenseModal');
