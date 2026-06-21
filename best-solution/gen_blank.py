@@ -1,6 +1,6 @@
 import re, sys
 
-master = open(__import__('os').path.join(__import__('os').path.dirname(__file__),'froggy-personal.html')).read()
+master = open(__import__('os').path.join(__import__('os').path.dirname(__file__),'froggy-personal.html'), encoding='utf-8').read()
 
 MINIMAL_AOTU = '''function applyOneTimeUpdates(d){
   d._applied=d._applied||{};
@@ -79,7 +79,7 @@ apps = [
 ]
 for slug, owner, title, fname in apps:
     out = make(slug, owner, title)
-    open(fname, 'w').write(out)
+    open(fname, 'w', encoding='utf-8', newline='').write(out)
     # sanity assertions
     assert 'Mark Martone' not in out, fname+': Martone leaked'
     assert 'Froggy' not in out, fname+': Froggy leaked'
