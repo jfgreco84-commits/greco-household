@@ -81,7 +81,7 @@
     .pbar-fill{height:100%;border-radius:4px;transition:width 0.4s}
 
     /* BUTTONS */
-    .btn{padding:11px 16px;border-radius:9px;border:none;cursor:pointer;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.12s,transform 0.1s;letter-spacing:0.2px}
+    .btn{padding:11px 16px;min-height:44px;border-radius:9px;border:none;cursor:pointer;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.12s,transform 0.1s;letter-spacing:0.2px}
     .btn:active{opacity:0.75;transform:scale(0.97)}.btn:disabled{opacity:0.35;cursor:not-allowed}
     .btn-gold{background:var(--gold);color:#000}.btn-green{background:var(--green);color:#000}
     .btn-red{background:var(--red);color:#fff}.btn-ghost{background:var(--card2);border:1px solid var(--border);color:var(--text)}
@@ -1098,6 +1098,7 @@ function $$(i){return document.getElementById(i);}
 function pg(i){return $$('pg-'+i);}
 function fmt(n){if(n===null||n===undefined)return'$0.00';const a=Math.abs(n);const s='$'+a.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');return n<0?'-'+s:s;}
 function fmtN(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function pctF(n){return (Number(n)||0).toFixed(1)+'%';} // percentages display with one decimal + %
 function getP(k){return(S.prices&&S.prices[k])||SKUS.find(s=>s.key===k).defP;}
 function eSku(){const r={};SKUS.forEach(s=>r[s.key]=0);return r;}
 function calcRev(sold){return SKUS.reduce((t,s)=>t+(sold[s.key]||0)*getP(s.key),0);}
@@ -1476,9 +1477,9 @@ function rHome(){
       ${dcard('Total Booth Rent',fmt(allBooth),{color:R,border:RB,sub:'Booth fees committed'})}
       ${dcard('Total Expenses',fmt(totalOtherExp),{color:R,border:RB,sub:'Gas, hotel, supplies, comm.'})}
       ${dcard('Total Cost of Goods',fmt(ytd.cogs),{color:R,border:RB,sub:'Product COGS'})}
-      ${dcard('Total Tax Reserve',fmt(ytd.taxRes),{color:AMBER,border:'rgba(255,179,0,0.3)',sub:Math.round(S.settings.tax*100)+'% set aside from profit'})}
+      ${dcard('Total Tax Reserve',fmt(ytd.taxRes),{color:AMBER,border:'rgba(255,179,0,0.3)',sub:pctF(S.settings.tax*100)+' set aside from profit'})}
       ${dcard('Master Inventory',invUnits+' units',{onclick:"go('stock')",sub:fmt(invRetail)+' retail · tap to manage'})}
-      ${dcard('Collected vs Full Price',colPot>0?Math.round((colAct/colPot)*100)+'% captured':'—',{onclick:"openSection('collected')",sub:fmt(colAct)+' of '+fmt(colPot)})}
+      ${dcard('Collected vs Full Price',colPot>0?pctF((colAct/colPot)*100)+' captured':'—',{onclick:"openSection('collected')",sub:fmt(colAct)+' of '+fmt(colPot)})}
       ${dcard('Units Sold by Product',fmtN(ytd.totalUnits),{onclick:"openSection('units')",sub:'units sold · tap for breakdown'})}
     </div>
   </div>`;
@@ -1642,7 +1643,7 @@ function secCollected(){
   }
   let tp=0,tc=0;
   _sell.forEach(sh=>{tp+=showPotentialRev(sh);tc+=showActualRev(sh);});
-  const tg=tp-tc, tpct=tp>0?Math.round((tc/tp)*100):0, gpct=tp>0?Math.round((tg/tp)*100):0;
+  const tg=tp-tc, tpct=tp>0?Math.round((tc/tp)*100):0, tpctN=(tp>0?(tc/tp)*100:0).toFixed(1), gpctN=(tp>0?(tg/tp)*100:0).toFixed(1);
   // ----- Hero summary: collected vs full price, modern gauge -----
   let h=`<div class="card" style="background:linear-gradient(150deg,rgba(0,210,106,0.10),rgba(255,215,0,0.04));border-color:var(--greenbd);padding:18px 16px;margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px">
@@ -1652,7 +1653,7 @@ function secCollected(){
         <div style="font-size:11px;color:var(--muted);margin-top:3px">of ${fmt(tp)} full price</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:46px;font-weight:900;color:var(--green);line-height:0.9">${tpct}<span style="font-size:20px">%</span></div>
+        <div style="font-size:46px;font-weight:900;color:var(--green);line-height:0.9">${tpctN}<span style="font-size:20px">%</span></div>
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700">capture rate</div>
       </div>
     </div>
@@ -1660,8 +1661,8 @@ function secCollected(){
       <div style="position:absolute;inset:0;width:${tpct}%;background:linear-gradient(90deg,var(--green),#2be88a);border-radius:8px"></div>
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px">
-      <span style="color:var(--green);font-weight:800">● Collected ${tpct}%</span>
-      ${tg>0.5?`<span style="color:var(--red);font-weight:800">● Given away ${fmt(tg)} (${gpct}%)</span>`:`<span style="color:var(--muted)">No discounts given</span>`}
+      <span style="color:var(--green);font-weight:800">● Collected ${tpctN}%</span>
+      ${tg>0.5?`<span style="color:var(--red);font-weight:800">● Given away ${fmt(tg)} (${gpctN}%)</span>`:`<span style="color:var(--muted)">No discounts given</span>`}
     </div>
   </div>`;
   // ----- Per-show breakdown with mini capture bars -----
