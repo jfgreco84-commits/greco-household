@@ -67,9 +67,24 @@ def make(slug, owner, title):
     h = h.replace("dd_bs_", "dd_bs_%s_" % slug)
     h = h.replace("'bs_state'", "'bs_state_%s'" % slug)
 
-    # 9. Title
+    # 9. Title (browser tab)
     h = h.replace("<title>Best Solution | Dot Dynasty LLC</title>",
                   "<title>%s</title>" % title)
+
+    # 10. Header app title — per person, no "Dot Dynasty LLC" subtitle on the crew apps
+    h = h.replace(
+        '<div><div class="hdr-name">Best Solution</div><div class="hdr-sub">Dot Dynasty LLC</div></div>',
+        '<div><div class="hdr-name">%s’s Best Solution App</div></div>' % owner)
+
+    # 11. Replace the personal 2025-season recap (hardcoded prior-year figures) with an empty stub
+    s2 = h.index('function r2025Season(){')
+    e2 = h.index('function show2025Detail(', s2)
+    stub = ('function r2025Season(){\n'
+            '  pg(\'shows\').innerHTML=`<div class="sec-row"><div class="sec-title">📊 2025 Season</div>'
+            '<button class="btn btn-ghost btn-sm" onclick="shows2025Mode=false;rShows()">← 2026 Shows</button></div>'
+            '<div class="card" style="text-align:center;color:var(--muted);padding:28px 16px">No 2025 season data for this app.</div>`;\n'
+            '}\n')
+    h = h[:s2] + stub + h[e2:]
     return h
 
 apps = [
@@ -88,4 +103,7 @@ for slug, owner, title, fname in apps:
     assert "label:'Borrowed from Batman'" not in out, fname+': batman card leaked'
     assert "inventory:{'32oz':0" in out, fname+': inventory not zeroed'
     assert 'dd_bs_%s_v7'%slug in out, fname+': storage key not namespaced'
+    for leak in ('26850','9088','5170','2632'):
+        assert leak not in out, fname+': 2025 figure leaked ('+leak+')'
+    assert "name:'rep_owner',name" not in out
     print(fname, 'OK', len(out), 'bytes')
