@@ -1507,6 +1507,7 @@ let paystubPts = [
   { gross:6811.87,  net:4496  },
   { gross:7499.82,  net:4213  },
   { gross:8790.66,  net:4982  },
+  { gross:9035.20,  net:5116  },
   { gross:9088.97,  net:5836  },
   { gross:9756.35,  net:6182  },
   { gross:13674.79, net:8093  },
@@ -1544,6 +1545,7 @@ let knownData = {
   '1':  { salary:SALARY_BASE, bonus:2438.35,     comm:3006.16,  net:4982,  note:'May 15 check — actual stub confirmed' },
   '2':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1210.80,  net:3286,  note:'May 29 check — actual stub confirmed' },
   '3':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1143.64,  net:3246,  note:'Jun 12 check — actual stub confirmed' },
+  '4':  { salary:SALARY_BASE, bonus:1590.62,     comm:4098.43,  net:5116,  note:'Jun 26 check — actual stub confirmed' },
 };
 
 let salesData = [];
@@ -1761,6 +1763,15 @@ async function hydrateFromCloud() {
       await saveKey('knownData', knownData);
     }
     localStorage.setItem('knownMerge_v526', '1');
+  }
+  // ONE-TIME v706: add the Jun-26 actual paystub (offset 4) to cloud if missing.
+  // SURGICAL — only adds offset 4 when it isn't already a confirmed stub; never overwrites edits.
+  if (!localStorage.getItem('knownMerge_v706')) {
+    if (!knownData['4'] || !(knownData['4'].net > 0)) {
+      knownData['4'] = { salary:SALARY_BASE, bonus:1590.62, comm:4098.43, net:5116, note:'Jun 26 check — actual stub confirmed' };
+      await saveKey('knownData', knownData);
+    }
+    localStorage.setItem('knownMerge_v706', '1');
   }
   // salesData
   const cloudSales = await loadKey('salesData', null);
