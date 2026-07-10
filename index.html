@@ -958,7 +958,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.31 — Added 2 missing recurring debits (Comenity Pay $20 ~9th, Comn Cap Auto Pay $10 ~5th) at real PNC-statement amounts. 20% wage garnishment (Jun 26 check on, on TOP of Chapter-13) + Ch-13 future-check fix from v5.30; multi-device concurrency from v5.29.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.32 — Added the Jul 10 actual paystub (offset 5): gross $13,197.87, net $7,176.97, comm $3,467.10, bonus $6,384.62. Synced to cloud so both phones show it. 20% wage-garnishment model still applies from the Jun 26 check on (on TOP of Chapter-13) — note the actual stub shows no garnishment line yet, only the $692.31 trustee deduction. v5.31 added 2 recurring debits; multi-device concurrency from v5.29.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1510,6 +1510,7 @@ let paystubPts = [
   { gross:9035.20,  net:5116  },
   { gross:9088.97,  net:5836  },
   { gross:9756.35,  net:6182  },
+  { gross:13197.87, net:7177  },
   { gross:13674.79, net:8093  },
   { gross:17819.30, net:10034 },
 ];
@@ -1546,6 +1547,7 @@ let knownData = {
   '2':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1210.80,  net:3286,  note:'May 29 check — actual stub confirmed' },
   '3':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1143.64,  net:3246,  note:'Jun 12 check — actual stub confirmed' },
   '4':  { salary:SALARY_BASE, bonus:1590.62,     comm:4098.43,  net:5116,  note:'Jun 26 check — actual stub confirmed' },
+  '5':  { salary:SALARY_BASE, bonus:6384.62,     comm:3467.10,  net:7177,  note:'Jul 10 check — actual stub confirmed' },
 };
 
 let salesData = [];
@@ -1772,6 +1774,15 @@ async function hydrateFromCloud() {
       await saveKey('knownData', knownData);
     }
     localStorage.setItem('knownMerge_v706', '1');
+  }
+  // ONE-TIME v710: add the Jul-10 actual paystub (offset 5) to cloud if missing.
+  // SURGICAL — only adds offset 5 when it isn't already a confirmed stub; never overwrites edits.
+  if (!localStorage.getItem('knownMerge_v710')) {
+    if (!knownData['5'] || !(knownData['5'].net > 0)) {
+      knownData['5'] = { salary:SALARY_BASE, bonus:6384.62, comm:3467.10, net:7177, note:'Jul 10 check — actual stub confirmed' };
+      await saveKey('knownData', knownData);
+    }
+    localStorage.setItem('knownMerge_v710', '1');
   }
   // salesData
   const cloudSales = await loadKey('salesData', null);
