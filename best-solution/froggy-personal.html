@@ -20,10 +20,10 @@
 
     /* HEADER */
     #hdr{background:var(--card);border-bottom:2px solid var(--gold);padding:0 16px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100;height:52px}
-    .hdr-brand{display:flex;align-items:center;gap:8px}
-    .hdr-logo{font-size:22px}
-    .hdr-name{font-size:16px;font-weight:900;color:var(--gold);letter-spacing:0.3px}
-    .hdr-sub{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:-1px}
+    .hdr-brand{display:flex;align-items:center;gap:8px;min-width:0}
+    .hdr-logo{font-size:20px;flex-shrink:0}
+    .hdr-name{font-size:clamp(15px,4.6vw,20px);font-weight:900;color:var(--gold);letter-spacing:0.2px;line-height:1.05;white-space:nowrap}
+    .hdr-sub{font-size:9.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px}
 
     /* BOTTOM NAV */
     #nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;height:58px}
@@ -64,12 +64,31 @@
     .sv.g{color:var(--green)}.sv.r{color:var(--red)}.sv.w{color:var(--text)}.sv.sm{font-size:16px}
     .ss{font-size:10px;color:var(--muted);margin-top:3px}
 
+    /* DASHBOARD TWO-COLUMN CARDS */
+    .dash2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .dcol{display:flex;flex-direction:column;gap:9px}
+    .col-hdr{font-size:13px;font-weight:900;letter-spacing:0.2px;padding-bottom:6px;border-bottom:2px solid var(--border)}
+    .dcard{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:12px 12px}
+    .dcard.lg{padding:15px 13px}
+    .dcard.click{cursor:pointer}
+    .dcard-l{font-size:9px;text-transform:uppercase;letter-spacing:0.7px;color:var(--muted);font-weight:700;margin-bottom:5px;line-height:1.2}
+    .dcard-v{font-weight:900;line-height:1;font-size:19px}
+    .dcard.lg .dcard-v{font-size:25px}
+    .dcard-s{font-size:9px;color:var(--muted);margin-top:5px;line-height:1.25}
+    .dhero{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+    .dhead .dcard-v{font-size:32px}
+    .dash-div{height:1px;background:var(--border);margin:2px 0 12px}
+    .pie{width:172px;height:172px;border-radius:50%;margin:6px auto 0;position:relative}
+    .pie-hole{position:absolute;inset:27px;background:var(--card);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .pie-hole b{font-size:18px;font-weight:900;color:var(--text);line-height:1}
+    .pie-hole span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+
     /* PROGRESS BAR */
     .pbar-wrap{background:var(--card3);border-radius:4px;height:7px;overflow:hidden;margin-top:7px}
     .pbar-fill{height:100%;border-radius:4px;transition:width 0.4s}
 
     /* BUTTONS */
-    .btn{padding:11px 16px;border-radius:9px;border:none;cursor:pointer;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.12s,transform 0.1s;letter-spacing:0.2px}
+    .btn{padding:11px 16px;min-height:44px;border-radius:9px;border:none;cursor:pointer;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.12s,transform 0.1s;letter-spacing:0.2px}
     .btn:active{opacity:0.75;transform:scale(0.97)}.btn:disabled{opacity:0.35;cursor:not-allowed}
     .btn-gold{background:var(--gold);color:#000}.btn-green{background:var(--green);color:#000}
     .btn-red{background:var(--red);color:#fff}.btn-ghost{background:var(--card2);border:1px solid var(--border);color:var(--text)}
@@ -344,12 +363,10 @@ const INIT={
   productDebt:{supplier:'Mark Martone',originalBalance:10000,payments:[]},
   otherExpenses:[],
   // Freight & shipping ledger — inbound product freight, outbound shipping, postage.
-  // A real business cost: rolls into Other Expenses / P&L / the bottom line, kept as its own line.
   freight:[],
   reps:[],  // global rep roster — reused across all shows
   prices:{'32oz':22.50,'16oz':15.00,'8oz':10.00,'2oz':5.00,'c5s':10.00,'c5l':20.00},
-  // Editable cost of goods per SKU. Falls back to each SKU's built-in default cost when unset.
-  // Changing a cost re-computes COGS live everywhere (same live model as prices).
+  // Editable cost of goods per SKU. Falls back to each SKU's built-in default when unset.
   costs:{'32oz':6.00,'16oz':4.50,'8oz':4.00,'2oz':2.25,'c5s':3.00,'c5l':6.00},
   settings:{tax:0.28,sqFee:0.03,gasPrice:3.50,mpg:17.5,irsRate:0.70},
   _applied:{}
@@ -1048,7 +1065,7 @@ function applyOneTimeUpdates(d){
     d._applied['commission_matrix_v1']=true;
   }
 
-  // Jul 2026 — add Les as a sales rep, paid 40% commission on EVERYTHING (direct + card). Runs once per device.
+  // Jul 2026 — add Les as a sales rep, paid 40% commission on EVERYTHING (direct + card).
   if(!d._applied['add_rep_les_v1']){
     if(!d.reps)d.reps=[];
     if(!d.reps.find(r=>r.id==='rep_les')){
@@ -1108,6 +1125,7 @@ function $$(i){return document.getElementById(i);}
 function pg(i){return $$('pg-'+i);}
 function fmt(n){if(n===null||n===undefined)return'$0.00';const a=Math.abs(n);const s='$'+a.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');return n<0?'-'+s:s;}
 function fmtN(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function pctF(n){return (Number(n)||0).toFixed(1)+'%';} // percentages display with one decimal + %
 function getP(k){return(S.prices&&S.prices[k])||SKUS.find(s=>s.key===k).defP;}
 // Editable cost of goods. Reads S.costs[k]; falls back to the SKU's built-in default cost.
 function getCost(k){const c=S&&S.costs&&S.costs[k];return(c!=null&&c!=='')?(parseFloat(c)||0):SKUS.find(s=>s.key===k).cost;}
@@ -1390,37 +1408,31 @@ function go(pg,shId,dayIdx){
 }
 
 // ===================================================
+// HOME - FULL COMMAND CENTER
+// ===================================================
+// ===================================================
 // CONSTANT AUDIT — always-on safety net.
 // Scans everything on every dashboard render and surfaces anything wrong or
-// worth a look. Red = fix now · Gold = review. Never changes data, only reports.
+// worth a look. Red = fix now, Gold = review. Never changes data, only reports.
 // ===================================================
 function daysUntil(dstr){ if(!/^\d{4}-\d{2}-\d{2}$/.test(String(dstr)))return 9999; const t=new Date(_todayKey()+'T12:00:00'),d=new Date(dstr+'T12:00:00'); return Math.round((d-t)/86400000); }
 function runAudit(){
   const out=[]; const push=(level,icon,title,detail,action)=>out.push({level,icon,title,detail,action});
   const shows=S.shows||[];
-  // Inventory reconciliation (opening/ending don't match, unexplained)
   shows.filter(sh=>!isMissed(sh)&&sh.status!=='planned'&&invStatus(sh)==='red').forEach(sh=>{
     push('red','🔴','Inventory mismatch — '+sh.name,"Opening/ending counts don't reconcile. Fix before you trust the numbers.","go('show','"+sh.id+"')"); });
-  // Impossible sell-through (ending beat what was available)
   shows.forEach(sh=>{ if(isMissed(sh))return; const neg=invNegativeSold(sh); if(neg.length)push('red','🔴','Impossible count — '+sh.name, neg.length+' day/size where ending beat available stock. Fix the count or log a restock.',"go('show','"+sh.id+"')"); });
-  // Broken inventory values (negative / NaN)
   const badInv=SKUS.filter(s=>{const q=S.inventory[s.key];return q<0||(q!=null&&isNaN(q));});
   if(badInv.length)push('red','🛠️','Stock data problem', badInv.map(s=>s.short).join(', ')+' has a bad value. Open Stock and re-enter.',"go('stock')");
-  // Booth unpaid with the show coming up
   shows.filter(sh=>sh.status!=='completed'&&!isMissed(sh)).forEach(sh=>{ const bal=(typeof boothBalance==='function')?boothBalance(sh):0; if(bal>0.01){ const dl=daysUntil(showSortKey(sh)); if(dl<=14)push(dl<=5?'red':'warn',dl<=5?'⏰':'🎪','Booth unpaid — '+sh.name, fmt(bal)+' still owed'+(dl>=0?' · '+dl+' day'+(dl===1?'':'s')+' out':'')+'.',"openSection('booth')"); } });
-  // Low stock
   const low=SKUS.filter(s=>(S.inventory[s.key]||0)<5);
   if(low.length)push('warn','📦','Low stock', low.map(s=>s.short+' ('+(S.inventory[s.key]||0)+')').join(', ')+' — restock before the next show.',"go('stock')");
-  // Double-booked days (upcoming)
   const dayMap={}; shows.filter(sh=>!isMissed(sh)).forEach(sh=>getShowDates(sh).forEach(ds=>{(dayMap[ds]=dayMap[ds]||[]).push(sh);}));
   const conflictDays=Object.keys(dayMap).filter(ds=>dayMap[ds].length>1&&ds>=_todayKey());
   if(conflictDays.length){ const names=[...new Set(conflictDays.flatMap(ds=>dayMap[ds].map(s=>s.name)))].slice(0,4).join(', '); push('warn','⚠️','Double-booked ('+conflictDays.length+' day'+(conflictDays.length>1?'s':'')+')', names+' overlap. Make sure each is staffed.',"go('calendar')"); }
-  // Upcoming but not confirmed
   shows.filter(sh=>sh.status!=='completed'&&!isMissed(sh)&&sh.status!=='active'&&!sh.confirmed).forEach(sh=>{ const dl=daysUntil(showSortKey(sh)); if(dl>=0&&dl<=21)push('warn','❓','Not confirmed — '+sh.name, dl+' day'+(dl===1?'':'s')+' out and still pending.',"go('show','"+sh.id+"')"); });
-  // Reps owed money
   const owed=(typeof allRepsOwed==='function')?allRepsOwed():[]; const owedTot=owed.reduce((t,x)=>t+(x.owed||0),0);
   if(owedTot>0.5)push('warn','👥','Reps owed '+fmt(owedTot), owed.map(x=>x.name+' '+fmt(x.owed)).join(', ')+'.',"go('settings')");
-  // Missed shows never dealt with
   const missed=shows.filter(sh=>isMissed(sh));
   if(missed.length)push('warn','🗓️','Missed shows ('+missed.length+')', missed.map(s=>s.name).slice(0,4).join(', ')+' passed without being completed. Mark done or remove.',"showsTab='missed';go('shows')");
   out.sort((a,b)=>(a.level==='red'?0:1)-(b.level==='red'?0:1));
@@ -1434,7 +1446,7 @@ function auditBarHTML(){
   const isRed=reds.length>0, c=isRed?'var(--red)':'var(--gold)', bg=isRed?'var(--redbg)':'var(--goldbg)', bd=isRed?'var(--redbd)':'var(--goldbd)';
   const warns=a.length-reds.length;
   const label=(reds.length?reds.length+' urgent':'')+(reds.length&&warns?' · ':'')+(warns?warns+' to review':'');
-  let h=`<div class="card" style="border:1px solid ${bd};background:${bg};margin-bottom:12px;${isRed?'box-shadow:0 0 0 1px '+bd:''}">
+  let h=`<div class="card" style="border:1px solid ${bd};background:${bg};margin-bottom:12px">
     <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleNotif()">
       <span style="font-size:22px">${isRed?'🚨':'🔔'}</span>
       <div style="flex:1"><div style="font-weight:900;color:${c};font-size:14px">${a.length} thing${a.length>1?'s':''} need attention</div><div style="font-size:11px;color:var(--muted)">${label} · tap to ${notifOpen?'hide':'open'}</div></div>
@@ -1484,10 +1496,23 @@ function miniCalHTML(){
   h+=`</div><div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">${showDays} show day${showDays===1?'':'s'} this month${conflictDays?` · <span style="color:var(--red);font-weight:700">${conflictDays} double-booked</span>`:''} · tap for full calendar</div></div>`;
   return h;
 }
-
-// ===================================================
-// HOME - FULL COMMAND CENTER
-// ===================================================
+function nextShowCountdownHTML(activeShows,nextUp){
+  if(activeShows&&activeShows.length){
+    return `<div class="card gb" style="text-align:center;margin-bottom:12px"><div style="font-size:15px;font-weight:900;color:var(--gold)">🔴 Show Live Now — ${activeShows[0].name}</div></div>`;
+  }
+  if(nextUp&&nextUp.startDate){
+    const today=new Date();today.setHours(0,0,0,0);
+    const sd=new Date(nextUp.startDate+'T12:00:00');sd.setHours(0,0,0,0);
+    const diff=Math.round((sd-today)/86400000);
+    const when=(nextUp.dates&&nextUp.dates[0])?nextUp.dates[0]:(nextUp.startDate||'');
+    return `<div class="card" style="text-align:center;margin-bottom:12px;border-color:var(--goldbd)">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:4px">⏳ Days Until Next Show</div>
+      <div style="font-size:30px;font-weight:900;color:var(--gold);line-height:1">${diff<=0?'Now':diff}</div>
+      <div style="font-size:13px;color:var(--text);margin-top:4px;font-weight:700">${nextUp.name}${when?` · ${when}`:''}</div>
+    </div>`;
+  }
+  return `<div class="card" style="text-align:center;margin-bottom:12px;color:var(--muted);font-size:13px">No upcoming shows scheduled.</div>`;
+}
 function rHome(){
   const ytd=calcYTD();
   const invCost=calcInvCost(S.inventory);
@@ -1530,12 +1555,31 @@ function rHome(){
   done.forEach(sh=>{const t=calcShow(sh); if(t.gross>bgVal){bgVal=t.gross;bestGross=sh;} if(t.profit>bpVal){bpVal=t.profit;bestProfit=sh;}});
   const pmtGrand=PMTS.reduce((t,p)=>t+(ytd.pmtTotals[p.key]||0),0);
   const lowStock=SKUS.filter(s=>(S.inventory[s.key]||0)<5);
-  // ---- Headline dashboard figures (reconcile: Sales − COGS − Booth − Other = Profit; Profit − Tax = Net) ----
-  const allBooth=S.shows.filter(s=>s.status==='completed'||s.status==='active').reduce((t,sh)=>t+(sh.boothCost||0),0)
-                +S.shows.filter(s=>s.status!=='completed'&&s.status!=='active').reduce((t,sh)=>t+boothPaid(sh),0);
-  const totalOtherExp=Math.max(0,ytd.expenses-allBooth);
-  const netAfterTax=ytd.profit-ytd.taxRes;
+  // ---- COMPLETED-show performance figures. Completed shows ONLY — active (in-progress) and
+  //      future/planned shows are excluded so nothing unfinished moves these numbers. ----
+  let cGross=0,cCogs=0,cShowExp=0,cTaxRes=0,cBooth=0,cComm=0,cShowNet=0,cDays=0,cUnits=0,colPot=0,colAct=0,biggestDay=0,biggestDayLabel='';
+  done.forEach(sh=>{
+    const t=calcShow(sh);
+    cGross+=t.gross;cCogs+=t.cogs;cShowExp+=t.expenses;cTaxRes+=t.taxRes;cBooth+=(sh.boothCost||0);cComm+=(t.commissions||0);cShowNet+=t.profit;cDays+=(sh.numDays||1);
+    colPot+=showPotentialRev(sh);colAct+=showActualRev(sh);
+    (sh.days||[]).forEach(d=>{
+      if(d.morningCount&&d.eveningCount){const sold=daySold(d);SKUS.forEach(s=>cUnits+=(sold[s.key]||0));}
+      const v=calcPmt(d.payments||{});if(v>biggestDay){biggestDay=v;biggestDayLabel=sh.name+(d.date?' · '+d.date:'');}
+    });
+  });
+  const cOther=(S.otherExpenses||[]).reduce((t,e)=>t+(parseFloat(e.amount)||0),0);  // season overhead (supplies/equipment), not tied to any show
+  const cExpenses=cShowExp;                      // completed-show costs except COGS (season overhead lives in the Other Expenses tile, not the headline)
+  const cGrossProfit=cGross-cCogs-cBooth-cComm;  // completed: sales − COGS − booth − commissions
+  const cNet=cGross-cCogs-cExpenses;             // completed net profit (before tax set-aside)
+  const cOtherExp=Math.max(0,cExpenses-cBooth);  // non-booth completed expenses, for the costs card
+  const avgDay=cDays?cGross/cDays:0;             // revenue per completed show-day
+  const avgDailyProfit=cDays?cShowNet/cDays:0;   // per-show profit per completed show-day
   const biggestVal=(bgVal>-Infinity)?bgVal:0;
+  // ---- Upcoming / FUTURE totals — kept entirely separate from the completed numbers above ----
+  const upCount=upcomingShows.length;
+  const upBooth=upcomingShows.reduce((t,sh)=>t+(sh.boothCost||0),0);
+  const upDays=upcomingShows.reduce((t,sh)=>t+(sh.numDays||1),0);
+  const upCommitted=upcomingShows.reduce((t,sh)=>t+(sh.boothCost||0)+(sh.lodging||0)+((sh.showExpenses||[]).reduce((a,e)=>a+(parseFloat(e.amount)||0),0)),0);
   let html='';
 
   // ---- 1) NOTIFICATIONS / CONSTANT AUDIT (top, most important) ----
@@ -1546,9 +1590,8 @@ function rHome(){
 
   // ---- 3) SHOWS ON TOP — happening now (all active shows, no cap; overlaps all shown) ----
   if(activeShows.length){
-    const liveOverlap=activeShows.length>1;
     html+=`<div class="sec-lbl">🔴 ${activeShows.length>1?`HAPPENING NOW (${activeShows.length} SHOWS)`:'HAPPENING NOW'}</div>`;
-    if(liveOverlap)html+=`<div class="wb red" style="margin-bottom:8px">⚠️ ${activeShows.length} shows running at the same time — make sure each one is staffed.</div>`;
+    if(activeShows.length>1)html+=`<div class="wb red" style="margin-bottom:8px">⚠️ ${activeShows.length} shows running at the same time — make sure each one is staffed.</div>`;
     activeShows.forEach(a=>{
       const t=calcShow(a);
       const dateStr=a.dates?(a.dates.length>1?a.dates[0]+' - '+a.dates[a.dates.length-1]:a.dates[0]):'';
@@ -1578,7 +1621,10 @@ function rHome(){
     });
   }
 
-  // ---- 4) ON DECK — the next few upcoming shows (all overlaps shown) ----
+  // ---- 4) NEXT SHOW countdown ----
+  html+=`<div class="sec-lbl">⏳ NEXT SHOW</div>`+nextShowCountdownHTML(activeShows,nextUp);
+
+  // ---- 5) ON DECK — the next few upcoming shows (all overlaps shown) ----
   const deck=upcomingShows.slice(0,3);
   html+=`<div class="sec-lbl">🎪 ON DECK</div>`;
   if(deck.length){
@@ -1604,32 +1650,77 @@ function rHome(){
   </div>
   ${missedShows.length?`<button class="btn btn-ghost btn-full" style="margin-bottom:14px;border-color:var(--redbd);color:var(--red)" onclick="showsTab='missed';go('shows')">⚠️ Missed / Did Not Do (${missedShows.length})</button>`:'<div style="height:6px"></div>'}`;
 
-  // ---- 5) CALENDAR — primary at-a-glance, right on the dashboard ----
+  // ---- 6) CALENDAR — primary at-a-glance, right on the dashboard ----
   html+=miniCalHTML();
 
-  // ---- 6) SEASON PERFORMANCE STATS — collapsed behind a button (tap to open) ----
-  const _stat=(lbl,val,cls,sub,big)=>`<div class="sbox ${cls||''}"><div class="sl">${lbl}</div><div class="sv ${big?'':'sm'} ${cls==='grb'?'g':cls==='rb'?'r':cls==='gb'?'':'w'}">${val}</div>${sub?`<div class="ss">${sub}</div>`:''}</div>`;
+  // ---- 7) COMPLETED PERFORMANCE — the full stat suite, collapsed behind a button ----
   html+=`<button class="btn btn-ghost btn-full" style="margin-bottom:${homeStatsOpen?'10':'14'}px;justify-content:space-between" onclick="toggleStats()"><span>📊 Season Performance Stats</span><span style="color:var(--muted)">${homeStatsOpen?'Hide ▲':'Show ▼'}</span></button>`;
   if(homeStatsOpen){
-    html+=`<div class="g2" style="margin-bottom:14px;gap:8px">
-      ${_stat('TOTAL SALES VOLUME',fmt(ytd.gross),'gb',sellShows.length+' show'+(sellShows.length!==1?'s':'')+' w/ sales',true)}
-      ${_stat('TOTAL BOOTH RENTS',fmt(allBooth),'','Booth fees committed')}
-      ${_stat('TOTAL OTHER EXPENSES',fmt(totalOtherExp),'rb','Gas, hotel, supplies, freight, comm.')}
-      ${_stat('TOTAL TAX RESERVE',fmt(ytd.taxRes),'rb',Math.round(S.settings.tax*100)+'% of net profit')}
-      ${_stat('TOTAL COGS',fmt(ytd.cogs),'','Product cost of goods')}
-      ${_stat('FREIGHT & SHIPPING',fmt(ytd.freight||0),'rb','Inbound + outbound')}
-      ${_stat('TOTAL PROFIT',fmt(ytd.profit),ytd.profit>=0?'grb':'rb','Sales − COGS − all expenses')}
-      ${_stat('AVG SHOW',fmt(avgShowGross),'','Gross ÷ shows w/ sales')}
-      ${_stat('BIGGEST SHOW',fmt(biggestVal),'gb',bestGross?bestGross.name:'No shows yet')}
-      ${_stat('AVG SHOW PROFIT',fmt(avgShowProfit),avgShowProfit>=0?'grb':'rb','Completed shows only')}
+    const G='var(--green)',R='var(--red)',AMBER='#FFB300',BLUE='var(--blue)',BLUEBD='rgba(79,195,247,0.32)',GB='var(--greenbd)',RB='var(--redbd)';
+    const dcard=(label,val,o={})=>`<div class="dcard${o.big?' lg':''}${o.onclick?' click':''}"${o.border?` style="border-color:${o.border}"`:''}${o.onclick?` onclick="${o.onclick}"`:''}>
+        <div class="dcard-l">${label}</div>
+        <div class="dcard-v" style="color:${o.color||'var(--text)'}">${val}</div>
+        ${o.sub?`<div class="dcard-s">${o.sub}</div>`:''}
+      </div>`;
+    const gpColor=cGrossProfit>=0?G:R, netColorD=cNet>=0?G:R, adpColor=avgDailyProfit>=0?G:R;
+    html+=`<div class="sec-lbl">📊 COMPLETED PERFORMANCE · 2026 SEASON</div>
+    <div class="dhero">
+      <div class="dcard lg dhead" style="border-color:${GB};background:var(--goldbg)">
+        <div class="dcard-l">Total Sales Volume</div>
+        <div class="dcard-v" style="color:${G}">${fmt(cGross)}</div>
+        <div class="dcard-s">${done.length} completed show${done.length!==1?'s':''} · money collected</div>
+      </div>
+      <div class="dcard lg dhead" style="border-color:${gpColor===G?GB:RB};background:${gpColor===G?'var(--goldbg)':'var(--redbg)'}">
+        <div class="dcard-l">Gross Profit</div>
+        <div class="dcard-v" style="color:${gpColor}">${fmt(cGrossProfit)}</div>
+        <div class="dcard-s">Sales − COGS − booth − commissions</div>
+      </div>
+    </div>
+    <div class="dash-div"></div>
+    <div class="dash2">
+      <div class="dcol">
+        <div class="col-hdr" style="color:${G};border-color:${GB}">💰 Performance</div>
+        ${dcard('Completed Shows',fmtN(done.length),{color:G,onclick:"showsTab='completed';go('shows')",sub:fmtN(cDays)+' show-day'+(cDays!==1?'s':'')+' worked'})}
+        ${dcard('Average Day',fmt(avgDay),{color:G,sub:'Revenue ÷ completed days'})}
+        ${dcard('Average Daily Profit',fmt(avgDailyProfit),{color:adpColor,sub:'Completed shows only'})}
+        ${dcard('Biggest Show',fmt(biggestVal),{color:G,sub:bestGross?bestGross.name:'No shows yet'})}
+        ${dcard('Biggest Day',fmt(biggestDay),{color:G,sub:biggestDayLabel||'No sales logged'})}
+        ${dcard('Collected vs Full Price',colPot>0?pctF((colAct/colPot)*100)+' captured':'—',{onclick:"openSection('collected')",sub:fmt(colAct)+' of '+fmt(colPot)})}
+      </div>
+      <div class="dcol">
+        <div class="col-hdr" style="color:${R};border-color:${RB}">💸 Costs &amp; Inventory</div>
+        ${dcard('Total Cost of Goods',fmt(cCogs),{color:R,border:RB,sub:'Product COGS (completed)'})}
+        ${dcard('Total Booth Rent',fmt(cBooth),{color:R,border:RB,sub:'Completed shows'})}
+        ${dcard('Total Expenses',fmt(cOtherExp),{color:R,border:RB,sub:'Gas, hotel, supplies, comm.'})}
+        ${dcard('Freight & Shipping',fmt(freightTotal()),{color:R,border:RB,onclick:"openSection('freight')",sub:'Inbound + outbound · tap to log'})}
+        ${dcard('Total Tax Reserve',fmt(cTaxRes),{color:AMBER,border:'rgba(255,179,0,0.3)',sub:pctF(S.settings.tax*100)+' set aside from profit'})}
+        ${dcard('Units Sold by Product',fmtN(cUnits),{onclick:"openSection('units')",sub:'completed · tap for breakdown'})}
+        ${dcard('Master Inventory',invUnits+' units',{onclick:"go('stock')",sub:fmt(invRetail)+' retail · tap to manage'})}
+      </div>
+    </div>
+    <div class="dcard lg dnet" style="border-color:${netColorD===G?GB:RB};background:${cNet>=0?'var(--greenbg)':'var(--redbg)'};margin-top:4px">
+      <div class="dcard-l">Net Profit · completed shows</div>
+      <div class="dcard-v" style="color:${netColorD};font-size:30px">${fmt(cNet)}</div>
+      <div class="dcard-s">Completed sales minus cost of goods minus show expenses (before tax set-aside)</div>
+    </div>
+    <div class="sec-lbl" style="margin-top:16px;color:${BLUE}">🔮 UPCOMING / FUTURE · not counted in the numbers above</div>
+    <div class="dash2">
+      <div class="dcol">
+        ${dcard('Upcoming Shows',fmtN(upCount),{color:BLUE,border:BLUEBD,onclick:"showsTab='upcoming';go('shows')",sub:'booked, not yet done · tap to view'})}
+        ${dcard('Future Booth Fees',fmt(upBooth),{color:BLUE,border:BLUEBD,sub:'Committed for upcoming shows'})}
+      </div>
+      <div class="dcol">
+        ${dcard('Booked Show-Days',fmtN(upDays),{color:BLUE,border:BLUEBD,sub:'Days scheduled ahead'})}
+        ${dcard('Upcoming Show Costs',fmt(upCommitted),{color:BLUE,border:BLUEBD,sub:'Committed ahead · lowers final net'})}
+      </div>
     </div>`;
   }
 
-  // ---- 7) DASHBOARD SECTIONS (each opens its own detail view) ----
+  // ---- 8) DASHBOARD SECTIONS (each opens its own detail view) ----
   html+=dashSectionGrid();
 
   /*CREW_START*/
-  // ---- CREW APPS — quick launcher (PERSONAL APP ONLY; stripped from blank/crew copies) ----
+  // ---- CREW APPS / TEAM TRACKER — bottom of page (PERSONAL APP ONLY; stripped from blank/crew copies) ----
   html+=`<div class="sec-lbl">🚀 CREW APPS · TEAM TRACKER</div>
   <div class="card" style="margin-bottom:14px;border-color:var(--goldbd);background:linear-gradient(135deg,rgba(255,215,0,0.07),rgba(79,195,247,0.05))">
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Launch a crew member's own Best Solution tracker in a new tab.</div>
@@ -1643,7 +1734,7 @@ function rHome(){
   </div>`;
   /*CREW_END*/
 
-  // ---- 8) QUICK ACTIONS ----
+  // ---- 9) QUICK ACTIONS ----
   html+=`<div class="sec-lbl">QUICK ACTIONS</div>
   <div class="g2" style="margin-bottom:8px">
     <button class="btn btn-gold" onclick="showNewShowModal()">🎪 New Show</button>
@@ -1656,19 +1747,26 @@ function rHome(){
   <button class="btn btn-ghost btn-full" style="margin-bottom:14px" onclick="exportCalICS()">📅 Export Shows to Calendar</button>
   ${activeShows.map(a=>`<button class="btn btn-gold btn-full" style="margin-bottom:14px" onclick="go('show','${a.id}')">🔴 Open Active Show: ${a.name}</button>`).join('')}`;
 
-  // ---- 9) THE BOTTOM LINE — at the very bottom, fully reconciled ----
+  // ---- 10) THE BOTTOM LINE — full reconciliation, pinned at the very bottom ----
+  const _freightYTD=freightTotal();
+  const _overhead=cOther;                                   // season overhead (Other Expenses), not tied to a show
+  const _blBeforeTax=cNet-_overhead-_freightYTD-upCommitted;
+  const _blKeep=_blBeforeTax-cTaxRes;
   html+=`<div class="sec-lbl">🧮 THE BOTTOM LINE</div>
-  <div class="card ${netAfterTax>=0?'grb':'rb'}" style="margin-bottom:14px">
-    <div class="sr"><span class="srl">Sales volume collected</span><span class="srv gold">${fmt(ytd.gross)}</span></div>
-    <div class="sr"><span class="srl">− Cost of goods (COGS)</span><span class="srv">${fmt(ytd.cogs)}</span></div>
-    <div class="sr"><span class="srl">− Booth rents</span><span class="srv">${fmt(allBooth)}</span></div>
-    <div class="sr"><span class="srl">− Freight &amp; shipping</span><span class="srv">${fmt(ytd.freight||0)}</span></div>
-    <div class="sr"><span class="srl">− Other expenses</span><span class="srv">${fmt(Math.max(0,totalOtherExp-(ytd.freight||0)))}</span></div>
-    <div class="sr" style="border-top:1px solid var(--border)"><span class="srl b">Profit</span><span class="srv b ${ytd.profit>=0?'green':'red'}">${fmt(ytd.profit)}</span></div>
-    <div class="sr"><span class="srl">− Tax reserve (${Math.round(S.settings.tax*100)}%)</span><span class="srv red">${fmt(ytd.taxRes)}</span></div>
-    <div class="sr" style="border-top:2px solid var(--border)"><span class="srl b" style="font-size:16px">NET — what you keep</span><span class="srv b lg ${netAfterTax>=0?'green':'red'}">${fmt(netAfterTax)}</span></div>
+  <div class="card ${_blKeep>=0?'grb':'rb'}" style="margin-bottom:14px">
+    <div class="sr"><span class="srl">Completed sales collected</span><span class="srv gold">${fmt(cGross)}</span></div>
+    <div class="sr"><span class="srl">− Cost of goods (COGS)</span><span class="srv">${fmt(cCogs)}</span></div>
+    <div class="sr"><span class="srl">− Booth rent</span><span class="srv">${fmt(cBooth)}</span></div>
+    <div class="sr"><span class="srl">− Show expenses (gas, hotel, comm.)</span><span class="srv">${fmt(cOtherExp)}</span></div>
+    <div class="sr" style="border-top:1px solid var(--border)"><span class="srl b">Completed net profit</span><span class="srv b ${cNet>=0?'green':'red'}">${fmt(cNet)}</span></div>
+    <div class="sr"><span class="srl">− Other expenses (overhead)</span><span class="srv">${fmt(_overhead)}</span></div>
+    <div class="sr"><span class="srl">− Freight &amp; shipping</span><span class="srv">${fmt(_freightYTD)}</span></div>
+    <div class="sr"><span class="srl">− Upcoming committed costs</span><span class="srv">${fmt(upCommitted)}</span></div>
+    <div class="sr" style="border-top:1px solid var(--border)"><span class="srl b">Bottom line (before tax)</span><span class="srv b ${_blBeforeTax>=0?'green':'red'}">${fmt(_blBeforeTax)}</span></div>
+    <div class="sr"><span class="srl">− Tax reserve (${pctF(S.settings.tax*100)})</span><span class="srv red">${fmt(cTaxRes)}</span></div>
+    <div class="sr" style="border-top:2px solid var(--border)"><span class="srl b" style="font-size:16px">NET — what you keep</span><span class="srv b lg ${_blKeep>=0?'green':'red'}">${fmt(_blKeep)}</span></div>
   </div>
-  <div style="text-align:center;font-size:11px;color:var(--muted);padding-bottom:4px">Best Solution App · Dot Dynasty LLC · v7.4</div>
+  <div style="text-align:center;font-size:11px;color:var(--muted);padding-bottom:4px">Best Solution App · Dot Dynasty LLC · v7.8</div>
   `;
   pg('home').innerHTML=html;
 }
@@ -1724,7 +1822,7 @@ function secCollected(){
   }
   let tp=0,tc=0;
   _sell.forEach(sh=>{tp+=showPotentialRev(sh);tc+=showActualRev(sh);});
-  const tg=tp-tc, tpct=tp>0?Math.round((tc/tp)*100):0, gpct=tp>0?Math.round((tg/tp)*100):0;
+  const tg=tp-tc, tpct=tp>0?Math.round((tc/tp)*100):0, tpctN=(tp>0?(tc/tp)*100:0).toFixed(1), gpctN=(tp>0?(tg/tp)*100:0).toFixed(1);
   // ----- Hero summary: collected vs full price, modern gauge -----
   let h=`<div class="card" style="background:linear-gradient(150deg,rgba(0,210,106,0.10),rgba(255,215,0,0.04));border-color:var(--greenbd);padding:18px 16px;margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px">
@@ -1734,7 +1832,7 @@ function secCollected(){
         <div style="font-size:11px;color:var(--muted);margin-top:3px">of ${fmt(tp)} full price</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:46px;font-weight:900;color:var(--green);line-height:0.9">${tpct}<span style="font-size:20px">%</span></div>
+        <div style="font-size:46px;font-weight:900;color:var(--green);line-height:0.9">${tpctN}<span style="font-size:20px">%</span></div>
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700">capture rate</div>
       </div>
     </div>
@@ -1742,8 +1840,8 @@ function secCollected(){
       <div style="position:absolute;inset:0;width:${tpct}%;background:linear-gradient(90deg,var(--green),#2be88a);border-radius:8px"></div>
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px">
-      <span style="color:var(--green);font-weight:800">● Collected ${tpct}%</span>
-      ${tg>0.5?`<span style="color:var(--red);font-weight:800">● Given away ${fmt(tg)} (${gpct}%)</span>`:`<span style="color:var(--muted)">No discounts given</span>`}
+      <span style="color:var(--green);font-weight:800">● Collected ${tpctN}%</span>
+      ${tg>0.5?`<span style="color:var(--red);font-weight:800">● Given away ${fmt(tg)} (${gpctN}%)</span>`:`<span style="color:var(--muted)">No discounts given</span>`}
     </div>
   </div>`;
   // ----- Per-show breakdown with mini capture bars -----
@@ -1787,29 +1885,35 @@ function secWorkload(C){
   </div>`;
 }
 function secBooth(){
-  const allUpcoming=[...S.shows].filter(sh=>sh.status!=='completed').sort((a,b)=>showSortKey(a)<showSortKey(b)?-1:showSortKey(a)>showSortKey(b)?1:0);
-  const totalBoothCommitted=allUpcoming.reduce((t,sh)=>t+(sh.boothCost||0),0);
-  const totalBoothPaidSeason=allUpcoming.reduce((t,sh)=>t+boothPaid(sh),0);
-  const totalBoothOwed=Math.max(0,totalBoothCommitted-totalBoothPaidSeason);
-  const unpaidList=allUpcoming.filter(sh=>boothBalance(sh)>0.01);
+  const list=[...S.shows].filter(sh=>(sh.boothCost||0)>0).sort((a,b)=>{const ao=boothBalance(a)>0.01?0:1,bo=boothBalance(b)>0.01?0:1;if(ao!==bo)return ao-bo;return showSortKey(a)<showSortKey(b)?-1:1;});
+  const committed=list.reduce((t,sh)=>t+(sh.boothCost||0),0);
+  const paid=list.reduce((t,sh)=>t+Math.min(sh.boothCost||0,boothPaid(sh)),0);
+  const owed=Math.max(0,committed-paid);
+  const dlabel=sh=>sh.dates&&sh.dates.length?sh.dates[0]:'';
   return `<div class="card">
-    <div class="g3" style="margin-bottom:${unpaidList.length?10:0}px">
-      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--gold)">${fmt(totalBoothCommitted)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Total Committed</div></div>
-      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--green)">${fmt(totalBoothPaidSeason)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Paid</div></div>
-      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:${totalBoothOwed>0?'var(--red)':'var(--green)'}">${fmt(totalBoothOwed)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Still Owed</div></div>
+    <div class="g3" style="margin-bottom:10px">
+      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--gold)">${fmt(committed)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Committed</div></div>
+      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--green)">${fmt(paid)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Paid</div></div>
+      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:${owed>0?'var(--red)':'var(--green)'}">${fmt(owed)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Still Owed</div></div>
     </div>
-    ${unpaidList.length?`<div style="padding-top:8px;border-top:1px solid var(--border)">${unpaidList.map(sh=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:700">${sh.name}</span><div style="display:flex;align-items:center;gap:6px"><span style="color:var(--red);font-weight:900">${fmt(boothBalance(sh))} owed</span><button class="btn btn-green btn-xs" onclick="openBoothPmt('${sh.id}')">+ Pay</button></div></div>`).join('')}</div>`:'<div style="font-size:12px;color:var(--green);text-align:center;padding-top:4px">✅ All booth fees paid</div>'}
+    ${list.length?list.map(sh=>{const bal=boothBalance(sh);const paidUp=bal<=0.01;return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;border-radius:9px;border:1px solid ${paidUp?'var(--greenbd)':'var(--redbd)'};background:${paidUp?'var(--greenbg)':'var(--redbg)'}">
+      <div style="min-width:0"><div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(sh.name)}</div><div style="font-size:10px;color:var(--muted)">${dlabel(sh)} · booth ${fmt(sh.boothCost||0)}</div></div>
+      <div style="display:flex;align-items:center;gap:7px;flex:none">${paidUp?`<span style="color:var(--green);font-weight:900;font-size:12px">✓ Paid</span>`:`<span style="color:var(--red);font-weight:900;font-size:12px">${fmt(bal)} owed</span><button class="btn btn-green btn-xs" onclick="openBoothPmt('${sh.id}')">+ Pay</button>`}</div>
+    </div>`;}).join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;padding:6px">No booth costs entered yet.</div>'}
   </div>`;
 }
 function secExpenses(C){
+  const list=[...(S.otherExpenses||[])].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const total=list.reduce((t,e)=>t+(parseFloat(e.amount)||0),0);
   return `<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:2px">YTD Spent</div>
-        <div style="font-size:24px;font-weight:900;color:var(--red)">${fmt(C.ytd.otherSpend)}</div>
-      </div>
-      <button class="btn btn-gold btn-sm" onclick="openManageExpenses()">Other Expenses →</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700">YTD Spent · ${list.length} item${list.length!==1?'s':''}</div><div style="font-size:24px;font-weight:900;color:var(--red)">${fmt(total)}</div></div>
+      <button class="btn btn-gold btn-sm" onclick="openOtherExpense()">+ Add</button>
     </div>
+    ${list.length?list.map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)">
+      <div style="min-width:0"><div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(e.note||e.category||'Expense')}</div><div style="font-size:10px;color:var(--muted)">${_esc(e.category||'')}${e.date?' · '+e.date:''}</div></div>
+      <div style="display:flex;align-items:center;gap:6px;flex:none"><span style="color:var(--red);font-weight:900;font-size:13px">${fmt(e.amount)}</span><button class="btn btn-ghost btn-xs" onclick="openOtherExpense('','${e.id}')">✏️</button><button class="btn btn-ghost btn-xs" onclick="delOtherExpense('${e.id}')">🗑️</button></div>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Nothing logged yet. Tap + Add to start.</div>'}
   </div>`;
 }
 function secDebt(){
@@ -1852,20 +1956,25 @@ function secSplit(C){
   </div>`;
 }
 function secPayments(C){
-  if(!(C.pmtGrand>0))return '';
-  const pmtHasData=PMTS.filter(p=>(C.ytd.pmtTotals[p.key]||0)>0);
+  if(!(C.pmtGrand>0))return '<div class="card"><div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">No payments logged yet.</div></div>';
+  const segs=PMTS.map(p=>({p,v:C.ytd.pmtTotals[p.key]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  let acc=0;const parts=[];
+  segs.forEach(x=>{const start=acc/C.pmtGrand*100;acc+=x.v;const end=acc/C.pmtGrand*100;parts.push(`${x.p.color} ${start.toFixed(2)}%`,`${x.p.color} ${end.toFixed(2)}%`);});
+  const stops=parts.join(',');
+  const cash=C.ytd.pmtTotals.cash||0;
+  const card=(C.ytd.pmtTotals.square||0)+(C.ytd.pmtTotals.debit||0);
+  const top=segs[0];
   return `<div class="card">
-      <div class="hbar" style="height:14px;border-radius:7px">
-        ${pmtHasData.map(p=>{const pct=(C.ytd.pmtTotals[p.key]/C.pmtGrand)*100;return`<div class="hbar-seg" style="background:${p.color};flex:${pct};min-width:${pct>1?2:0}px"></div>`;}).join('')}
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">
-        ${PMTS.map(p=>{const v=C.ytd.pmtTotals[p.key]||0;if(!v)return'';const pct=Math.round((v/C.pmtGrand)*100);return`<div style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color}"></span><span style="font-size:12px;font-weight:700">${p.label}: ${fmt(v)} <span style="color:var(--muted)">(${pct}%)</span></span></div>`;}).join('')}
-      </div>
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
-        <span style="font-size:12px;color:var(--muted)">💵 Cash</span>
-        <span style="font-size:15px;font-weight:900;color:var(--green)">${fmt(C.ytd.pmtTotals.cash||0)} (${C.pmtGrand>0?Math.round(((C.ytd.pmtTotals.cash||0)/C.pmtGrand)*100):0}% of total)</span>
-      </div>
-    </div>`;
+    <div class="pie" style="background:conic-gradient(${stops})"><div class="pie-hole"><b>${fmt(C.pmtGrand)}</b><span>collected</span></div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:14px;justify-content:center">
+      ${segs.map(x=>{const pct=Math.round(x.v/C.pmtGrand*100);return`<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:${x.p.color}"></span><span style="font-size:12px;font-weight:700">${x.p.label} <span style="color:var(--muted)">${fmt(x.v)} · ${pct}%</span></span></div>`;}).join('')}
+    </div>
+    <div class="g3" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+      <div style="text-align:center"><div style="font-size:16px;font-weight:900;color:var(--green)">${Math.round(cash/C.pmtGrand*100)}%</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Cash</div></div>
+      <div style="text-align:center"><div style="font-size:16px;font-weight:900;color:var(--blue)">${Math.round(card/C.pmtGrand*100)}%</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Card</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:900;color:var(--gold)">${top?top.p.label:'—'}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Top Method</div></div>
+    </div>
+  </div>`;
 }
 function secInventory(C){
   return `<div class="sec-row"><div class="sec-lbl" style="margin:0">SNAPSHOT</div><button class="btn btn-ghost btn-xs" onclick="go('stock')">Manage →</button></div>
@@ -1885,15 +1994,46 @@ function secInventory(C){
   </div>`;
 }
 function secMileage(C){
-  if(!(C.ytd.miles>0))return '';
+  const driven=[...S.shows].filter(sh=>(sh.status==='completed'||sh.status==='active')).sort((a,b)=>showSortKey(a)<showSortKey(b)?-1:1);
+  const dlabel=sh=>sh.dates&&sh.dates.length?sh.dates[0]:'';
+  const tripNote=sh=>{const rt=showRoundTrips(sh),nd=sh.numDays||1;return (rt>=nd&&nd>1)?'Back &amp; forth daily':(rt<=1?'Stayed overnight':rt+' round trips');};
   return `<div class="card">
       <div class="g3">
         <div style="text-align:center"><div style="font-size:19px;font-weight:900;color:var(--gold)">${fmtN(C.ytd.miles)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Total Miles</div></div>
         <div style="text-align:center"><div style="font-size:19px;font-weight:900;color:var(--green)">${fmt(C.mileDeduct)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">IRS Deduction</div></div>
         <div style="text-align:center"><div style="font-size:19px;font-weight:900;color:var(--text)">${fmt(C.ytd.gas!=null?C.ytd.gas:C.ytd.miles/S.settings.mpg*S.settings.gasPrice)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Gas Spent</div></div>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Rate: $${S.settings.irsRate}/mile · MPG: ${S.settings.mpg} · Gas: $${S.settings.gasPrice}/gal</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Rate: $${S.settings.irsRate}/mile · MPG: ${S.settings.mpg} · Gas: $${S.settings.gasPrice}/gal</div>
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Per-show mileage · tap Edit</div>
+        ${driven.length?driven.map(sh=>{const ow=sh.miles||0;const tot=showMiles(sh);return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <div style="min-width:0"><div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(sh.name)}</div><div style="font-size:10px;color:var(--muted)">${dlabel(sh)} · ${ow?ow+' mi each way · '+tripNote(sh):'no miles set'}</div></div>
+          <div style="display:flex;align-items:center;gap:7px;flex:none"><span style="font-weight:900;font-size:13px;color:var(--gold)">${fmtN(tot)} mi</span><button class="btn btn-ghost btn-xs" onclick="openEditMiles('${sh.id}')">Edit</button></div>
+        </div>`;}).join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;padding:6px">No completed shows yet.</div>'}
+      </div>
     </div>`;
+}
+function openEditMiles(id){
+  const sh=S.shows.find(s=>s.id===id);if(!sh)return;
+  const nd=sh.numDays||1;const rt=showRoundTrips(sh);const daily=(rt>=nd&&nd>1);
+  mOpen(`<div class="mh"><div class="mt">🚗 Miles · ${_esc(sh.name)}</div><button class="mx" onclick="mClose()">×</button></div>
+  <div class="fg"><label class="fl">ONE-WAY MILES (home → show)</label><input class="fi" type="number" id="em_miles" placeholder="0" step="1" min="0" value="${sh.miles||''}"></div>
+  <div class="fg"><label class="fl">TRIPS — ${nd} day${nd>1?'s':''} at this show</label>
+    <div class="g2" style="gap:8px">
+      <button class="btn ${daily?'btn-gold':'btn-ghost'}" id="em_daily" onclick="emTrip(1)">Back &amp; forth each day</button>
+      <button class="btn ${daily?'btn-ghost':'btn-gold'}" id="em_stay" onclick="emTrip(0)">Stayed overnight</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">Daily = ${nd} round trip${nd>1?'s':''} · overnight = 1 round trip. Total = one-way × 2 × trips.</div>
+  </div>
+  <input type="hidden" id="em_mode" value="${daily?'daily':'stay'}">
+  <button class="btn btn-gold btn-full" style="margin-top:6px" onclick="saveEditMiles('${sh.id}')">✅ Save Miles</button>`);
+}
+function emTrip(isDaily){$$('em_mode').value=isDaily?'daily':'stay';$$('em_daily').className='btn '+(isDaily?'btn-gold':'btn-ghost');$$('em_stay').className='btn '+(isDaily?'btn-ghost':'btn-gold');}
+function saveEditMiles(id){
+  const sh=S.shows.find(s=>s.id===id);if(!sh)return;
+  const m=parseFloat($$('em_miles').value);sh.miles=isNaN(m)?0:Math.max(0,m);
+  sh.roundTrips=($$('em_mode').value==='daily')?(sh.numDays||1):1;
+  mClose();saveS();toast('✅ Miles updated');
 }
 function secBest(C){
   let h='';
@@ -1912,7 +2052,7 @@ function bmRetail(){const b=bmInv();return SKUS.reduce((t,s)=>t+(b[s.key]||0)*ge
 function secBatman(){
   const b=bmInv(); const units=bmBottles(), cost=bmCost(), retail=bmRetail();
   let h=`<div class="card bb">
-    <div style="font-size:12px;color:var(--blue);line-height:1.5">🦇 Bottles borrowed from <strong>Batman (Adam West)</strong>, returned <strong>bottle for bottle</strong> once your pallet comes in. This list is 100% separate: it does NOT affect your master inventory, shows, COGS, or any P&L number.</div>
+    <div style="font-size:12px;color:var(--blue);line-height:1.5">🦇 Bottles borrowed from <strong>Batman (Adam West)</strong>, returned <strong>bottle for bottle</strong> once your pallet comes in. Borrowing here ADDS those bottles to your sellable stock, they are yours to sell now. This tally is what you still OWE him. Selling does not lower the debt, only <strong>Returned to Him</strong> does.</div>
   </div>
   <div class="card gb">
     <div class="g3">
@@ -1940,10 +2080,7 @@ function secBatman(){
 function dashSectionGrid(){
   const C=homeCtx();
   const cards=[
-    {k:'collected',icon:'🏷️',label:'Collected vs Full Price',sub:'Discounts &amp; freebies'},
-    {k:'units',icon:'📦',label:'Units Sold by Product',sub:fmtN(C.ytd.totalUnits)+' units sold'},
     {k:'workload',icon:'⏱️',label:'Workload',sub:C.done.length+' done · '+C.plannedCount+' planned'},
-    {k:'inventory',icon:'🗃️',label:'Master Inventory',sub:C.invUnits+' units · '+fmt(C.invRetail)},
     {k:'mileage',icon:'🚚',label:'Mileage &amp; Tax Deduction',sub:fmtN(C.ytd.miles)+' mi · '+fmt(C.mileDeduct)},
     {k:'booth',icon:'🎪',label:'Booth Costs',sub:'2026 season'},
     {k:'expenses',icon:'💸',label:'Other Expenses',sub:fmt(C.ytd.otherSpend)+' YTD'},
@@ -1953,7 +2090,7 @@ function dashSectionGrid(){
     {k:'payments',icon:'💳',label:'Payment Breakdown',sub:'How you got paid'},
     {k:'best',icon:'🏆',label:'Best Shows',sub:'Top grossing / profit'}
   ];
-  let h=`<div class="sec-lbl">DASHBOARD SECTIONS</div><div class="g2" style="margin-bottom:8px">`;
+  let h=`<div class="sec-lbl">MORE BREAKDOWNS</div><div class="g2" style="margin-bottom:8px">`;
   h+=cards.map(c=>`<button class="btn btn-ghost" style="height:auto;padding:13px 11px;flex-direction:column;align-items:flex-start;text-align:left;white-space:normal;gap:0" onclick="openSection('${c.k}')"><span style="font-size:20px;line-height:1;margin-bottom:5px">${c.icon}</span><span style="font-size:13px;font-weight:800;line-height:1.2">${c.label}</span><span style="font-size:10px;color:var(--muted);margin-top:3px;font-weight:600">${c.sub}</span></button>`).join('');
   h+=`</div>`;
   return h;
@@ -2055,21 +2192,21 @@ function applySetAll(){SKUS.forEach(s=>{const v=parseInt($$('sa_'+s.key).value);
 // ---- Borrowed-from-Batman editors (write ONLY to S.batmanBorrow; never touch master inventory) ----
 function showAddBatman(){
   mOpen(`<div class="mh"><div class="mt">🦇 Borrowed More from Batman</div><button class="mx" onclick="mClose()">×</button></div>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">How many bottles did you just borrow? This ADDS to what you owe him.</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">How many bottles did you just borrow? This ADDS them to your sellable stock AND to what you owe Batman.</div>
   ${SKUS.map(s=>`<div class="fg"><label class="fl">${s.name} (owe now: ${bmInv()[s.key]||0})</label><input class="fi" type="number" id="bma_${s.key}" placeholder="0" min="0"></div>`).join('')}
   <button class="btn btn-gold btn-full" onclick="applyAddBatman()">Add to What I Owe</button>`);
 }
-function applyAddBatman(){const b=bmInv();let n=0;SKUS.forEach(s=>{const v=parseInt($$('bma_'+s.key).value)||0;if(v>0){b[s.key]=(b[s.key]||0)+v;n+=v;}});mClose();saveS();toast('+'+n+' borrowed from Batman');}
+function applyAddBatman(){const b=bmInv();let n=0;SKUS.forEach(s=>{const v=parseInt($$('bma_'+s.key).value)||0;if(v>0){b[s.key]=(b[s.key]||0)+v;S.inventory[s.key]=(S.inventory[s.key]||0)+v;n+=v;}});mClose();saveS();toast('+'+n+' borrowed (added to stock)');}
 function showReturnBatman(){
   mOpen(`<div class="mh"><div class="mt">− Returned to Batman</div><button class="mx" onclick="mClose()">×</button></div>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">How many bottles did you give back? This LOWERS what you owe, bottle for bottle.</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">How many bottles did you give back? This LOWERS what you owe AND removes them from your sellable stock, bottle for bottle.</div>
   ${SKUS.map(s=>`<div class="fg"><label class="fl">${s.name} (owe now: ${bmInv()[s.key]||0})</label><input class="fi" type="number" id="bmr_${s.key}" placeholder="0" min="0"></div>`).join('')}
   <button class="btn btn-gold btn-full" onclick="applyReturnBatman()">Subtract Returned</button>`);
 }
-function applyReturnBatman(){const b=bmInv();let n=0;SKUS.forEach(s=>{const v=parseInt($$('bmr_'+s.key).value)||0;if(v>0){const cur=b[s.key]||0;const dec=Math.min(cur,v);b[s.key]=cur-dec;n+=dec;}});mClose();saveS();toast('Returned '+n+' to Batman');}
+function applyReturnBatman(){const b=bmInv();let n=0;SKUS.forEach(s=>{const v=parseInt($$('bmr_'+s.key).value)||0;if(v>0){const cur=b[s.key]||0;const dec=Math.min(cur,v);b[s.key]=cur-dec;S.inventory[s.key]=Math.max(0,(S.inventory[s.key]||0)-dec);n+=dec;}});mClose();saveS();toast('Returned '+n+' (removed from stock)');}
 function showSetBatman(){
   mOpen(`<div class="mh"><div class="mt">📋 Set Exact Bottles Owed</div><button class="mx" onclick="mClose()">×</button></div>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Enter the EXACT number of each you currently owe Batman.</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Enter the EXACT number of each you currently owe Batman. This only fixes the debt tally, it does NOT change your sellable stock.</div>
   ${SKUS.map(s=>`<div class="fg"><label class="fl">${s.name}</label><input class="fi" type="number" id="bms_${s.key}" value="${bmInv()[s.key]||0}" min="0"></div>`).join('')}
   <button class="btn btn-gold btn-full" onclick="applySetBatman()">Save Counts</button>`);
 }
@@ -2098,7 +2235,7 @@ function rShows(){
     <button class="btn ${tab==='completed'?'btn-gold':'btn-ghost'} btn-sm" style="flex:1;padding-left:4px;padding-right:4px" onclick="showsTab='completed';rShows()">✅ Completed (${completed.length})</button>
     <button class="btn ${tab==='missed'?'btn-gold':'btn-ghost'} btn-sm" style="flex:1;padding-left:4px;padding-right:4px${(missed.length&&tab!=='missed')?';border-color:var(--redbd);color:var(--red)':''}" onclick="showsTab='missed';rShows()">⚠️ Missed (${missed.length})</button>
   </div>`;
-  h+=`<button class="btn btn-ghost btn-full btn-sm" style="margin-bottom:12px;border-color:rgba(79,195,247,0.4);color:#7EB8F7" onclick="shows2025Mode=true;rShows()">📊 View 2025 Season Results</button>`;
+  if(typeof PREV_YEAR!=='undefined'&&PREV_YEAR.gross>0){h+=`<button class="btn btn-ghost btn-full btn-sm" style="margin-bottom:12px;border-color:rgba(79,195,247,0.4);color:#7EB8F7" onclick="shows2025Mode=true;rShows()">📊 View 2025 Season Results</button>`;}
   if(tab==='missed'&&missed.length){h+=`<div class="wb red" style="margin-bottom:10px">These shows' dates passed but were never completed. Open one to mark it done if you actually did it, or edit/delete it.</div>`;}
   if(list.length){h+=list.map(s=>showCard(s)).join('');}
   else{h+=`<div class="empty"><div class="ei">${tab==='completed'?'✅':tab==='missed'?'⚠️':'🎪'}</div>${tab==='completed'?'No completed shows yet. Shows move here automatically when you close them out.':tab==='missed'?'No missed shows — nice work staying on top of it!':'No upcoming shows. Tap + New Show to start.'}</div>`;}
@@ -2110,6 +2247,11 @@ function rShows(){
 // 2025 SEASON VIEW
 // ===================================================
 function r2025Season(){
+  // Blank/crew copies carry no prior-year data — show an empty state instead of personal 2025 figures.
+  if(!(typeof PREV_YEAR!=='undefined'&&PREV_YEAR.gross>0)){
+    pg('shows').innerHTML=`<div class="sec-row"><div class="sec-title">📊 2025 Season</div><button class="btn btn-ghost btn-sm" onclick="shows2025Mode=false;rShows()">← 2026 Shows</button></div><div class="card" style="text-align:center;color:var(--muted);padding:28px 16px">No 2025 season data for this app.</div>`;
+    return;
+  }
   // Official totals from the 2025 Excel workbook
   const TOT={gross:26850,cogs:7874,booth:3400,otherExp:6057,net:9088,shows:20};
   const totalSpent=TOT.cogs+TOT.booth+TOT.otherExp;
@@ -2622,6 +2764,7 @@ function rPnL(){
     <div class="sr"><span class="srl">Booth / Vendor Fees</span><span class="srv red">-${fmt(boothTotal)}</span></div>
     <div class="sr"><span class="srl">Show Expenses (fuel, hotel, etc.)</span><span class="srv red">-${fmt(showExpTotal+lodgingTotal+dayExpTotal)}</span></div>
     <div class="sr" style="border-bottom:none"><span class="srl">Supply Purchases</span><span class="srv red">-${fmt(globalSupply)}</span></div>
+    ${freightTotal()>0?`<div class="sr" style="border-bottom:none"><span class="srl">Freight &amp; Shipping</span><span class="srv red">-${fmt(freightTotal())}</span></div>`:''}
     ${ytd.totalCommissions>0?`<div class="sr" style="border-top:1px solid var(--redbd);margin-top:4px;border-bottom:none"><span class="srl">Rep Commissions (earned)</span><span class="srv red">-${fmt(ytd.totalCommissions)}</span></div>`:''}
   </div>
   ${(()=>{
@@ -2877,7 +3020,14 @@ function exportRepCSV(){
 function exportExpensesCSV(){
   const rows=[['Date','Category','Amount','Note']];
   (S.otherExpenses||[]).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(e=>rows.push([e.date||'',e.category||'',(parseFloat(e.amount)||0).toFixed(2),e.note||'']));
-  rows.push([]); rows.push(['TOTAL','',(S.otherExpenses||[]).reduce((t,e)=>t+(parseFloat(e.amount)||0),0).toFixed(2),'']);
+  // Freight & shipping — logged in its own ledger, exported here as its own category line
+  (S.freight||[]).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(f=>rows.push([f.date||'','Freight & Shipping'+(f.type?' — '+f.type:''),(parseFloat(f.amount)||0).toFixed(2),[f.carrier,f.desc].filter(Boolean).join(' · ')]));
+  const otherTot=(S.otherExpenses||[]).reduce((t,e)=>t+(parseFloat(e.amount)||0),0);
+  const freightTot=freightTotal();
+  rows.push([]);
+  rows.push(['Other expenses subtotal','',otherTot.toFixed(2),'']);
+  rows.push(['Freight & shipping subtotal','',freightTot.toFixed(2),'']);
+  rows.push(['TOTAL','',(otherTot+freightTot).toFixed(2),'']);
   dlFile('best-solution-expenses-'+_stamp()+'.csv',_csvRows(rows));
 }
 function _money(n){return '$'+(Number(n)||0).toFixed(2);}
@@ -3571,7 +3721,7 @@ function saveOtherExpense(editId){
   if(editId){
     const ex=S.otherExpenses.find(e=>e.id===editId);
     if(ex){ex.amount=amt;ex.note=note;ex.category=category;ex.date=date;}
-    saveS();openManageExpenses();toast('✅ Expense updated');
+    mClose();saveS();toast('✅ Expense updated');
   }else{
     S.otherExpenses.push({id:'oe_'+Date.now(),amount:amt,note,category,date});
     mClose();saveS();toast('✅ Expense logged — '+fmt(amt));
@@ -3581,7 +3731,7 @@ function delOtherExpense(id){
   const ex=(S.otherExpenses||[]).find(e=>e.id===id);if(!ex)return;
   if(!confirm('Delete this expense?\n\n'+(ex.note||ex.category||'Expense')+' — '+fmt(ex.amount)))return;
   S.otherExpenses=(S.otherExpenses||[]).filter(e=>e.id!==id);
-  saveS();openManageExpenses();toast('🗑️ Expense deleted');
+  mClose();saveS();toast('🗑️ Expense deleted');
 }
 function openManageExpenses(){
   const list=[...(S.otherExpenses||[])].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
@@ -4309,6 +4459,7 @@ function rSettings(){
 }
 function setSt(k,v){S.settings[k]=v;saveS();toast('Saved!');}
 function setP(k,v){if(!S.prices)S.prices={};S.prices[k]=v;saveS();}
+
 // ---- Editable cost of goods (COGS) ----
 function setCost(k,v){if(!S.costs)S.costs={};const n=(v===''||v==null)?null:(parseFloat(v)||0);S.costs[k]=(n==null?SKUS.find(s=>s.key===k).cost:Math.max(0,n));saveS();toast('✅ Cost updated');}
 function resetCosts(){if(!confirm('Reset every product cost back to its built-in default?'))return;S.costs={};SKUS.forEach(s=>S.costs[s.key]=s.cost);saveS();toast('↩︎ Costs reset to defaults');if(curPg==='settings')rSettings();}

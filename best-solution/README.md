@@ -35,9 +35,13 @@ even in the same browser or signed into the same account.
 4. **Master Inventory button** — now the first and biggest control on Home: a
    full-width gold hero button above everything else.
 
-## Dashboard redesign + new features (v7.4)
+## Dashboard redesign + new features (v7.8)
 
-Made in the master and regenerated into all blanks. All apps get these.
+Rebuilt on top of the **live v7.7** app (the live personal app had diverged ahead
+of this master — v7.4–v7.7 of the owner's own edits: next-show countdown, editable
+mileage, `pctF`, the completed-vs-upcoming dcard dashboard). Those live changes were
+preserved; the features below were layered on top, then deployed to the live Pages
+repos. Made in the master and regenerated into all blanks. All apps get these.
 
 1. **Home dashboard reordered around tracking, not stats.** New top-to-bottom order:
    1. 🔔 **Notification / audit bar** (see below) — pinned at the very top.
