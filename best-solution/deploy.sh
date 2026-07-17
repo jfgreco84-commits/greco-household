@@ -88,7 +88,14 @@ for row in "${TARGETS[@]}"; do
   fi
   git -C "$DIR" add "$TGT"
   git -C "$DIR" commit -q -m "Deploy from master ($(date -u +%Y-%m-%d))"
-  for i in 1 2 3 4; do git -C "$DIR" push -q origin HEAD && break || { echo "      push retry $i"; sleep $((2**i)); }; done
-  echo "    $REPO — pushed ✅  (Pages rebuilds in ~1-2 min)"
+  pushed=0
+  for i in 1 2 3 4; do
+    if git -C "$DIR" push -q origin HEAD 2>/dev/null; then pushed=1; break; else echo "      push attempt $i failed"; sleep $((2**i)); fi
+  done
+  if [ "$pushed" -eq 1 ]; then
+    echo "    $REPO — pushed ✅  (Pages rebuilds in ~1-2 min)"
+  else
+    echo "    $REPO — ⚠️ PUSH FAILED (repo may not exist yet or no access). Nothing deployed for this one."
+  fi
 done
 echo "Done."
