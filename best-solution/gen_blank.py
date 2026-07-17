@@ -24,6 +24,8 @@ MINIMAL_AOTU = '''function applyOneTimeUpdates(d){
     if(!d.reps.length)d.reps.push({id:'rep_owner',name:'__OWNER__',isSelf:true,active:true,payments:[]});
     d._applied['reps_seed_v1']=true;
   }
+  if(!Array.isArray(d.freight))d.freight=[];
+  if(!d.costs||typeof d.costs!=='object')d.costs={};
 }
 function buildPlannedShow('''
 
@@ -48,10 +50,8 @@ def make(slug, owner, title):
     h = re.sub(r"const PREV_YEAR=\{[^}]*\};",
                "const PREV_YEAR={gross:0,cogs:0,booth:0,otherExp:0,net:0,shows:0,bestShow:'',bestProfit:0};", h)
 
-    # 5. Remove the "Borrowed from Batman" dashboard card (personal) from the grid + section map
-    h = h.replace(
-        "    {k:'best',icon:'🏆',label:'Best Shows',sub:'Top grossing / profit'},\n    {k:'batman',icon:'🦇',label:'Borrowed from Batman',sub:bmBottles()+' bottles owed · '+fmt(bmRetail())}\n",
-        "    {k:'best',icon:'🏆',label:'Best Shows',sub:'Top grossing / profit'}\n")
+    # 5. Remove the "Borrowed from Batman" quick-access button + section-map entry (personal)
+    h = re.sub(r"  /\*BATMAN_BTN_START\*/.*?  /\*BATMAN_BTN_END\*/\n", "", h, flags=re.S)
     h = h.replace(
         "    best:{t:'Best Shows This Season',f:secBest},\n    batman:{t:'Borrowed from Batman',f:secBatman}\n",
         "    best:{t:'Best Shows This Season',f:secBest}\n")
