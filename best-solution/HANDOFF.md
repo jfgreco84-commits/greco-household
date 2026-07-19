@@ -1,4 +1,37 @@
-# HANDOFF — Best Solution App Rebuild
+# HANDOFF — Best Solution Apps
+
+## ⭐ CURRENT WORKFLOW (v7.8+) — READ THIS FIRST, it supersedes the old §5 deploy steps
+
+**There is ONE source of truth: `froggy-personal.html` (the master), in this folder.**
+Everything else is generated or deployed from it. Follow this and the apps can never
+fall out of sync again:
+
+1. **Edit only `froggy-personal.html`.** Never hand-edit a blank. Never edit a live
+   GitHub Pages repo (`best-solution-app`, `best-solution-blank`, crew repos) directly.
+2. **Publish with one command:**
+   ```
+   cd best-solution
+   ./deploy.sh          # regenerate blanks + validate (safe dry run, shows the plan)
+   ./deploy.sh --push   # ...then commit & push to every live Pages repo (shows each diff first)
+   ```
+   `deploy.sh` regenerates the blanks (`gen_blank.py`), checks JS syntax on all four
+   apps, and pushes each to its live repo. It prints the diff before every push, so
+   if a live site was edited out-of-band you'll see it and can stop.
+3. **Commit the source** (`froggy-personal.html` + regenerated blanks) to
+   `greco-household` too, so the repo history stays the record of truth.
+
+**Why this rule exists (a real lesson):** in July 2026 the live personal app had been
+edited directly up to **v7.7**, while this master was still **v7.3** — 4 versions of
+work lived only on the live site. A naive redeploy would have wiped it. We rebuilt the
+master on top of live v7.7 and recovered everything, but the fix is process:
+**master → deploy.sh → live, always. Never edit live by hand.**
+
+Live URLs: personal https://jfgreco84-commits.github.io/best-solution-app/BEST_SOLUTION_APP.html ·
+Batman https://jfgreco84-commits.github.io/best-solution-blank/
+
+---
+
+# HANDOFF — Best Solution App Rebuild (original notes, kept for history)
 
 **Read this top to bottom. It contains everything needed to finish and ship the work.**
 Generated from a Claude Code web session. The main remaining work is **deployment**,

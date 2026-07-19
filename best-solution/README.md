@@ -35,12 +35,51 @@ even in the same browser or signed into the same account.
 4. **Master Inventory button** — now the first and biggest control on Home: a
    full-width gold hero button above everything else.
 
+## Dashboard redesign + new features (v7.8)
+
+Rebuilt on top of the **live v7.7** app (the live personal app had diverged ahead
+of this master — v7.4–v7.7 of the owner's own edits: next-show countdown, editable
+mileage, `pctF`, the completed-vs-upcoming dcard dashboard). Those live changes were
+preserved; the features below were layered on top, then deployed to the live Pages
+repos. Made in the master and regenerated into all blanks. All apps get these.
+
+1. **Home dashboard reordered around tracking, not stats.** New top-to-bottom order:
+   1. 🔔 **Notification / audit bar** (see below) — pinned at the very top.
+   2. ⭐ **Quick Access** — the four most-used buttons: **Stock, Shows,
+      Borrowed from Batman, Product Debt**. (Batman is personal — stripped from blanks.)
+   3. 🔴 **Happening Now** — every active show, no cap; if two or more run at once
+      they ALL show, with a staffing warning.
+   4. 🎪 **On Deck** — the next few upcoming shows with a TODAY / TOMORROW / in-N-days chip.
+   5. 📅 **This Month calendar** — a live mini month grid right on the dashboard
+      (double-booked days flagged), taps through to the full calendar.
+   6. 📊 **Season Performance Stats** — all the completed-season numbers, now
+      **collapsed behind a Show/Hide button** so they're out of the way.
+   7. Dashboard Sections grid, Crew Apps (personal only), Quick Actions.
+   8. 🧮 **The Bottom Line** — a fully reconciled Sales → COGS → Booth → Freight →
+      Other → Profit → Tax → **NET** card, pinned at the very bottom.
+2. **Constant audit + notifications.** `runAudit()` scans on every render and never
+   changes data — it only reports. Red = fix now, gold = review. Catches: inventory
+   mismatches, impossible counts, broken stock values, unpaid booths on shows coming
+   up, low stock, double-booked days, unconfirmed shows, reps owed, missed shows. The
+   top bar shows a live count and expands to a tap-to-jump list.
+3. **Editable cost of goods (COGS).** `S.costs` + `getCost(k)` (falls back to each
+   SKU's built-in default). Edit the polish sizes and C5 costs in **Settings →
+   Cost of Goods**, or tap **Adjust cost of goods** on any Stock card. Drives every
+   COGS/profit number live, same model as prices.
+4. **Freight & shipping ledger.** `S.freight` + a full manage/add/edit/delete modal
+   (`openFreight` / `secFreight`), its own **🚚 Freight & Shipping** dashboard section,
+   and a **Log Freight** quick action. Totals roll into Other Expenses / P&L / the
+   bottom line but stay on their own line.
+
 ## Personal-app-only
 
 - **Crew Apps launcher** (`froggy-personal.html` only): a "Crew Apps · Team
   Tracker" card with three new-tab buttons — Batman (live URL wired up), Isaiah
   and Anthony (placeholders). Update the two placeholder `href="#"` values once
   those repos go live — search the file for `ISAIAH_URL` and `ANTHONY_URL`.
+- **Borrowed from Batman** now lives as a Quick Access button (was a dashboard
+  section card). It's gated by `/*BATMAN_BTN_START*/…/*BATMAN_BTN_END*/` markers
+  that `gen_blank.py` strips from the blanks.
 
 ## What "blank" strips from the master
 

@@ -24,6 +24,8 @@ MINIMAL_AOTU = '''function applyOneTimeUpdates(d){
     if(!d.reps.length)d.reps.push({id:'rep_owner',name:'__OWNER__',isSelf:true,active:true,payments:[]});
     d._applied['reps_seed_v1']=true;
   }
+  if(!Array.isArray(d.freight))d.freight=[];
+  if(!d.costs||typeof d.costs!=='object')d.costs={};
 }
 function buildPlannedShow('''
 
@@ -39,19 +41,18 @@ def make(slug, owner, title):
     h = re.sub(r"inventory:\{'32oz':\d+,'16oz':\d+,'8oz':\d+,'2oz':\d+,'c5s':\d+,'c5l':\d+\}",
                "inventory:{'32oz':0,'16oz':0,'8oz':0,'2oz':0,'c5s':0,'c5l':0}", h)
 
-    # 3. Empty product debt in INIT
+    # 3. Empty product debt in INIT + genericize its section-header comment (supplier name is personal)
     h = h.replace("productDebt:{supplier:'Mark Martone',originalBalance:10000,payments:[]},",
                   "productDebt:{supplier:'',originalBalance:0,payments:[]},")
+    h = h.replace("// PRODUCT DEBT (MARK MARTONE)", "// PRODUCT DEBT (SUPPLIER)")
 
     # 4. Empty 2025 history + prior-year comparison
     h = re.sub(r"const SHOWS_2025=\[.*?\n\];", "const SHOWS_2025=[];", h, flags=re.S)
     h = re.sub(r"const PREV_YEAR=\{[^}]*\};",
                "const PREV_YEAR={gross:0,cogs:0,booth:0,otherExp:0,net:0,shows:0,bestShow:'',bestProfit:0};", h)
 
-    # 5. Remove the "Borrowed from Batman" dashboard card (personal) from the grid + section map
-    h = h.replace(
-        "    {k:'best',icon:'🏆',label:'Best Shows',sub:'Top grossing / profit'},\n    {k:'batman',icon:'🦇',label:'Borrowed from Batman',sub:bmBottles()+' bottles owed · '+fmt(bmRetail())}\n",
-        "    {k:'best',icon:'🏆',label:'Best Shows',sub:'Top grossing / profit'}\n")
+    # 5. Remove the "Borrowed from Batman" quick-access button + section-map entry (personal)
+    h = re.sub(r"  /\*BATMAN_BTN_START\*/.*?  /\*BATMAN_BTN_END\*/\n", "", h, flags=re.S)
     h = h.replace(
         "    best:{t:'Best Shows This Season',f:secBest},\n    batman:{t:'Borrowed from Batman',f:secBatman}\n",
         "    best:{t:'Best Shows This Season',f:secBest}\n")
@@ -81,7 +82,7 @@ for slug, owner, title, fname in apps:
     out = make(slug, owner, title)
     open(fname, 'w', encoding='utf-8', newline='').write(out)
     # sanity assertions
-    assert 'Mark Martone' not in out, fname+': Martone leaked'
+    assert 'martone' not in out.lower(), fname+': Martone leaked'
     assert 'Froggy' not in out, fname+': Froggy leaked'
     assert "name:'Justin (Froggy)'" not in out, fname+': Justin rep leaked'
     assert 'CREW_START' not in out and 'Crew Apps'.lower() not in out.lower() or slug, None
