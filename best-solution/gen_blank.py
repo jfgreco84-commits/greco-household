@@ -41,9 +41,10 @@ def make(slug, owner, title):
     h = re.sub(r"inventory:\{'32oz':\d+,'16oz':\d+,'8oz':\d+,'2oz':\d+,'c5s':\d+,'c5l':\d+\}",
                "inventory:{'32oz':0,'16oz':0,'8oz':0,'2oz':0,'c5s':0,'c5l':0}", h)
 
-    # 3. Empty product debt in INIT
+    # 3. Empty product debt in INIT + genericize its section-header comment (supplier name is personal)
     h = h.replace("productDebt:{supplier:'Mark Martone',originalBalance:10000,payments:[]},",
                   "productDebt:{supplier:'',originalBalance:0,payments:[]},")
+    h = h.replace("// PRODUCT DEBT (MARK MARTONE)", "// PRODUCT DEBT (SUPPLIER)")
 
     # 4. Empty 2025 history + prior-year comparison
     h = re.sub(r"const SHOWS_2025=\[.*?\n\];", "const SHOWS_2025=[];", h, flags=re.S)
@@ -81,7 +82,7 @@ for slug, owner, title, fname in apps:
     out = make(slug, owner, title)
     open(fname, 'w', encoding='utf-8', newline='').write(out)
     # sanity assertions
-    assert 'Mark Martone' not in out, fname+': Martone leaked'
+    assert 'martone' not in out.lower(), fname+': Martone leaked'
     assert 'Froggy' not in out, fname+': Froggy leaked'
     assert "name:'Justin (Froggy)'" not in out, fname+': Justin rep leaked'
     assert 'CREW_START' not in out and 'Crew Apps'.lower() not in out.lower() or slug, None
