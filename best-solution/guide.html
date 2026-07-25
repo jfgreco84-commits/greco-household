@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Solution App · How To Use It</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#0a0a0a;--card:#161616;--card2:#1e1e1e;
+    --gold:#FFD700;--goldbg:rgba(255,215,0,0.08);--goldbd:rgba(255,215,0,0.25);
+    --green:#00D26A;--red:#FF4545;--blue:#4FC3F7;
+    --text:#f0f0f0;--muted:#999;--border:#252525;
+  }
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;font-size:16px;line-height:1.55;padding:20px 16px 60px}
+  .wrap{max-width:640px;margin:0 auto}
+  header{text-align:center;padding:18px 0 26px;border-bottom:2px solid var(--gold);margin-bottom:26px}
+  header .logo{font-size:40px}
+  h1{color:var(--gold);font-size:26px;font-weight:900;margin-top:6px}
+  header p{color:var(--muted);font-size:14px;margin-top:6px}
+  h2{color:var(--gold);font-size:20px;font-weight:800;margin:34px 0 10px;padding-top:22px;border-top:1px solid var(--border)}
+  h2:first-of-type{border-top:none;padding-top:0}
+  p{margin:10px 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:12px 0}
+  .steps{counter-reset:step;list-style:none;margin:12px 0}
+  .steps li{counter-increment:step;position:relative;padding:10px 0 10px 44px;border-bottom:1px dashed var(--border)}
+  .steps li:last-child{border-bottom:none}
+  .steps li::before{content:counter(step);position:absolute;left:0;top:10px;width:30px;height:30px;border-radius:50%;background:var(--goldbg);border:1px solid var(--goldbd);color:var(--gold);font-weight:900;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .btn-look{display:inline-block;background:var(--card2);border:1px solid var(--goldbd);color:var(--gold);border-radius:8px;padding:2px 9px;font-size:14px;font-weight:700;white-space:nowrap}
+  .btn-blue{border-color:rgba(79,195,247,0.5);color:var(--blue)}
+  .btn-red{border-color:rgba(255,69,69,0.5);color:var(--red)}
+  .tabrow{display:grid;grid-template-columns:92px 1fr;gap:6px 12px;font-size:15px;margin:10px 0}
+  .tabrow b{color:var(--gold)}
+  .tip{background:var(--goldbg);border:1px solid var(--goldbd);border-radius:12px;padding:12px 14px;margin:14px 0;font-size:15px}
+  .warn{background:rgba(255,69,69,0.07);border:1px solid rgba(255,69,69,0.3);border-radius:12px;padding:12px 14px;margin:14px 0;font-size:15px}
+  .faq b{color:var(--gold)}
+  .faq .card p:first-child{margin-top:0}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:44px;border-top:1px solid var(--border);padding-top:16px}
+  b{font-weight:800}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">⚡</div>
+  <h1>The Best Solution App</h1>
+  <p>How to use it, in plain English. No experience needed.</p>
+</header>
+
+<h2>What this app is</h2>
+<p>It keeps track of three things for you:</p>
+<div class="card">
+  <p>1. <b>Your product</b>, how many bottles and kits you have, and where they are.</p>
+  <p>2. <b>Your shows</b>, where you sell.</p>
+  <p>3. <b>Your money</b>, what came in each day and how you got paid.</p>
+</div>
+<p>You count your product in the morning, count again at night, and punch in the money you took. The app does all the math.</p>
+
+<h2>One idea to understand first: the Garage</h2>
+<p>The app thinks of your stock as living in one of two places:</p>
+<div class="card">
+  <p><b>🏠 The Garage</b> is everything sitting at home. The STOCK tab shows your garage.</p>
+  <p><b>🎪 A Show</b> is whatever you packed and took with you to sell.</p>
+</div>
+<p>When you start a show, product moves from the garage to the show. When the show ends, whatever did not sell moves back to the garage. Product is never lost, it just changes location.</p>
+
+<h2>The buttons along the bottom</h2>
+<div class="card">
+  <div class="tabrow">
+    <b>📊 HOME</b><span>The big picture. Totals, quick buttons, what is coming up.</span>
+    <b>📦 STOCK</b><span>Your garage. What you have at home right now.</span>
+    <b>🎪 SHOWS</b><span>Your list of shows. This is where you live day to day.</span>
+    <b>👥 REPS</b><span>People who sell for you and what they are owed.</span>
+    <b>📅 CAL</b><span>Your shows on a calendar.</span>
+    <b>🧴 SUPPLY</b><span>Bags, tape, table stuff. So you never run out.</span>
+    <b>💰 P&amp;L</b><span>Profit and loss. What you actually made.</span>
+    <b>⚙️ SETUP</b><span>Settings, sign in, and backups.</span>
+  </div>
+</div>
+
+<h2>First time setup</h2>
+<ol class="steps">
+  <li>Open the app link in your phone's browser.</li>
+  <li>Add it to your home screen so it works like a regular app. <b>iPhone:</b> tap the Share button, then "Add to Home Screen". <b>Android:</b> tap the three dots menu, then "Add to Home screen".</li>
+  <li>Go to <b>⚙️ SETUP</b> and sign in. This backs up your data to the cloud and keeps every device you use showing the same thing.</li>
+  <li>Go to <b>📦 STOCK</b> and enter how many of each product you have at home. Now the app knows your garage.</li>
+</ol>
+
+<h2>🎪 How to start a show</h2>
+<p>There are two parts. You <b>create</b> the show ahead of time, then you <b>start</b> it the day you pack up.</p>
+<p><b>Part 1, create it (any time before the show):</b></p>
+<ol class="steps">
+  <li>Go to <b>🎪 SHOWS</b> and tap <span class="btn-look">+ New Show</span>.</li>
+  <li>Fill in the name, the town, the start date, how many days it runs, the booth cost, and one-way miles.</li>
+  <li>Tap <span class="btn-look">Create Show</span>. It now sits in your list as a planned show.</li>
+</ol>
+<p><b>Part 2, start it (when you pack your truck):</b></p>
+<ol class="steps">
+  <li>Tap the show in your <b>🎪 SHOWS</b> list to open it.</li>
+  <li>Tap <span class="btn-look">🎒 Start Show / Pack Inventory</span>.</li>
+  <li>Enter how many of each product you are bringing. It cannot be more than what is in your garage.</li>
+  <li>Tap <span class="btn-look">✅ Start Show</span>. Done. That stock moved out of your garage and into the show, and your day 1 morning count is already filled in for you.</li>
+</ol>
+
+<h2>During the show, every day</h2>
+<ol class="steps">
+  <li><b>Morning:</b> make sure your morning count is right. Day 1 is automatic from packing.</li>
+  <li><b>All day:</b> just sell. You do not need the app while selling.</li>
+  <li><b>Night:</b> count what is LEFT on the table and enter it as the evening count. The app figures out what you sold. Morning minus evening equals sold.</li>
+  <li>Enter the money you took, split by how you got it: Cash, Square, Venmo, and so on.</li>
+  <li>Enter what you spent that day: gas, food, parking, hotel.</li>
+</ol>
+<div class="tip">💡 The counts are the whole game. Count careful in the morning and careful at night, and every number in the app will be right.</div>
+
+<h2>🔄 How to move stock from one show to another</h2>
+<p>Say you have product parked in one show and you need it at a different show, or you grabbed 10 more bottles from home. Do NOT just change the counts by hand. Use <b>Transfer</b>, it keeps everything honest.</p>
+<ol class="steps">
+  <li>Open either show and tap the blue <span class="btn-look btn-blue">🔄 Transfer Stock (garage or another show)</span> button. You can also get there from Master Inventory on HOME with <span class="btn-look btn-blue">🔄 Transfer Garage ⇄ Show</span>.</li>
+  <li>Pick the product and how many.</li>
+  <li>Pick <b>From</b> and <b>To</b>. From can be the garage or any show, and To can be the garage or any show.</li>
+  <li>Tap <span class="btn-look">✅ Transfer</span>. That is it.</li>
+</ol>
+<div class="card">
+  <p>A transfer is <b>not a sale</b>. It does not touch your money, your sold counts, or anybody's commission. It just moves product from one spot to another, like carrying a box across the room.</p>
+  <p>Made a mistake? Every transfer is saved in a list and can be undone.</p>
+</div>
+
+<h2>🏁 Ending a show</h2>
+<ol class="steps">
+  <li>Open the show and tap <span class="btn-look btn-red">🏁 End Show &amp; Return Inventory</span>.</li>
+  <li>Confirm. Whatever did not sell goes back to your garage automatically, and the show moves to your Completed list with all its numbers saved.</li>
+</ol>
+
+<h2>Common questions</h2>
+<div class="faq">
+  <div class="card">
+    <p><b>My phone shows different stuff than the other guy's phone. Which one is right?</b></p>
+    <p>Two things cause this, and both are easy to fix.</p>
+    <p><b>1. An old app icon.</b> Scroll to the bottom of the HOME screen. It should say v7.8 or newer. If it shows a lower number, your home screen icon is pointing at an old copy. Delete the icon, open the app link fresh in your browser, and add it to your home screen again.</p>
+    <p><b>2. Not signed in.</b> The app saves to YOUR phone. Two phones only show the same data when both are signed in to the same account under ⚙️ SETUP. If it says "Saved on this device" at the bottom of SETUP, you are not synced.</p>
+  </div>
+  <div class="card">
+    <p><b>I entered a wrong number. Am I stuck with it?</b></p>
+    <p>No. Open the show, open that day, fix the number. The app recalculates everything.</p>
+  </div>
+  <div class="card">
+    <p><b>Will I lose my data if I close the app?</b></p>
+    <p>No. It saves automatically every time you touch anything. Sign in under ⚙️ SETUP and it is also backed up to the cloud.</p>
+  </div>
+  <div class="card">
+    <p><b>Do I need internet at the show?</b></p>
+    <p>No. The app works offline. It syncs up the next time you have signal.</p>
+  </div>
+</div>
+
+<h2>The golden rules</h2>
+<div class="tip">
+  1. Count in the morning. Count at night.<br>
+  2. Log every dollar the day you take it.<br>
+  3. Moving product? Use 🔄 Transfer, never edit counts by hand.<br>
+  4. Sign in under ⚙️ SETUP so your data is backed up and synced.
+</div>
+
+<footer>Best Solution, LLC · App Guide</footer>
+</div>
+</body>
+</html>

@@ -70,6 +70,12 @@ def make(slug, owner, title):
     # 9. Title
     h = h.replace("<title>Best Solution | Dot Dynasty LLC</title>",
                   "<title>%s</title>" % title)
+
+    # 10. Crew-facing branding: Best Solution, LLC (no Dot Dynasty on crew apps)
+    h = h.replace('<div><div class="hdr-name">Best Solution</div><div class="hdr-sub">Dot Dynasty LLC</div></div>',
+                  '<div><div class="hdr-name">Best Solution, LLC</div></div>')
+    h = h.replace("Best Solution App · Dot Dynasty LLC · v", "Best Solution, LLC · v")
+    h = h.replace("· Dot Dynasty LLC", "· Best Solution, LLC")
     return h
 
 apps = [
@@ -88,4 +94,5 @@ for slug, owner, title, fname in apps:
     assert "label:'Borrowed from Batman'" not in out, fname+': batman card leaked'
     assert "inventory:{'32oz':0" in out, fname+': inventory not zeroed'
     assert 'dd_bs_%s_v7'%slug in out, fname+': storage key not namespaced'
+    assert 'Dot Dynasty' not in out, fname+': Dot Dynasty branding leaked'
     print(fname, 'OK', len(out), 'bytes')
