@@ -95,9 +95,12 @@ The blanks regenerate **byte-identical**, so the generator is deterministic.
    (Code: `rHome()`, look for `// ---- DASHBOARD STATS`.)
 2. **Pre-show inventory calculator** — a card near the top of every show entry.
    Enter the stock you're bringing → projects potential sales volume + potential
-   commission (at the 30% default rate) + units + COGS. Falls back to packed
+   over product cost + units + COGS. Falls back to packed
    inventory if no separate plan entered.
    (Code: `preShowCalcHTML()`, `openPreShowStock()`, `preShowTotals()`; rendered in `rShow()`.)
+   *(Jul 2026: the "potential commission" stat was replaced when commission
+   percentages were removed — reps are now paid a flat $ per day, entered daily
+   as `day.repPay`.)*
 3. **Collected vs Full Price — redesigned** — modern capture-rate gauge (big % +
    gradient bar) over per-show cards with mini progress bars.
    (Code: `secCollected()`.)
@@ -251,9 +254,11 @@ Either way, the live apps are the 4 Pages repos in §5.
   (gas, hotel, supplies, commissions, worker pay, misc, planned deposits). Chosen so
   the headline stats reconcile to Profit. If the user wants it to mean only the
   global "Other Expenses" ledger, that's a one-line change in `rHome()`.
-- **"Potential commission"** in the pre-show calculator uses the generic 30%
-  (`DEFAULT_COMM_RATE`), not per-rep rates, because no rep is assigned yet at
-  pre-show time. Labeled as such in the UI.
+- **Rep pay model (Jul 2026):** commission percentages were removed entirely.
+  Reps get a flat $ per day (`day.repPay = {repId: $}`), entered daily. Legacy
+  per-show payouts (`sh.repPayout`) still count as "earned" on old shows when
+  no day pay exists, so logged payments reconcile. Do not resurrect
+  `DEFAULT_COMM_RATE` / `commCash` / `commCard` — they are gone on purpose.
 - **Batman's "Borrowed from Batman" card** was removed from the blanks (it names a
   specific person = personal data) but kept in Froggy's master. The borrow *feature*
   code still exists; it's just not surfaced in the blanks' dashboard grid.

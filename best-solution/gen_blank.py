@@ -13,7 +13,7 @@ MINIMAL_AOTU = '''function applyOneTimeUpdates(d){
     if(!sh.repIds)sh.repIds=[];
     if(sh.repOnlyShow===undefined)sh.repOnlyShow=false;
     if(!sh.showExpenses)sh.showExpenses=[];
-    (sh.days||[]).forEach(day=>{ if(!day.repSales)day.repSales=[]; if(day.payments&&day.payments.debit===undefined)day.payments.debit=0; });
+    (sh.days||[]).forEach(day=>{ if(!day.repSales)day.repSales=[]; if(!day.repPay)day.repPay={}; if(day.payments&&day.payments.debit===undefined)day.payments.debit=0; });
   });
   if(!d._applied['supplies_seed_v1']){
     if(!d.supplies||d.supplies.length===0)d.supplies=JSON.parse(JSON.stringify(DEFAULT_SUPPLIES));

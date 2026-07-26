@@ -26,7 +26,7 @@ even in the same browser or signed into the same account.
    `Profit − Tax = Net`.
 2. **Pre-show inventory calculator** — a card near the top of every show entry.
    Enter the stock you're bringing and it projects **potential sales volume**
-   (qty × price) and **potential commission** (at the default 30% rate), plus
+   (qty × price) and **potential over product cost** (volume − COGS), plus
    units and cost of goods — before you log a single count. Falls back to the
    packed inventory if you haven't entered a separate plan.
 3. **Collected vs Full Price — redesigned** — a modern capture-rate gauge (big %
@@ -34,6 +34,12 @@ even in the same browser or signed into the same account.
    plain list.
 4. **Master Inventory button** — now the first and biggest control on Home: a
    full-width gold hero button above everything else.
+5. **Rep pay is per day (Jul 2026)** — commission percentages are GONE. Each rep
+   gets a flat dollar amount per day, entered daily (💵 Day Pay on the day
+   screen, the day closeout, the rep sales modal, or per rep from the show's
+   rep list — all write `day.repPay`). The app tracks earned vs paid vs owed
+   from those day entries. Legacy per-show payouts (`sh.repPayout`) from the
+   old commission system still count on old shows so history reconciles.
 
 ## Personal-app-only
 
