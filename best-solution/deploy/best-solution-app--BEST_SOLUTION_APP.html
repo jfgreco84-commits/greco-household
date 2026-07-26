@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
-  <title>Best Solution — Anthony</title>
+  <title>Best Solution | Dot Dynasty LLC</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     :root{
@@ -286,12 +286,33 @@ const PMTS=[
   {key:'cashapp',label:'Cash App',icon:'💚',color:'#00D632', commRate:COMM_CASH},
   {key:'paypal', label:'PayPal',  icon:'🅿️', color:'#003087', commRate:COMM_CASH},
 ];
-const PREV_YEAR={gross:0,cogs:0,booth:0,otherExp:0,net:0,shows:0,bestShow:'',bestProfit:0};
+const PREV_YEAR={gross:26850,cogs:7874,booth:3400,otherExp:6057,net:9088,shows:20,bestShow:'Cranberry Fest',bestProfit:2632};
 // ===================================================
 // 2025 SEASON DATA (real numbers from Excel workbook)
 // Totals: Gross $26,850 | COGS $7,874 | Booth $3,400 | Other $6,057 | Net $9,088
 // ===================================================
-const SHOWS_2025=[];
+const SHOWS_2025=[
+  {name:'Mukwonago Maxwell',         dates:'Jun 7-8, 2025',     location:'Mukwonago, WI',           numDays:2, gross:1015, cogs:343,  booth:70,  otherExp:235,  net:297,   note:''},
+  {name:'7 Mile Fair',               dates:'Jul 12-13, 2025',   location:'Caledonia, WI',            numDays:2, gross:500,  cogs:179,  booth:60,  otherExp:585,  net:-418,  note:'Weather risk hurt this one.'},
+  {name:'7 Mile Fair',               dates:'Jul 19-20, 2025',   location:'Caledonia, WI',            numDays:2, gross:525,  cogs:184,  booth:50,  otherExp:360,  net:-89,   note:'Rained Day 1.'},
+  {name:'Mukwonago Maxwell',         dates:'Jul 19-20, 2025',   location:'Mukwonago, WI',           numDays:2, gross:475,  cogs:164,  booth:70,  otherExp:734,  net:-508,  note:'High other expenses hurt profit.'},
+  {name:'Racine County Fair',        dates:'Jul 23-27, 2025',   location:'Racine, WI',               numDays:5, gross:1285, cogs:439,  booth:505, otherExp:720,  net:-379,  note:'Booth rent too high relative to sales.'},
+  {name:'7 Mile Fair',               dates:'Aug 2-3, 2025',     location:'Caledonia, WI',            numDays:2, gross:430,  cogs:147,  booth:75,  otherExp:240,  net:-72,   note:'3rd appearance, still losing money.'},
+  {name:'Rustic Fox — N. Aurora',    dates:'Aug 8, 2025',       location:'North Aurora, IL',         numDays:1, gross:735,  cogs:246,  booth:100, otherExp:225,  net:115,   note:''},
+  {name:'Wheaton All Night Flea',    dates:'Aug 2025',          location:'Wheaton, IL',              numDays:1, gross:485,  cogs:164,  booth:185, otherExp:50,   net:86,    note:''},
+  {name:'St. Martins Fest',          dates:'Aug 30, 2025',      location:'Franklin, WI',             numDays:1, gross:2710, cogs:906,  booth:245, otherExp:292,  net:1267,  note:'One-day monster. Close to home. REPEAT every year.'},
+  {name:'Rustic Fox — Carol Stream', dates:'Sep 6, 2025',       location:'Carol Stream, IL',         numDays:1, gross:665,  cogs:225,  booth:100, otherExp:50,   net:290,   note:''},
+  {name:'Rustic Fox — Carol Stream', dates:'Sep 20, 2025',      location:'Carol Stream, IL',         numDays:1, gross:645,  cogs:212,  booth:100, otherExp:90,   net:244,   note:''},
+  {name:'Cranberry Fest',            dates:'Sep 25-27, 2025',   location:'Warrens, WI',              numDays:3, gross:5170, cogs:1718, booth:200, otherExp:620,  net:2632,  note:'BEST SHOW OF THE YEAR. Stock up HUGE. Budget hotel ~$300.'},
+  {name:'Rustic Fox — Carol Stream', dates:'Oct 4, 2025',       location:'Carol Stream, IL',         numDays:1, gross:570,  cogs:140,  booth:100, otherExp:70,   net:200,   note:''},
+  {name:'Burgoo Fest',               dates:'Oct 10-12, 2025',   location:'Utica, IL',                numDays:3, gross:2900, cogs:909,  booth:175, otherExp:1366, net:691,   note:'$1,366 other exp includes commission. Review commission structure next year.'},
+  {name:'Rustic Fox Oct Holiday Mkt',dates:'Oct 2025',          location:'Carol Stream / N. Aurora, IL', numDays:1, gross:1835, cogs:543, booth:400, otherExp:170, net:817, note:'High booth cost for Rustic Fox — confirmed strong holiday show.'},
+  {name:'Carol Stream Market',       dates:'Oct 18, 2025',      location:'Carol Stream, IL',         numDays:1, gross:460,  cogs:154,  booth:100, otherExp:75,   net:176,   note:''},
+  {name:'Sip & Sleigh — Carol Stream',dates:'Nov 7-9, 2025',    location:'Carol Stream, IL',         numDays:3, gross:1800, cogs:570,  booth:200, otherExp:115,  net:1140,  note:'Strong holiday show.'},
+  {name:'Sip & Sleigh — N. Aurora',  dates:'Nov 14-16, 2025',   location:'North Aurora, IL',         numDays:3, gross:2185, cogs:719,  booth:400, otherExp:255,  net:1256,  note:'SATURDAY was the big day. Strong show.'},
+  {name:'Baraboo Womens Market',     dates:'Nov 22, 2025',      location:'Baraboo, WI',              numDays:1, gross:1260, cogs:421,  booth:65,  otherExp:225,  net:660,   note:''},
+  {name:'Kris Kringle — Carol Stream',dates:'Dec 2025',         location:'Carol Stream, IL',         numDays:1, gross:1200, cogs:391,  booth:200, otherExp:115,  net:294,   note:''},
+];
 const DEFAULT_SUPPLIES=[
   {id:'sup_bags_lg',   name:'Bags (Large)',      qty:0,low:5, unit:'pk'},
   {id:'sup_bags_sm',   name:'Bags (Small)',       qty:0,low:5, unit:'pk'},
@@ -311,13 +332,13 @@ const DEFAULT_SUPPLIES=[
 ];
 const INIT={
   v:7,
-  inventory:{'32oz':0,'16oz':0,'8oz':0,'2oz':0,'c5s':0,'c5l':0},
+  inventory:{'32oz':39,'16oz':29,'8oz':68,'2oz':85,'c5s':290,'c5l':68},
   // Borrowed from Batman — standalone running tally, returned bottle-for-bottle.
   // NEVER mixed into `inventory`, shows, COGS, or any P&L math. Read/written only by bm* helpers.
   batmanBorrow:{},
   shows:[],
   supplies:JSON.parse(JSON.stringify(DEFAULT_SUPPLIES)),
-  productDebt:{supplier:'',originalBalance:0,payments:[]},
+  productDebt:{supplier:'Mark Martone',originalBalance:10000,payments:[]},
   otherExpenses:[],
   reps:[],  // global rep roster — reused across all shows
   prices:{'32oz':22.50,'16oz':15.00,'8oz':10.00,'2oz':5.00,'c5s':10.00,'c5l':20.00},
@@ -347,10 +368,10 @@ function normalizeShowDates(d){
 function loadS(){
   try{
     // Try v7 first
-    let r=localStorage.getItem('dd_bs_anthony_v7');
-    if(r){const d=JSON.parse(r);if(d.v===INIT.v){applyOneTimeUpdates(d);normalizeShowDates(d);localStorage.setItem('dd_bs_anthony_v7',JSON.stringify(d));return d;}}
+    let r=localStorage.getItem('dd_bs_v7');
+    if(r){const d=JSON.parse(r);if(d.v===INIT.v){applyOneTimeUpdates(d);normalizeShowDates(d);localStorage.setItem('dd_bs_v7',JSON.stringify(d));return d;}}
     // Migrate from v6
-    r=localStorage.getItem('dd_bs_anthony_v6');
+    r=localStorage.getItem('dd_bs_v6');
     if(r){
       const d=JSON.parse(r);
       d.v=7;
@@ -361,7 +382,7 @@ function loadS(){
       });
       applyOneTimeUpdates(d);
       normalizeShowDates(d);
-      localStorage.setItem('dd_bs_anthony_v7',JSON.stringify(d));
+      localStorage.setItem('dd_bs_v7',JSON.stringify(d));
       return d;
     }
   }catch(e){console.error('load error',e);}
@@ -372,27 +393,649 @@ function loadS(){
 
 function applyOneTimeUpdates(d){
   d._applied=d._applied||{};
-  // Blank / crew copy: NO pre-filled personal data. Structural seeding only.
+
+  // One-time DEFENSIVE snapshot before the v8 feature pass (commission-rate change, transfers, discounts).
+  // Only ADDS a timestamped backup key; never clears or overwrites the live state. Recoverable insurance.
+  if(!d._applied['prechange_backup_v8']){
+    try{ localStorage.setItem('dd_bs_prechange_v8_'+Date.now(), JSON.stringify(d)); }catch(e){}
+    d._applied['prechange_backup_v8']=true;
+  }
+
+  // Restock 2026-05-18: +12 32oz, +24 8oz, +80 2oz, +42 C5L
+  if(!d._applied['restock_20260518']){
+    d.inventory['32oz']=(d.inventory['32oz']||0)+12;
+    d.inventory['8oz']=(d.inventory['8oz']||0)+24;
+    d.inventory['2oz']=(d.inventory['2oz']||0)+80;
+    d.inventory['c5l']=(d.inventory['c5l']||0)+42;
+    d._applied['restock_20260518']=true;
+  }
+
+  // Shows patch v2 — 2026-05-18 (fixes dates, locations, payment status; adds Polish Fest + McHenry)
+  if(!d._applied['shows_20260518v2']){
+    const today='2026-05-18';
+    // confirmed=true → booked & shown in calendar; confirmed=false → pending/applied
+    const toEnsure=[
+      // PAID shows
+      {name:'Milwaukee Polish Fest',  location:'Milwaukee, WI',       startDate:'2026-06-12',numDays:3,boothCost:600, confirmed:true, boothPayments:[{amount:600,date:today,note:'Booth fee paid'}]},
+      {name:'Waukesha County Fair',   location:'Waukesha, WI',        startDate:'2026-07-15',numDays:5,boothCost:380, confirmed:true, boothPayments:[{amount:380,date:today,note:'Booth fee paid'}]},
+      {name:'Cranberry Fest',         location:'Warrens, WI',         startDate:'2026-09-25',numDays:3,boothCost:450, confirmed:true, boothPayments:[{amount:450,date:today,note:'3 booths — paid'}]},
+      // Booked, NOT paid yet
+      {name:'McHenry County Fair',    location:'McHenry County, IL',  startDate:'2026-08-04',numDays:6,boothCost:400, confirmed:true, boothPayments:[]},
+      // Pending (applied, awaiting confirmation)
+      {name:'Maxwell Street Days — Jun',location:'Mukwonago, WI',     startDate:'2026-06-13',numDays:2,boothCost:70,  confirmed:false,boothPayments:[]},
+      {name:'Maxwell Street Days — Jul',location:'Mukwonago, WI',     startDate:'2026-07-18',numDays:2,boothCost:70,  confirmed:false,boothPayments:[]},
+      {name:'Maxwell Street Days — Aug',location:'Mukwonago, WI',     startDate:'2026-08-15',numDays:2,boothCost:70,  confirmed:false,boothPayments:[]},
+      {name:'Maxwell Street Days — Sep',location:'Mukwonago, WI',     startDate:'2026-09-12',numDays:2,boothCost:70,  confirmed:false,boothPayments:[]},
+      {name:'Burgoo Fest',            location:'Utica, IL',           startDate:'2026-10-10',numDays:2,boothCost:150, confirmed:false,boothPayments:[]},
+      {name:'Baraboo Christmas Market',location:'Baraboo, WI',        startDate:'2026-11-21',numDays:1,boothCost:75,  confirmed:false,boothPayments:[]}
+    ];
+    d.shows=d.shows||[];
+    toEnsure.forEach(e=>{
+      const nameKey=e.name.toLowerCase().split('—')[0].trim();
+      const monthMarker=e.name.includes('—')?e.name.split('—')[1].trim().toLowerCase():null;
+      const existing=d.shows.find(sh=>{
+        const a=(sh.name||'').toLowerCase();
+        if(!a.includes(nameKey))return false;
+        if(monthMarker){
+          if(a.includes(monthMarker))return true;
+          if(sh.startDate&&sh.startDate.startsWith(e.startDate.substring(0,7)))return true;
+          return false;
+        }
+        return true;
+      });
+      if(existing){
+        // Fix data on existing show
+        existing.boothCost=e.boothCost||existing.boothCost;
+        existing.boothPayments=existing.boothPayments||[];
+        // Add payments that aren't already there (deduplicate by amount+date)
+        e.boothPayments.forEach(p=>{
+          const dup=existing.boothPayments.some(ep=>ep.amount===p.amount&&ep.date===p.date);
+          if(!dup)existing.boothPayments.push(p);
+        });
+        existing.confirmed=e.confirmed;
+        // Fix wrong dates / locations from old patches
+        if(e.startDate)existing.startDate=e.startDate;
+        if(e.location)existing.location=e.location;
+        if(e.numDays)existing.numDays=e.numDays;
+      }else{
+        const sh=buildPlannedShow(e);
+        sh.confirmed=e.confirmed;
+        d.shows.push(sh);
+      }
+    });
+    d._applied['shows_20260518v2']=true;
+  }
+
+  // Ensure new fields on all shows
   (d.shows||[]).forEach(sh=>{
     if(!sh.boothPayments)sh.boothPayments=[];
     if(sh.confirmed===undefined)sh.confirmed=sh.status==='completed';
-    if(!sh.workers)sh.workers=[];
-    if(!sh.repPayMeta)sh.repPayMeta={};
-    if(!sh.repIds)sh.repIds=[];
-    if(sh.repOnlyShow===undefined)sh.repOnlyShow=false;
-    if(!sh.showExpenses)sh.showExpenses=[];
-    (sh.days||[]).forEach(day=>{ if(!day.repSales)day.repSales=[]; if(!day.repPay)day.repPay={}; if(day.payments&&day.payments.debit===undefined)day.payments.debit=0; });
+    if(!sh.workers)sh.workers=[];            // flat/hourly/manual workers (e.g. Olivia)
+    if(!sh.repPayMeta)sh.repPayMeta={};       // per-show payout payment method + note, keyed by repId
   });
+
+  // Seed default supplies list on first run
   if(!d._applied['supplies_seed_v1']){
-    if(!d.supplies||d.supplies.length===0)d.supplies=JSON.parse(JSON.stringify(DEFAULT_SUPPLIES));
+    if(!d.supplies||d.supplies.length===0){
+      d.supplies=JSON.parse(JSON.stringify(DEFAULT_SUPPLIES));
+    }
     d._applied['supplies_seed_v1']=true;
   }
+
+  // Fix: reset any 'active' shows whose startDate is in the future back to 'planned'
+  if(!d._applied['fix_future_active_v1']){
+    const todayStr=new Date().toISOString().split('T')[0];
+    (d.shows||[]).forEach(sh=>{
+      if(sh.status==='active'&&sh.startDate&&sh.startDate>todayStr){
+        sh.status='planned';
+        // Return any packed inventory back to master since show hasn't started
+        if(sh.packedInventory){
+          Object.keys(sh.packedInventory).forEach(k=>{
+            d.inventory[k]=(d.inventory[k]||0)+(sh.packedInventory[k]||0);
+          });
+          sh.packedInventory=null;
+          sh.days.forEach(day=>{day.morningCount=null;});
+        }
+      }
+    });
+    d._applied['fix_future_active_v1']=true;
+  }
+
+  // Seed Mark Martone product debt
+  if(!d._applied['debt_seed_v1']){
+    if(!d.productDebt){
+      d.productDebt={supplier:'Mark Martone',originalBalance:10000,payments:[]};
+    }
+    const pmts=d.productDebt.payments||[];
+    if(!pmts.find(p=>p.date==='2026-05-01'))pmts.push({amount:250,date:'2026-05-01',note:'Payment 1'});
+    if(!pmts.find(p=>p.date==='2026-05-15'))pmts.push({amount:250,date:'2026-05-15',note:'Payment 2'});
+    d.productDebt.payments=pmts;
+    d._applied['debt_seed_v1']=true;
+  }
+
+  // Mark Martone payment 3 — $250 on 5-29-26, balance now $9,250
+  if(!d._applied['debt_pmt3_20260529']){
+    if(!d.productDebt)d.productDebt={supplier:'Mark Martone',originalBalance:10000,payments:[]};
+    const pmts=d.productDebt.payments||[];
+    if(!pmts.find(p=>p.date==='2026-05-29'))pmts.push({amount:250,date:'2026-05-29',note:'Payment 3'});
+    d.productDebt.payments=pmts;
+    d._applied['debt_pmt3_20260529']=true;
+  }
+
+  // Rustic Fox Events — added 2026-05-18
+  if(!d._applied['rustic_fox_20260518']){
+    d.shows=d.shows||[];
+    const rfShows=[
+      // Sunday at The Fox Collective Market — Carol Stream, IL (91 mi)
+      {name:'Rustic Fox — Carol Stream (May)',  location:'Carol Stream, IL', startDate:'2026-05-03',numDays:1,boothCost:0,miles:91,boothPayments:[],confirmed:false},
+      {name:'Rustic Fox — Carol Stream (Jun)',  location:'Carol Stream, IL', startDate:'2026-06-07',numDays:1,boothCost:0,miles:91,boothPayments:[],confirmed:false},
+      {name:'Rustic Fox — Carol Stream (Jul)',  location:'Carol Stream, IL', startDate:'2026-07-05',numDays:1,boothCost:0,miles:91,boothPayments:[],confirmed:false},
+      {name:'Rustic Fox — Carol Stream (Aug)',  location:'Carol Stream, IL', startDate:'2026-08-02',numDays:1,boothCost:0,miles:91,boothPayments:[],confirmed:false},
+      {name:'Rustic Fox — Carol Stream (Sep)',  location:'Carol Stream, IL', startDate:'2026-09-06',numDays:1,boothCost:0,miles:91,boothPayments:[],confirmed:false},
+      {name:'Rustic Fox — Carol Stream (Oct)',  location:'Carol Stream, IL', startDate:'2026-10-04',numDays:1,boothCost:0,miles:91,boothPayments:[],confirmed:false},
+      // Fox & Found Collective Market — North Aurora, IL (77 mi)
+      {name:'Fox & Found — North Aurora (May)', location:'North Aurora, IL', startDate:'2026-05-23',numDays:1,boothCost:0,miles:77,boothPayments:[],confirmed:false},
+      {name:'Fox & Found — North Aurora (Jun)', location:'North Aurora, IL', startDate:'2026-06-20',numDays:1,boothCost:0,miles:77,boothPayments:[],confirmed:false},
+      {name:'Fox & Found — North Aurora (Jul)', location:'North Aurora, IL', startDate:'2026-07-18',numDays:1,boothCost:0,miles:77,boothPayments:[],confirmed:false},
+      {name:'Fox & Found — North Aurora (Aug)', location:'North Aurora, IL', startDate:'2026-08-15',numDays:1,boothCost:0,miles:77,boothPayments:[],confirmed:false},
+      {name:'Fox & Found — North Aurora (Sep)', location:'North Aurora, IL', startDate:'2026-09-19',numDays:1,boothCost:0,miles:77,boothPayments:[],confirmed:false},
+      {name:'Fox & Found — North Aurora (Oct)', location:'North Aurora, IL', startDate:'2026-10-17',numDays:1,boothCost:0,miles:77,boothPayments:[],confirmed:false},
+    ];
+    rfShows.forEach(e=>{
+      const exists=d.shows.find(sh=>(sh.name||'').toLowerCase()===e.name.toLowerCase());
+      if(!exists){const sh=buildPlannedShow(e);sh.confirmed=e.confirmed;d.shows.push(sh);}
+    });
+    d._applied['rustic_fox_20260518']=true;
+  }
+
+  // Rustic Fox / Fox & Found HOLIDAY markets (Sip & Sleigh + Kris Kringle) — tentative 2026 dates, not yet booked/paid
+  if(!d._applied['holiday_markets_v1']){
+    d.shows=d.shows||[];
+    const hol=[
+      {name:'Sip & Sleigh — Carol Stream',  location:'Carol Stream, IL', startDate:'2026-11-13', numDays:3, boothCost:0, miles:91, boothPayments:[], confirmed:false},
+      {name:'Sip & Sleigh — North Aurora',  location:'North Aurora, IL', startDate:'2026-11-20', numDays:3, boothCost:0, miles:77, boothPayments:[], confirmed:false},
+      {name:'Kris Kringle — Carol Stream',  location:'Carol Stream, IL', startDate:'2026-12-04', numDays:3, boothCost:0, miles:91, boothPayments:[], confirmed:false},
+      {name:'Kris Kringle — North Aurora',  location:'North Aurora, IL', startDate:'2026-12-11', numDays:3, boothCost:0, miles:77, boothPayments:[], confirmed:false},
+    ];
+    hol.forEach(e=>{
+      const exists=d.shows.find(sh=>(sh.name||'').toLowerCase()===e.name.toLowerCase());
+      if(!exists){ const sh=buildPlannedShow(e); sh.confirmed=false; sh.openTime='10:00'; sh.closeTime='16:00';
+        sh.notes='⚠️ VERIFY 2026 DATES — Rustic Fox holiday market, not yet booked or paid. (Fri 4–8 / Sat 10–4 / Sun 10–3 typical.)';
+        d.shows.push(sh); }
+    });
+    d._applied['holiday_markets_v1']=true;
+  }
+
+  // St. Martins Fair — added 2026-05-18
+  if(!d._applied['st_martins_20260518']){
+    d.shows=d.shows||[];
+    const exists=d.shows.find(sh=>(sh.name||'').toLowerCase().includes('martins'));
+    if(!exists){
+      const sh=buildPlannedShow({
+        name:'St. Martins Fair',
+        location:'Franklin, WI',
+        startDate:'2026-08-30',
+        numDays:3,
+        boothCost:0,
+        miles:22,
+        boothPayments:[],
+        confirmed:false
+      });
+      sh.confirmed=false;
+      d.shows.push(sh);
+    }
+    d._applied['st_martins_20260518']=true;
+  }
+
+  // v11: add Washington County + Sheboygan County fairs; seed best-effort per-day hours on known shows
+  if(!d._applied['hours_and_shows_v1']){
+    d.shows=d.shows||[];
+    const addShow=e=>{ if(d.shows.find(sh=>(sh.name||'').toLowerCase()===e.name.toLowerCase()))return; const sh=buildPlannedShow(e); sh.confirmed=false; if(e.notes)sh.notes=e.notes; d.shows.push(sh); };
+    addShow({name:'Washington County Fair',location:'West Bend, WI',startDate:'2026-07-21',numDays:6,boothCost:580,miles:38,boothPayments:[],notes:'Indoor corner booth ($580). ⚠️ Verify daily hours in Edit Show.'});
+    addShow({name:'Sheboygan County Fair',location:'Plymouth, WI',startDate:'2026-09-03',numDays:5,boothCost:225,miles:62,boothPayments:[],notes:'Sheboygan County Fair (175th) — Sep 3–7, 2026 (Thu–Mon), Labor Day weekend. ✓ Dates confirmed.'});
+    const setHrs=(sh,arr)=>{ (sh.days||[]).forEach((day,i)=>{ const t=arr[i]||arr[arr.length-1]; if(t&&!day.openTime&&!day.closeTime){ day.openTime=t[0]; day.closeTime=t[1]; } }); if(sh.days&&sh.days[0]){ if(!sh.openTime)sh.openTime=sh.days[0].openTime; if(!sh.closeTime)sh.closeTime=sh.days[0].closeTime; } };
+    (d.shows||[]).forEach(sh=>{ const n=(sh.name||'').toLowerCase();
+      if(/sip\s*&?\s*sleigh|kris kringle|holiday/.test(n)) setHrs(sh,[['16:00','20:00'],['10:00','16:00'],['10:00','15:00']]);
+      else if(/washington county/.test(n)) setHrs(sh,[['15:00','21:00'],['10:00','21:00'],['10:00','21:00'],['10:00','21:00'],['10:00','21:00'],['09:00','18:00']]);
+      else if(/sheboygan/.test(n)) setHrs(sh,[['09:00','21:00']]);
+      else if(/cranberry/.test(n)) setHrs(sh,[['08:00','17:00']]);
+      else if(/rustic fox/.test(n)) setHrs(sh,[['10:00','15:00']]);
+      else if(/fox\s*&?\s*found|north aurora/.test(n)) setHrs(sh,[['10:00','16:00']]);
+      else if(/martins/.test(n)) setHrs(sh,[['17:00','22:00'],['11:00','22:00'],['11:00','21:00']]);
+    });
+    d._applied['hours_and_shows_v1']=true;
+  }
+
+  // Confirm Sheboygan County Fair dates (Sep 3–7 2026) — only clears the auto "verify" note, never overrides a user edit
+  if(!d._applied['fix_sheboygan_dates_v1']){
+    (d.shows||[]).forEach(sh=>{ if(/sheboygan/i.test(sh.name||'') && /verify/i.test(sh.notes||'')){ sh.notes='Sheboygan County Fair (175th) — Sep 3–7, 2026 (Thu–Mon), Labor Day weekend. ✓ Dates confirmed.'; } });
+    d._applied['fix_sheboygan_dates_v1']=true;
+  }
+
+  // Rustic Fox Holiday Shows — Sip & Sleigh + Kris Kringle
+  if(!d._applied['rf_holiday_20260518']){
+    d.shows=d.shows||[];
+    const hShows=[
+      {name:'Sip & Sleigh — Carol Stream',  location:'Carol Stream, IL', startDate:'2026-11-07',numDays:3,boothCost:0,miles:91,boothPayments:[],confirmed:false},
+      {name:'Kris Kringle — North Aurora',  location:'North Aurora, IL', startDate:'2026-12-12',numDays:3,boothCost:0,miles:77,boothPayments:[],confirmed:false},
+    ];
+    hShows.forEach(e=>{
+      const exists=d.shows.find(sh=>(sh.name||'').toLowerCase()===e.name.toLowerCase());
+      if(!exists){const sh=buildPlannedShow(e);sh.confirmed=e.confirmed;d.shows.push(sh);}
+    });
+    d._applied['rf_holiday_20260518']=true;
+  }
+
+  // Force correct startDate + miles on Rustic Fox / St. Martins shows — 2026-05-18b
+  if(!d._applied['fix_rf_dates_20260518b']){
+    const fixes=[
+      {n:'rustic fox — carol stream (may)',  s:'2026-05-03',m:91},
+      {n:'rustic fox — carol stream (jun)',  s:'2026-06-07',m:91},
+      {n:'rustic fox — carol stream (jul)',  s:'2026-07-05',m:91},
+      {n:'rustic fox — carol stream (aug)',  s:'2026-08-02',m:91},
+      {n:'rustic fox — carol stream (sep)',  s:'2026-09-06',m:91},
+      {n:'rustic fox — carol stream (oct)',  s:'2026-10-04',m:91},
+      {n:'fox & found — north aurora (may)', s:'2026-05-23',m:77},
+      {n:'fox & found — north aurora (jun)', s:'2026-06-20',m:77},
+      {n:'fox & found — north aurora (jul)', s:'2026-07-18',m:77},
+      {n:'fox & found — north aurora (aug)', s:'2026-08-15',m:77},
+      {n:'fox & found — north aurora (sep)', s:'2026-09-19',m:77},
+      {n:'fox & found — north aurora (oct)', s:'2026-10-17',m:77},
+      {n:'st. martins fair',                 s:'2026-08-30',m:22},
+    ];
+    (d.shows||[]).forEach(sh=>{
+      const f=fixes.find(x=>x.n===(sh.name||'').toLowerCase());
+      if(f){sh.startDate=f.s;sh.miles=f.m;}
+    });
+    d._applied['fix_rf_dates_20260518b']=true;
+  }
+
+  // Force startDate on ALL known shows by name — fixes sort order permanently
+  if(!d._applied['fix_all_startdates_v1']){
+    const allFix=[
+      {n:'milwaukee polish fest',             s:'2026-06-12'},
+      {n:'waukesha county fair',              s:'2026-07-15'},
+      {n:'cranberry fest',                    s:'2026-09-25'},
+      {n:'mchenry county fair',               s:'2026-08-04'},
+      {n:'maxwell street days — jun',         s:'2026-06-13'},
+      {n:'maxwell street days — jul',         s:'2026-07-18'},
+      {n:'maxwell street days — aug',         s:'2026-08-15'},
+      {n:'maxwell street days — sep',         s:'2026-09-12'},
+      {n:'burgoo fest',                       s:'2026-10-10'},
+      {n:'baraboo christmas market',          s:'2026-11-21'},
+      {n:'rustic fox — carol stream (may)',   s:'2026-05-03'},
+      {n:'rustic fox — carol stream (jun)',   s:'2026-06-07'},
+      {n:'rustic fox — carol stream (jul)',   s:'2026-07-05'},
+      {n:'rustic fox — carol stream (aug)',   s:'2026-08-02'},
+      {n:'rustic fox — carol stream (sep)',   s:'2026-09-06'},
+      {n:'rustic fox — carol stream (oct)',   s:'2026-10-04'},
+      {n:'fox & found — north aurora (may)',  s:'2026-05-23'},
+      {n:'fox & found — north aurora (jun)',  s:'2026-06-20'},
+      {n:'fox & found — north aurora (jul)',  s:'2026-07-18'},
+      {n:'fox & found — north aurora (aug)',  s:'2026-08-15'},
+      {n:'fox & found — north aurora (sep)',  s:'2026-09-19'},
+      {n:'fox & found — north aurora (oct)',  s:'2026-10-17'},
+      {n:'st. martins fair',                  s:'2026-08-30'},
+      {n:'sip & sleigh — carol stream',       s:'2026-11-07'},
+      {n:'kris kringle — north aurora',       s:'2026-12-12'},
+      {n:'pewaukee beach party',              s:'2026-06-26'},
+    ];
+    (d.shows||[]).forEach(sh=>{
+      const f=allFix.find(x=>x.n===(sh.name||'').toLowerCase());
+      if(f)sh.startDate=f.s;
+    });
+    d._applied['fix_all_startdates_v1']=true;
+  }
+
+  // Safety: ensure settings always present
+  if(!d.settings)d.settings={tax:0.28,sqFee:0.03,gasPrice:3.50,mpg:17.5,irsRate:0.70};
+  d.settings=Object.assign({tax:0.28,sqFee:0.03,gasPrice:3.50,mpg:17.5,irsRate:0.70},d.settings);
+  // Safety: ensure otherExpenses always present
+  if(!d.otherExpenses)d.otherExpenses=[];
+
+  // Pewaukee Beach Party 2026 — Jun 26-27, $425 booth, cleanup Jun 28 by 6am
+  if(!d._applied['pewaukee_beach_20260626']){
+    d.shows=d.shows||[];
+    const exists=d.shows.find(sh=>(sh.name||'').toLowerCase().includes('pewaukee'));
+    if(!exists){
+      const sh=buildPlannedShow({
+        name:'Pewaukee Beach Party',
+        location:'Pewaukee, WI',
+        startDate:'2026-06-26',
+        numDays:2,
+        boothCost:425,
+        miles:32,
+        boothPayments:[],
+        confirmed:true
+      });
+      sh.confirmed=true;
+      sh.notes='Booth: $425. Cleanup by 6am June 28. 2 show days Jun 26-27.';
+      d.shows.push(sh);
+    }
+    d._applied['pewaukee_beach_20260626']=true;
+  }
+
+  // Seed showExpenses array on all shows that don't have it
+  if(!d._applied['show_expenses_seed_v1']){
+    (d.shows||[]).forEach(sh=>{if(!sh.showExpenses)sh.showExpenses=[];});
+    d._applied['show_expenses_seed_v1']=true;
+  }
+
+  // Cranberry Fest 2026 — Airbnb in Merrillan WI, $600, 34 min from show
+  if(!d._applied['cranberry_airbnb_2026']){
+    d.shows=d.shows||[];
+    const cf=d.shows.find(sh=>(sh.name||'').toLowerCase().includes('cranberry'));
+    if(cf){
+      if(!cf.lodging||cf.lodging<600)cf.lodging=600;
+      cf.lodgingNote='Airbnb in Merrillan, WI — 34 min drive to show. $600.';
+    }
+    d._applied['cranberry_airbnb_2026']=true;
+  }
+
+  // 2026 YTD Business Write-Off Expenses (seeded Jun 2026 from bank statement reconciliation)
+  if(!d._applied['ytd_biz_expenses_2026_v1']){
+    if(!d.otherExpenses)d.otherExpenses=[];
+    const seed=[
+      // --- MARKETING / SUBSCRIPTIONS ---
+      {id:'oe_mc_jan',   date:'2026-01-20', amount:79.13,  category:'Software/Marketing', note:'Mailchimp (Jan) — North Shore'},
+      {id:'oe_mc_feb',   date:'2026-02-23', amount:106.03, category:'Software/Marketing', note:'Mailchimp (Feb) — North Shore'},
+      {id:'oe_mc_feb2',  date:'2026-02-23', amount:36.93,  category:'Software/Marketing', note:'Mailchimp (Feb addl) — North Shore'},
+      {id:'oe_mc_mar',   date:'2026-03-26', amount:116.05, category:'Software/Marketing', note:'Mailchimp (Mar) — North Shore'},
+      {id:'oe_mc_apr',   date:'2026-04-20', amount:116.05, category:'Software/Marketing', note:'Mailchimp (Apr) — North Shore'},
+      {id:'oe_mc_may',   date:'2026-05-20', amount:116.05, category:'Software/Marketing', note:'Mailchimp (May) — North Shore'},
+      // --- EZ TEXTING ---
+      {id:'oe_ez_jan1',  date:'2026-01-08', amount:101.11, category:'Software/Marketing', note:'EZ Texting (Jan) — North Shore'},
+      {id:'oe_ez_jan2',  date:'2026-01-20', amount:32.16,  category:'Software/Marketing', note:'EZ Texting (Jan) — North Shore'},
+      {id:'oe_ez_feb1',  date:'2026-02-17', amount:31.65,  category:'Software/Marketing', note:'EZ Texting (Feb) — North Shore'},
+      {id:'oe_ez_feb2',  date:'2026-02-25', amount:56.34,  category:'Software/Marketing', note:'EZ Texting (Feb) — North Shore'},
+      {id:'oe_ez_mar',   date:'2026-03-17', amount:32.16,  category:'Software/Marketing', note:'EZ Texting (Mar) — North Shore'},
+      {id:'oe_ez_apr',   date:'2026-04-17', amount:31.65,  category:'Software/Marketing', note:'EZ Texting (Apr) — North Shore'},
+      {id:'oe_ez_may',   date:'2026-05-18', amount:31.65,  category:'Software/Marketing', note:'EZ Texting (May) — North Shore'},
+      // --- MICROSOFT 365 (Business) ---
+      {id:'oe_ms_jan',   date:'2026-01-09', amount:13.76,  category:'Software/Marketing', note:'Microsoft 365 (Jan) — North Shore'},
+      {id:'oe_ms_feb',   date:'2026-02-02', amount:13.76,  category:'Software/Marketing', note:'Microsoft 365 (Feb) — North Shore'},
+      {id:'oe_ms_mar',   date:'2026-03-03', amount:13.76,  category:'Software/Marketing', note:'Microsoft 365 (Mar) — North Shore'},
+      {id:'oe_ms_apr',   date:'2026-04-03', amount:13.76,  category:'Software/Marketing', note:'Microsoft 365 (Apr) — North Shore'},
+      {id:'oe_ms_may',   date:'2026-05-04', amount:13.76,  category:'Software/Marketing', note:'Microsoft 365 (May) — North Shore'},
+      // --- PRINT MARKETING (Klarna*Printasti) ---
+      {id:'oe_pr_jan',   date:'2026-01-31', amount:25.69,  category:'Software/Marketing', note:'Printasti print marketing (Jan) — North Shore'},
+      {id:'oe_pr_feb',   date:'2026-03-02', amount:25.69,  category:'Software/Marketing', note:'Printasti print marketing (Mar) — North Shore'},
+      {id:'oe_pr_mar',   date:'2026-03-31', amount:25.71,  category:'Software/Marketing', note:'Printasti print marketing (Mar) — North Shore'},
+      {id:'oe_pr_apr',   date:'2026-04-18', amount:25.71,  category:'Software/Marketing', note:'Printasti print marketing (Apr) — North Shore'},
+      // --- CANVA (Design tool) ---
+      {id:'oe_cv_mar',   date:'2026-03-03', amount:30.00,  category:'Software/Marketing', note:'Canva subscription (Mar) — PNC'},
+      {id:'oe_cv_apr',   date:'2026-04-02', amount:30.00,  category:'Software/Marketing', note:'Canva subscription (Apr) — PNC'},
+      {id:'oe_cv_may',   date:'2026-05-04', amount:30.00,  category:'Software/Marketing', note:'Canva subscription (May) — PNC'},
+      {id:'oe_cv_jun',   date:'2026-06-02', amount:30.00,  category:'Software/Marketing', note:'Canva subscription (Jun) — PNC (pending)'},
+      // --- APOLLO.IO (Sales/CRM tool) ---
+      {id:'oe_ap_may',   date:'2026-05-15', amount:59.00,  category:'Software/Marketing', note:'Apollo.io sales tool (May) — PNC'},
+      // --- ZOHO (Business software — BlueVine) ---
+      {id:'oe_zo_may',   date:'2026-05-04', amount:35.00,  category:'Software/Marketing', note:'ZOHO subscription (May) — BlueVine'},
+      // --- NEXT INSURANCE (Gen Liability) ---
+      {id:'oe_ni_jan',   date:'2026-01-05', amount:37.74,  category:'Insurance', note:'NEXT Insur Gen Liability (Jan) — BlueVine'},
+      {id:'oe_ni_feb',   date:'2026-02-05', amount:37.74,  category:'Insurance', note:'NEXT Insur Gen Liability (Feb) — BlueVine'},
+      {id:'oe_ni_apr',   date:'2026-04-09', amount:16.70,  category:'Insurance', note:'NEXT Insur Gen Liability (Apr) — BlueVine'},
+      {id:'oe_ni_may',   date:'2026-05-08', amount:71.33,  category:'Insurance', note:'NEXT Insur Gen Liability (May) — PNC'},
+      // --- SUPPLIES / HARDWARE ---
+      {id:'oe_mn_jan',   date:'2026-01-09', amount:31.62,  category:'Supplies', note:'Menards supplies (Jan) — BlueVine'},
+      {id:'oe_mn_feb',   date:'2026-02-03', amount:31.64,  category:'Supplies', note:'Menards supplies (Feb) — BlueVine'},
+      // --- FEDEX / PRINTING ---
+      {id:'oe_fx_apr',   date:'2026-04-07', amount:55.75,  category:'Supplies', note:'FedEx Office printing (Apr) — PNC'},
+      // --- AMAZON BUSINESS EQUIPMENT ---
+      {id:'oe_amz_lap',  date:'2026-04-27', amount:299.99, category:'Equipment', note:'Lenovo Laptop (Amazon Business) — Mastercard'},
+      {id:'oe_amz_mon',  date:'2026-04-05', amount:149.99, category:'Equipment', note:'Dell 32" Monitor (Amazon Business) — PNC'},
+      // --- AMAZON BUSINESS OFFICE SUPPLIES ---
+      {id:'oe_amz_s1',   date:'2026-05-02', amount:28.73,  category:'Supplies', note:'Sheet protectors 500pk (Amazon Business)'},
+      {id:'oe_amz_s2',   date:'2026-05-02', amount:30.63,  category:'Supplies', note:'Sheet protectors 500pk (Amazon Business)'},
+      {id:'oe_amz_s3',   date:'2026-05-02', amount:24.74,  category:'Supplies', note:'Binder sheet protectors w/tabs (Amazon Business)'},
+      {id:'oe_amz_s4',   date:'2026-04-29', amount:131.72, category:'Supplies', note:'Toner 4-pk + binder supplies (Amazon Business)'},
+      {id:'oe_amz_s5',   date:'2026-04-22', amount:94.99,  category:'Supplies', note:'Toner cartridge 4-pk (Amazon Business)'},
+      {id:'oe_amz_s6',   date:'2026-04-10', amount:88.99,  category:'Supplies', note:'Toner cartridge 4-pk (Amazon Business)'},
+      {id:'oe_amz_s7',   date:'2026-04-10', amount:41.73,  category:'Supplies', note:'Binder supplies (Amazon Business)'},
+      {id:'oe_amz_s8',   date:'2026-04-10', amount:24.69,  category:'Supplies', note:'Amazon Basics sheet protectors 500pk (Amazon Business)'},
+      {id:'oe_amz_s9',   date:'2026-04-28', amount:15.47,  category:'Supplies', note:'Small sticky labels (Amazon Business)'},
+      {id:'oe_amz_s10',  date:'2026-03-16', amount:113.42, category:'Supplies', note:'Marine wire, circuit breaker, connectors, heat shrink, binders (Amazon Business)'},
+      {id:'oe_amz_s11',  date:'2026-03-12', amount:28.21,  category:'Supplies', note:'Heavy duty stapler (Amazon Business)'},
+      {id:'oe_amz_s12',  date:'2026-03-12', amount:32.48,  category:'Supplies', note:'Testosterone/L-Citrulline supps — ⚠️ REVIEW: may not be deductible'},
+      {id:'oe_amz_s13',  date:'2026-02-23', amount:20.89,  category:'Supplies', note:'Acrylic sign holders 6pk (Amazon Business)'},
+      {id:'oe_amz_s14',  date:'2026-02-19', amount:48.99,  category:'Supplies', note:'Acrylic donation/ballot boxes 6pk (Amazon Business)'},
+      // oe_amz_s15 (Acrylic raffle drum), s16 (Marine dry box), s17 (LED trailer lights),
+      // s18 (Battery cable lugs + crimping tool) removed Jun 6 2026 — not Best Solution expenses
+      {id:'oe_amz_s19',  date:'2026-03-23', amount:34.69,  category:'Supplies', note:'Humminbird power cable (Amazon Business)'},
+      {id:'oe_amz_s20',  date:'2026-03-22', amount:14.99,  category:'Supplies', note:'LED navigation lights for boat (Amazon Business)'},
+      // oe_amz_s21 (Battery crimper + cable lugs) removed Jun 6 2026 — not Best Solution expense
+      // oe_amz_s22 (LiFePO4 battery) and oe_amz_s23 (NOCO charger) removed — not Best Solution expenses
+      {id:'oe_amz_s24',  date:'2026-03-20', amount:36.34,  category:'Supplies', note:'Marine LED nav pole light (Amazon Business)'},
+    ];
+    seed.forEach(e=>{
+      if(!d.otherExpenses.find(x=>x.id===e.id))d.otherExpenses.push(e);
+    });
+    d._applied['ytd_biz_expenses_2026_v1']=true;
+  }
+
+  // Jun 2026 reconciliation additions
+  if(!d._applied['jun2026_reconcile_v1']){
+    if(!d.otherExpenses)d.otherExpenses=[];
+    // JL Technical — ACT to ZOHO database migration (May 1, North Shore)
+    if(!d.otherExpenses.find(x=>x.id==='oe_jl_tech_may'))
+      d.otherExpenses.push({id:'oe_jl_tech_may',date:'2026-05-01',amount:500,category:'IT Services',note:'JL Technical — ACT to ZOHO CRM database migration (North Shore)'});
+    // Waukesha County Fair — correct booth payment date
+    const wcf=(d.shows||[]).find(sh=>(sh.name||'').toLowerCase().includes('waukesha county'));
+    if(wcf){
+      wcf.boothCost=380;
+      wcf.confirmed=true;
+      if(!wcf.boothPayments)wcf.boothPayments=[];
+      // Fix date on any payment that has placeholder date, or add if missing
+      const existing=wcf.boothPayments.find(p=>p.amount===380);
+      if(existing){existing.date='2026-05-18';existing.note='Paid via PNC May 18';}
+      else{wcf.boothPayments.push({amount:380,date:'2026-05-18',note:'Paid via PNC May 18'});}
+    }
+    // Burgoo Fest 2026 — update booth cost to $156 actual, log payment, mark confirmed
+    const bf=(d.shows||[]).find(sh=>(sh.name||'').toLowerCase().includes('burgoo')&&(sh.startDate||'').startsWith('2026'));
+    if(bf){
+      bf.boothCost=156;
+      bf.confirmed=true;
+      if(!bf.boothPayments)bf.boothPayments=[];
+      const bfPaid=bf.boothPayments.find(p=>p.amount===156||p.amount===150);
+      if(bfPaid){bfPaid.amount=156;bfPaid.date='2026-05-15';bfPaid.note='Deposit paid via PNC May 15';}
+      else{bf.boothPayments.push({amount:156,date:'2026-05-15',note:'Deposit paid via PNC May 15'});}
+    }
+    d._applied['jun2026_reconcile_v1']=true;
+  }
+
+  // Seed global rep roster (Jun 2026)
   if(!d._applied['reps_seed_v1']){
     if(!d.reps)d.reps=[];
-    if(!d.reps.length)d.reps.push({id:'rep_owner',name:'Anthony',isSelf:true,active:true,payments:[]});
+    const DEFAULT_REPS=[
+      {id:'rep_justin', name:'Justin (Froggy)', isSelf:true,  active:true, payments:[]},
+      {id:'rep_batman', name:'Batman',           isSelf:false, active:true, payments:[]},
+      {id:'rep_isaiah', name:'Isaiah',           isSelf:false, active:true, payments:[]},
+      {id:'rep_anthony',name:'Anthony',          isSelf:false, active:true, payments:[]},
+      {id:'rep_alivia', name:'Alivia',           isSelf:false, active:true, payments:[]},
+      {id:'rep_tj',     name:'T.J.',             isSelf:false, active:true, payments:[]},
+      {id:'rep_snacks', name:'Snacks',           isSelf:false, active:true, payments:[]},
+      {id:'rep_ronnynb',name:'Ronny B',          isSelf:false, active:true, payments:[]},
+      {id:'rep_cutty',  name:'Cutty',            isSelf:false, active:true, payments:[]},
+    ];
+    DEFAULT_REPS.forEach(r=>{if(!d.reps.find(x=>x.id===r.id))d.reps.push(r);});
     d._applied['reps_seed_v1']=true;
   }
+
+  // Add Dave to the rep roster (Jul 2026) — standard 30/30 commission
+  if(!d._applied['reps_add_dave_v1']){
+    if(!d.reps)d.reps=[];
+    if(!d.reps.find(x=>x.id==='rep_dave'))d.reps.push({id:'rep_dave', name:'Dave', isSelf:false, active:true, payments:[]});
+    d._applied['reps_add_dave_v1']=true;
+  }
+  // Add repIds + repOnlyShow fields to all shows that don't have them
+  if(!d._applied['show_rep_fields_v1']){
+    (d.shows||[]).forEach(sh=>{
+      if(!sh.repIds)sh.repIds=[];
+      if(sh.repOnlyShow===undefined)sh.repOnlyShow=false;
+      (sh.days||[]).forEach(day=>{
+        if(!day.repSales)day.repSales=[];
+        if(!day.payments.debit)day.payments.debit=0;
+      });
+    });
+    d._applied['show_rep_fields_v1']=true;
+  }
+
+  // Jun 2026 expense CORRECTION — remove DBW/office/personal items that don't belong in Best Solution P&L
+  if(!d._applied['jun2026_expense_fix_v2']){
+    if(!d.otherExpenses)d.otherExpenses=[];
+    // Remove anything that is DBW corporate, office supplies, or personal fishing gear
+    const BAD_IDS=new Set([
+      // DBW Marketing tools (Mailchimp, EZ Texting — run on North Shore spiff budget, not Best Solution)
+      'oe_mc_jan','oe_mc_feb','oe_mc_feb2','oe_mc_mar','oe_mc_apr','oe_mc_may',
+      'oe_ez_jan1','oe_ez_jan2','oe_ez_feb1','oe_ez_feb2','oe_ez_mar','oe_ez_apr','oe_ez_may',
+      // DBW office software (Microsoft 365, Klarna Printasti — DBW North Shore account)
+      'oe_ms_jan','oe_ms_feb','oe_ms_mar','oe_ms_apr','oe_ms_may',
+      'oe_pr_jan','oe_pr_feb','oe_pr_mar','oe_pr_apr',
+      // DBW CRM/sales tools (Apollo.io, ZOHO, JL Technical CRM migration)
+      'oe_ap_may','oe_zo_may','oe_jl_tech_may',
+      // Office/DBW supplies (toner, sheet protectors, binders, stapler, labels — not show-related)
+      'oe_amz_s1','oe_amz_s2','oe_amz_s3','oe_amz_s4','oe_amz_s5','oe_amz_s6',
+      'oe_amz_s7','oe_amz_s8','oe_amz_s9','oe_amz_s11',
+      // Personal (supplements, fishing boat equipment)
+      'oe_amz_s12','oe_amz_s19','oe_amz_s20','oe_amz_s24'
+    ]);
+    d.otherExpenses=d.otherExpenses.filter(e=>!BAD_IDS.has(e.id));
+
+    // (USPS postage, Claude.ai, NOCO charger, LiFePO4 battery removed in v3 fix — not BS expenses)
+    const addIfMissing=[];
+    addIfMissing.forEach(e=>{
+      if(!d.otherExpenses.find(x=>x.id===e.id))d.otherExpenses.push(e);
+    });
+
+    d._applied['jun2026_expense_fix_v2']=true;
+  }
+
+  // Jun 2026 expense cleanup v3 — remove USPS postage, Claude.ai, NOCO charger, LiFePO4 battery
+  if(!d._applied['jun2026_expense_fix_v3']){
+    if(!d.otherExpenses)d.otherExpenses=[];
+    const REMOVE_V3=new Set(['oe_claude_may','oe_usps_may','oe_usps_apr','oe_amz_s22','oe_amz_s23']);
+    d.otherExpenses=d.otherExpenses.filter(e=>!REMOVE_V3.has(e.id));
+    d._applied['jun2026_expense_fix_v3']=true;
+  }
+
+  // Jun 2026 — mark all confirmed show booth fees as PAID
+  if(!d._applied['booth_fees_paid_v1']){
+    const PAY_DATE='2026-06-04';
+    const PAID_SHOWS=[
+      {match:'maxwell street days',     amt:70,  note:'Maxwell Street Days booth fee paid'},
+      {match:'pewaukee beach',          amt:425, note:'Pewaukee Beach Party booth fee paid'},
+      {match:'mchenry county',          amt:400, note:'McHenry County Fair booth fee paid'},
+      {match:'baraboo',                 amt:75,  note:'Baraboo Christmas Market booth fee paid'},
+      {match:'burgoo',                  amt:150, note:'Burgoo Fest booth fee paid'},
+    ];
+    (d.shows||[]).forEach(sh=>{
+      const nm=(sh.name||'').toLowerCase();
+      const match=PAID_SHOWS.find(p=>nm.includes(p.match));
+      if(!match)return;
+      if(!sh.boothPayments)sh.boothPayments=[];
+      // Only add payment if none exists yet
+      const alreadyPaid=sh.boothPayments.reduce((t,p)=>t+(parseFloat(p.amount)||0),0);
+      if(alreadyPaid<(sh.boothCost||match.amt)){
+        const remaining=(sh.boothCost||match.amt)-alreadyPaid;
+        sh.boothPayments.push({amount:remaining,date:PAY_DATE,note:match.note});
+      }
+    });
+    d._applied['booth_fees_paid_v1']=true;
+  }
+
+  // Jun 6 2026 expense cleanup v4 — owner removed non-business items (NOT real Best Solution expenses):
+  // Battery crimper, Battery cable lugs, LED trailer lights, Marine dry box, Acrylic raffle drum
+  if(!d._applied['jun2026_expense_fix_v4']){
+    if(!d.otherExpenses)d.otherExpenses=[];
+    const REMOVE_V4_IDS=new Set(['oe_amz_s15','oe_amz_s16','oe_amz_s17','oe_amz_s18','oe_amz_s21']);
+    const REMOVE_V4_NOTES=new Set([
+      'Acrylic raffle drum (Amazon Business)',
+      'Marine dry box (Amazon Business) — show trailer',
+      'LED trailer lights submersible (Amazon Business)',
+      'Battery cable lugs + crimping tool (Amazon Business)',
+      'Battery crimper + cable lugs (Amazon Business)'
+    ]);
+    d.otherExpenses=d.otherExpenses.filter(e=>!REMOVE_V4_IDS.has(e.id)&&!REMOVE_V4_NOTES.has(e.note));
+    d._applied['jun2026_expense_fix_v4']=true;
+  }
+
+  // Jun 6 2026 — set inventory to exact physical count (owner-provided). Runs once per device.
+  if(!d._applied['inventory_set_20260606']){
+    d.inventory=d.inventory||{};
+    d.inventory['32oz']=39;
+    d.inventory['16oz']=29;
+    d.inventory['8oz']=68;
+    d.inventory['2oz']=85;
+    d.inventory['c5s']=290; // C5 (small)
+    d.inventory['c5l']=68;  // C5X (large)
+    d._applied['inventory_set_20260606']=true;
+  }
+
+  // ===== HARD AUDIT 2026-06-14 — authoritative public/show hours, day counts, verification flags =====
+  // Stores the REAL show open+close for each day. Call/setup time is DERIVED (1 hr before open) by dayCallClose() —
+  // it is never stored over the real hours. hv=true means hours verified; hoursNeedConfirm / datesNeedConfirm raise a badge.
+  if(!d._applied['audit_2026_0614_v1']){
+    const HRS={
+      'fox & found — north aurora (jun)':{sd:'2026-06-20',nd:1,days:[['10:00','16:00']],hv:true},
+      'fox & found — north aurora (jul)':{sd:'2026-07-18',nd:1,days:[['10:00','16:00']],hv:true},
+      'fox & found — north aurora (aug)':{sd:'2026-08-15',nd:1,days:[['10:00','16:00']],hv:true},
+      'fox & found — north aurora (sep)':{sd:'2026-09-19',nd:1,days:[['10:00','16:00']],hv:true},
+      'fox & found — north aurora (oct)':{sd:'2026-10-17',nd:1,days:[['10:00','16:00']],hv:true},
+      'rustic fox — carol stream (jul)':{sd:'2026-07-05',nd:1,days:[['10:00','16:00']],hv:true},
+      'rustic fox — carol stream (aug)':{sd:'2026-08-02',nd:1,days:[['10:00','16:00']],hv:true},
+      'rustic fox — carol stream (sep)':{sd:'2026-09-06',nd:1,days:[['10:00','16:00']],hv:true},
+      'rustic fox — carol stream (oct)':{sd:'2026-10-04',nd:1,days:[['10:00','16:00']],hv:true},
+      'pewaukee beach party':{sd:'2026-06-26',nd:2,days:[['17:00','23:30'],['07:00','23:30']],hv:true},
+      'waukesha county fair':{sd:'2026-07-15',nd:5,days:[['12:00','22:00'],['10:00','23:00'],['10:00','00:00'],['10:00','00:00'],['10:00','20:00']],hv:true},
+      'maxwell street days — jul':{sd:'2026-07-18',nd:2,days:[['08:00','17:00'],['08:00','17:00']],hv:true},
+      'maxwell street days — aug':{sd:'2026-08-15',nd:2,days:[['08:00','17:00'],['08:00','17:00']],hv:true},
+      'maxwell street days — sep':{sd:'2026-09-12',nd:2,days:[['08:00','17:00'],['08:00','17:00']],hv:true},
+      'washington county fair':{sd:'2026-07-21',nd:6,days:[['15:00','22:00'],['10:00','22:00'],['10:00','01:00'],['10:00','01:00'],['10:00','01:00'],['09:00','18:00']],hv:true},
+      'sheboygan county fair':{sd:'2026-09-03',nd:5,days:[['12:00','21:00'],['10:00','21:00'],['10:00','21:00'],['10:00','21:00'],['10:00','18:00']],hv:true},
+      'cranberry fest':{sd:'2026-09-25',nd:3,days:[['07:00','17:00'],['07:00','17:00'],['07:00','17:00']],hv:true},
+      'burgoo fest':{sd:'2026-10-10',nd:2,days:[['11:00','18:00'],['09:00','17:00']],hv:true},
+      // Baraboo: 2–6 PM confirmed by two sources (Baraboo Chamber + Travel Wisconsin)
+      'baraboo christmas market':{sd:'2026-11-21',nd:1,days:[['14:00','18:00']],hv:true,note:'Confirmed 2–6 PM on Oak St (Baraboo Chamber + Travel Wisconsin). Christmas Light Parade follows at 6 PM.'},
+      // ----- temporary / unverified hours: kept as placeholders, flagged for confirmation -----
+      'mchenry county fair':{sd:'2026-08-04',nd:6,hoursNeedConfirm:true,note:'Hours need confirmation from vendor packet or official fair schedule.'},
+      'sip & sleigh — carol stream':{sd:'2026-11-07',nd:3,days:[['15:00','20:00'],['09:00','16:00'],['09:00','15:00']],hoursNeedConfirm:true,note:'Hours need confirmation from vendor packet or official organizer.'},
+      'sip & sleigh — north aurora':{sd:'2026-11-20',nd:3,days:[['15:00','20:00'],['09:00','16:00'],['09:00','15:00']],hoursNeedConfirm:true,note:'Hours need confirmation from vendor packet or official organizer.'},
+      'kris kringle — carol stream':{sd:'2026-12-04',nd:3,days:[['15:00','20:00'],['09:00','16:00'],['09:00','15:00']],hoursNeedConfirm:true,note:'2026 hours need confirmation from vendor packet or official organizer. Promoter-run event, hours change year to year.'},
+      'kris kringle — north aurora':{sd:'2026-12-12',nd:3,days:[['16:00','20:00'],['10:00','16:00'],['10:00','15:00']],hoursNeedConfirm:true,note:'2026 hours need confirmation from vendor packet or official organizer. Promoter-run event, hours change year to year.'},
+      'st. martins fair':{sd:'2026-09-06',nd:2,days:[['08:00','21:00'],['07:00','18:00']],hoursNeedConfirm:true,note:'Dates corrected to Sep 6–7, 2026 (Labor Day weekend: Sun Sep 6 + Mon Sep 7) via research — the old Aug 30–Sep 1 was wrong. Hours are a prior-year pattern; sources disagree (8a–9p/7a–6p vs 10a–7p), so confirm on franklinwi.gov.'}
+    };
+    (d.shows||[]).forEach(sh=>{
+      const key=(sh.name||'').toLowerCase().trim();
+      const spec=HRS[key];
+      if(!spec)return;
+      // set the audit's canonical start date, then rebuild dates[]/day labels from it
+      // (resizeShowDays rebuilds dates from startDate and preserves any sales already entered;
+      //  this also stops normalizeShowDates from reverting startDate off a stale dates[] array)
+      if(spec.sd)sh.startDate=spec.sd;
+      resizeShowDays(sh,spec.nd||sh.numDays||(sh.days||[]).length||1);
+      sh.days=sh.days||[];
+      if(spec.days){
+        spec.days.forEach((t,i)=>{ if(sh.days[i]){ sh.days[i].openTime=t[0]; sh.days[i].closeTime=t[1]; } });
+        if(sh.days[0]){ sh.openTime=sh.days[0].openTime; sh.closeTime=sh.days[0].closeTime; } // keep show-level = day 1 for back-compat
+      }
+      sh.hoursNeedConfirm=!!spec.hoursNeedConfirm;
+      sh.datesNeedConfirm=!!spec.datesNeedConfirm;
+      sh.hoursVerified=(spec.hv===true)&&!spec.hoursNeedConfirm;
+      if(spec.note)sh.notes=spec.note;
+    });
+    d._applied['audit_2026_0614_v1']=true;
+  }
+
+
+  // ===== Jul 2026 — PER-DAY PAY overhaul. Commission percentages are gone. =====
+  // Strip old rate fields from reps and make sure every day can hold day pay entries.
+  if(!d._applied['day_pay_v1']){
+    (d.reps||[]).forEach(r=>{ delete r.commCash; delete r.commCard; });
+    (d.shows||[]).forEach(sh=>(sh.days||[]).forEach(day=>{ if(!day.repPay)day.repPay={}; }));
+    d._applied['day_pay_v1']=true;
+  }
 }
+
 function buildPlannedShow(e){
   const dates=[];
   const start=new Date(e.startDate+'T12:00:00');
@@ -412,7 +1055,7 @@ function buildPlannedShow(e){
   };
 }
 
-function saveS(){S._updatedAt=new Date().toISOString();localStorage.setItem('dd_bs_anthony_v7',JSON.stringify(S));renderCur();cloudQueuePush();}
+function saveS(){S._updatedAt=new Date().toISOString();localStorage.setItem('dd_bs_v7',JSON.stringify(S));renderCur();cloudQueuePush();}
 function renderCur(){
   if(curPg==='home')rHome();else if(curPg==='section')rSection();else if(curPg==='stock')rStock();
   else if(curPg==='shows')rShows();else if(curPg==='show')rShow();
@@ -752,37 +1395,7 @@ function rHome(){
   done.forEach(sh=>{const t=calcShow(sh); if(t.gross>bgVal){bgVal=t.gross;bestGross=sh;} if(t.profit>bpVal){bpVal=t.profit;bestProfit=sh;}});
   const pmtGrand=PMTS.reduce((t,p)=>t+(ytd.pmtTotals[p.key]||0),0);
   const lowStock=SKUS.filter(s=>(S.inventory[s.key]||0)<5);
-  // ---- Headline dashboard figures (reconcile: Sales − COGS − Booth − Other = Profit; Profit − Tax = Net) ----
-  const allBooth=S.shows.filter(s=>s.status==='completed'||s.status==='active').reduce((t,sh)=>t+(sh.boothCost||0),0)
-                +S.shows.filter(s=>s.status!=='completed'&&s.status!=='active').reduce((t,sh)=>t+boothPaid(sh),0);
-  const totalOtherExp=Math.max(0,ytd.expenses-allBooth);
-  const netAfterTax=ytd.profit-ytd.taxRes;
-  const biggestVal=(bgVal>-Infinity)?bgVal:0;
   let html='';
-
-  // ---- MASTER INVENTORY — the single most important button (first, biggest, most prominent) ----
-  html+=`<button class="btn btn-gold btn-full" style="height:auto;padding:20px 16px;margin-bottom:14px;flex-direction:column;gap:5px;border-radius:16px;box-shadow:0 0 0 2px var(--gold),0 10px 30px rgba(255,215,0,0.22)" onclick="go('stock')">
-    <span style="font-size:36px;line-height:1">🗃️</span>
-    <span style="font-size:23px;font-weight:900;letter-spacing:0.5px">MASTER INVENTORY</span>
-    <span style="font-size:12px;font-weight:800;color:rgba(0,0,0,0.68)">${invUnits} units on hand · ${fmt(invRetail)} retail value · tap to manage</span>
-  </button>`;
-
-  // ---- DASHBOARD STATS — front and center, fixed order ----
-  const _stat=(lbl,val,cls,sub,big)=>`<div class="sbox ${cls||''}"><div class="sl">${lbl}</div><div class="sv ${big?'':'sm'} ${cls==='grb'?'g':cls==='rb'?'r':cls==='gb'?'':'w'}">${val}</div>${sub?`<div class="ss">${sub}</div>`:''}</div>`;
-  html+=`<div class="sec-lbl">📊 DASHBOARD · 2026 SEASON</div>
-  <div class="g2" style="margin-bottom:14px;gap:8px">
-    ${_stat('TOTAL SALES VOLUME',fmt(ytd.gross),'gb',sellShows.length+' show'+(sellShows.length!==1?'s':'')+' w/ sales',true)}
-    ${_stat('TOTAL BOOTH RENTS',fmt(allBooth),'','Booth fees committed')}
-    ${_stat('TOTAL OTHER EXPENSES',fmt(totalOtherExp),'rb','Gas, hotel, supplies, rep pay, misc')}
-    ${_stat('TOTAL TAX RESERVE',fmt(ytd.taxRes),'rb',Math.round(S.settings.tax*100)+'% of net profit')}
-    ${_stat('TOTAL COGS',fmt(ytd.cogs),'','Product cost of goods')}
-    ${_stat('TOTAL PROFIT',fmt(ytd.profit),ytd.profit>=0?'grb':'rb','Sales − COGS − all expenses')}
-    ${_stat('AVG SHOW',fmt(avgShowGross),'','Gross ÷ shows w/ sales')}
-    ${_stat('BIGGEST SHOW',fmt(biggestVal),'gb',bestGross?bestGross.name:'No shows yet')}
-    ${_stat('AVG SHOW PROFIT',fmt(avgShowProfit),avgShowProfit>=0?'grb':'rb','Completed shows only')}
-    ${_stat('NET',fmt(netAfterTax),netAfterTax>=0?'grb':'rb','Profit − tax reserve',true)}
-  </div>`;
-
 
   // ---- Inventory mismatch alert (any active/completed show whose counts don't reconcile) ----
   const invAlertShows=(S.shows||[]).filter(sh=>!isMissed(sh)&&sh.status!=='planned'&&invStatus(sh)==='red');
@@ -845,7 +1458,22 @@ function rHome(){
   </div>
   ${missedShows.length?`<button class="btn btn-ghost btn-full" style="margin-bottom:8px;border-color:var(--redbd);color:var(--red)" onclick="showsTab='missed';go('shows')">⚠️ Missed / Did Not Do (${missedShows.length})</button>`:''}`;
 
-  // (Headline season stats now render at the top of Home — see DASHBOARD STATS above.)
+  // ---- SEASON OVERVIEW (completed-show economics; overhead shown separately) ----
+  html+=`<div class="sec-lbl">2026 SEASON OVERVIEW</div>
+  <div class="g2" style="margin-bottom:8px">
+    <div class="sbox gb"><div class="sl">YTD GROSS (collected)</div><div class="sv">${fmt(ytd.gross)}</div><div class="ss">money collected · ${sellShows.length} show${sellShows.length!==1?'s':''} w/ sales (incl. in-progress)</div></div>
+    <div class="sbox"><div class="sl">AVG / SHOW GROSS</div><div class="sv sm w">${fmt(avgShowGross)}</div><div class="ss">Gross ÷ shows w/ sales</div></div>
+  </div>
+  <div class="g3" style="margin-bottom:8px">
+    <div class="sbox ${completedNet>=0?'grb':'rb'}"><div class="sl">COMPLETED SHOWS NET</div><div class="sv sm ${completedNet>=0?'g':'r'}">${fmt(completedNet)}</div><div class="ss">Sum of show profits</div></div>
+    <div class="sbox rb"><div class="sl">TAX RESERVE</div><div class="sv sm r">${fmt(ytd.taxRes)}</div><div class="ss">${Math.round(S.settings.tax*100)}% of net profit</div></div>
+    <div class="sbox ${cleanKeep>=0?'grb':'rb'}"><div class="sl">CLEAN P</div><div class="sv sm ${cleanKeep>=0?'g':'r'}">${fmt(cleanKeep)}</div><div class="ss">Net − tax reserve</div></div>
+  </div>
+  <div class="g3" style="margin-bottom:8px">
+    <div class="sbox"><div class="sl">BUSINESS OVERHEAD</div><div class="sv sm w">${fmt(overhead)}</div><div class="ss">Supplies + deposits</div></div>
+    <div class="sbox"><div class="sl">AVG / SHOW PROFIT</div><div class="sv sm ${avgShowProfit>=0?'g':'r'}">${fmt(avgShowProfit)}</div><div class="ss">Completed only</div></div>
+    <div class="sbox"><div class="sl">TOTAL COGS</div><div class="sv sm w">${fmt(ytd.cogs)}</div><div class="ss">Product cost</div></div>
+  </div>`;
 
   // ---- DASHBOARD SECTIONS (each data section now opens its own detail view) ----
   html+=dashSectionGrid();
@@ -919,47 +1547,19 @@ function homeCtx(){
 }
 
 function secCollected(){
+  let h='';
   const _sell=(S.shows||[]).filter(s=>(s.status==='completed'||s.status==='active')&&((typeof showActualRev==='function'?showActualRev(s):0)>0)).sort((a,b)=>showSortKey(a)<showSortKey(b)?1:-1);
-  if(!_sell.length){
-    return `<div class="card" style="text-align:center;padding:34px 18px;color:var(--muted)"><div style="font-size:40px;margin-bottom:10px">🏷️</div><div style="font-size:13px">No sales logged yet. Once you ring up a show, you'll see exactly how much you collected versus full price here.</div></div>`;
+  if(_sell.length){
+    let tp=0,tc=0;
+    const rows=_sell.map(sh=>{const pot=showPotentialRev(sh),col=showActualRev(sh),gap=pot-col;tp+=pot;tc+=col;
+      return `<div class="sr"><span class="srl">${sh.name}${sh.status==='active'?' <span style="color:var(--gold);font-size:9px">●LIVE</span>':''}</span><span class="srv"><span style="color:var(--green)">${fmt(col)}</span> <span style="color:var(--muted)">/ ${fmt(pot)}</span>${gap>0.5?` <span style="color:var(--red)">−${fmt(gap)}</span>`:''}</span></div>`;}).join('');
+    const tg=tp-tc;
+    h+=`<div class="card">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Collected (green) / full price · <span style="color:var(--red)">red</span> = discount or freebie given that show</div>
+        ${rows}
+        <div class="sr" style="border-top:1px solid var(--border);margin-top:5px;padding-top:7px"><span class="srl b">Season total</span><span class="srv b"><span style="color:var(--green)">${fmt(tc)}</span> <span style="color:var(--muted)">/ ${fmt(tp)}</span>${tg>0.5?` <span style="color:var(--red)">−${fmt(tg)} given away</span>`:''}</span></div>
+      </div>`;
   }
-  let tp=0,tc=0;
-  _sell.forEach(sh=>{tp+=showPotentialRev(sh);tc+=showActualRev(sh);});
-  const tg=tp-tc, tpct=tp>0?Math.round((tc/tp)*100):0, gpct=tp>0?Math.round((tg/tp)*100):0;
-  // ----- Hero summary: collected vs full price, modern gauge -----
-  let h=`<div class="card" style="background:linear-gradient(150deg,rgba(0,210,106,0.10),rgba(255,215,0,0.04));border-color:var(--greenbd);padding:18px 16px;margin-bottom:12px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px">
-      <div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:800;margin-bottom:4px">Collected</div>
-        <div style="font-size:34px;font-weight:900;color:var(--green);line-height:1">${fmt(tc)}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">of ${fmt(tp)} full price</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:46px;font-weight:900;color:var(--green);line-height:0.9">${tpct}<span style="font-size:20px">%</span></div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700">capture rate</div>
-      </div>
-    </div>
-    <div style="position:relative;height:14px;border-radius:8px;overflow:hidden;background:var(--card3)">
-      <div style="position:absolute;inset:0;width:${tpct}%;background:linear-gradient(90deg,var(--green),#2be88a);border-radius:8px"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px">
-      <span style="color:var(--green);font-weight:800">● Collected ${tpct}%</span>
-      ${tg>0.5?`<span style="color:var(--red);font-weight:800">● Given away ${fmt(tg)} (${gpct}%)</span>`:`<span style="color:var(--muted)">No discounts given</span>`}
-    </div>
-  </div>`;
-  // ----- Per-show breakdown with mini capture bars -----
-  h+=`<div class="sec-lbl" style="margin-top:4px">BY SHOW</div>`;
-  h+=_sell.map(sh=>{
-    const pot=showPotentialRev(sh),col=showActualRev(sh),gap=pot-col,pct=pot>0?Math.round((col/pot)*100):0;
-    return `<div class="card" style="padding:12px 14px;margin-bottom:8px" onclick="go('show','${sh.id}')">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:14px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sh.name}${sh.status==='active'?' <span style="color:var(--gold);font-size:9px;font-weight:900">●LIVE</span>':''}</div>
-        <div style="text-align:right;flex-shrink:0;margin-left:8px"><span style="color:var(--green);font-weight:900;font-size:15px">${fmt(col)}</span> <span style="color:var(--muted);font-size:12px">/ ${fmt(pot)}</span></div>
-      </div>
-      <div style="height:8px;border-radius:5px;overflow:hidden;background:var(--card3)"><div style="height:100%;width:${pct}%;background:${pct>=99?'var(--green)':'linear-gradient(90deg,var(--green),#2be88a)'};border-radius:5px"></div></div>
-      <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--muted)"><span>${pct}% captured</span>${gap>0.5?`<span style="color:var(--red);font-weight:700">−${fmt(gap)} discount / freebie</span>`:'<span style="color:var(--green)">Full price ✓</span>'}</div>
-    </div>`;
-  }).join('');
   return h;
 }
 function secUnits(C){
@@ -1014,7 +1614,7 @@ function secExpenses(C){
   </div>`;
 }
 function secDebt(){
-  const debt=S.productDebt||{supplier:'',originalBalance:0,payments:[]};
+  const debt=S.productDebt||{supplier:'Mark Martone',originalBalance:10000,payments:[]};
   const debtPaid=(debt.payments||[]).reduce((t,p)=>t+(parseFloat(p.amount)||0),0);
   const debtBal=Math.max(0,(debt.originalBalance||0)-debtPaid);
   const debtPct=debt.originalBalance>0?Math.min(100,Math.round((debtPaid/debt.originalBalance)*100)):0;
@@ -1026,7 +1626,7 @@ function secDebt(){
     <div class="pbar-wrap" style="margin-bottom:5px"><div class="pbar-fill" style="width:${debtPct}%;background:var(--green)"></div></div>
     <div style="font-size:10px;color:var(--muted);margin-bottom:10px">${debtPct}% paid · Original: ${fmt(debt.originalBalance)}</div>
     ${(debt.payments||[]).length?`<div style="padding-top:8px;border-top:1px solid var(--border)">${[...(debt.payments||[])].reverse().map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--muted)">${p.date}</span><span style="color:var(--green);font-weight:900">+${fmt(p.amount)}</span>${p.note?`<span style="color:var(--muted);font-size:10px">${p.note}</span>`:''}</div>`).join('')}</div>`:''}
-    <button class="btn btn-ghost btn-sm btn-full" style="margin-top:10px" onclick="openDebtPmt()">+ Log Payment to ${debt.supplier||'Supplier'}</button>
+    <button class="btn btn-ghost btn-sm btn-full" style="margin-top:10px" onclick="openDebtPmt()">+ Log Payment to Mark</button>
   </div>`;
 }
 function secSplit(C){
@@ -1148,10 +1748,11 @@ function dashSectionGrid(){
     {k:'mileage',icon:'🚚',label:'Mileage &amp; Tax Deduction',sub:fmtN(C.ytd.miles)+' mi · '+fmt(C.mileDeduct)},
     {k:'booth',icon:'🎪',label:'Booth Costs',sub:'2026 season'},
     {k:'expenses',icon:'💸',label:'Other Expenses',sub:fmt(C.ytd.otherSpend)+' YTD'},
-    {k:'debt',icon:'🧾',label:'Product Debt',sub:((S.productDebt&&S.productDebt.supplier)||'Supplier')},
+    {k:'debt',icon:'🧾',label:'Product Debt',sub:'Mark Martone'},
     {k:'split',icon:'💰',label:'Money Split',sub:'After-tax keep'},
     {k:'payments',icon:'💳',label:'Payment Breakdown',sub:'How you got paid'},
-    {k:'best',icon:'🏆',label:'Best Shows',sub:'Top grossing / profit'}
+    {k:'best',icon:'🏆',label:'Best Shows',sub:'Top grossing / profit'},
+    {k:'batman',icon:'🦇',label:'Borrowed from Batman',sub:bmBottles()+' bottles owed · '+fmt(bmRetail())}
   ];
   let h=`<div class="sec-lbl">DASHBOARD SECTIONS</div><div class="g2" style="margin-bottom:8px">`;
   h+=cards.map(c=>`<button class="btn btn-ghost" style="height:auto;padding:13px 11px;flex-direction:column;align-items:flex-start;text-align:left;white-space:normal;gap:0" onclick="openSection('${c.k}')"><span style="font-size:20px;line-height:1;margin-bottom:5px">${c.icon}</span><span style="font-size:13px;font-weight:800;line-height:1.2">${c.label}</span><span style="font-size:10px;color:var(--muted);margin-top:3px;font-weight:600">${c.sub}</span></button>`).join('');
@@ -1171,10 +1772,11 @@ function rSection(){
     mileage:{t:'Mileage & Tax Deduction',f:secMileage},
     booth:{t:'Booth Costs — 2026 Season',f:secBooth},
     expenses:{t:'Other Expenses',f:secExpenses},
-    debt:{t:'Product Debt'+((S.productDebt&&S.productDebt.supplier)?' — '+S.productDebt.supplier:''),f:secDebt},
+    debt:{t:'Product Debt — Mark Martone',f:secDebt},
     split:{t:'Money Split — Completed Shows',f:secSplit},
     payments:{t:'Payment Breakdown (YTD)',f:secPayments},
-    best:{t:'Best Shows This Season',f:secBest}
+    best:{t:'Best Shows This Season',f:secBest},
+    batman:{t:'Borrowed from Batman',f:secBatman}
   };
   const m=map[curSection]||map.collected;
   const body=m.f(C);
@@ -2144,7 +2746,6 @@ function rShow(){
   ${(()=>{const dl=(sh.dates&&sh.dates.length)?sh.dates:Array.from({length:sh.numDays||1},(_,i)=>'Day '+(i+1));
     const rows=dl.map((lbl,i)=>{const ct=dayCallClose(sh,i);return `<div class="sr"><span class="srl">${lbl}</span><span class="srv">${ct.open} – ${ct.close} <span style="color:var(--muted);font-weight:400;font-size:11px">· call ${ct.call}</span></span></div>`;}).join('');
     return `<div class="card" style="margin-bottom:12px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:8px">⏰ Actual Show Hours · call/setup = 1 hr before open${sh.hoursVerified?' · ✓ verified':sh.hoursNeedConfirm?' · ⚠️ unverified':''}</div>${rows}<div style="font-size:10px;color:var(--muted);margin-top:6px">Total work hours (incl. 1 hr setup/day): <b>${fmtN(showWorkHoursTotal(sh))}h</b>. Edit times in ✏️ Edit Show.</div></div>`;})()}
-  ${preShowCalcHTML(sh)}
   <div class="card g2" style="margin-bottom:12px">
     <div><div class="sl">Gross</div><div class="sv">${fmt(t.gross)}</div></div>
     <div><div class="sl">Profit</div><div class="sv ${t.profit>=0?'g':'r'}">${fmt(t.profit)}</div></div>
@@ -2311,69 +2912,6 @@ function rShow(){
   })()}
   ${sh.notes?`<div class="card" style="margin-top:10px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:4px">📝 Show Notes</div><div style="font-size:13px;white-space:pre-wrap">${(sh.notes||'').replace(/</g,'&lt;')}</div></div>`:''}
   <div style="height:10px"></div>`;
-}
-
-// ===================================================
-// PRE-SHOW INVENTORY CALCULATOR
-// "What am I bringing?" → potential sales volume + potential profit, before any inventory is logged.
-// ===================================================
-function preShowStockOf(sh){
-  // Use the explicit pre-show plan if set; otherwise fall back to what's packed to the show.
-  if(sh.preShowStock&&Object.values(sh.preShowStock).some(v=>(parseInt(v)||0)>0))return sh.preShowStock;
-  if(sh.packedInventory&&Object.values(sh.packedInventory).some(v=>(parseInt(v)||0)>0))return sh.packedInventory;
-  return sh.preShowStock||{};
-}
-function preShowTotals(sh){
-  const st=preShowStockOf(sh);
-  let units=0,volume=0,cogs=0;
-  SKUS.forEach(s=>{const q=parseInt(st[s.key])||0;units+=q;volume+=q*getP(s.key);cogs+=q*s.cost;});
-  const grossPotential=Math.max(0,volume-cogs); // what the stock could clear over its product cost at full sell-through
-  return {st,units,volume,cogs,grossPotential};
-}
-function preShowCalcHTML(sh){
-  const {st,units,volume,cogs,grossPotential}=preShowTotals(sh);
-  const usingPacked=!(sh.preShowStock&&Object.values(sh.preShowStock).some(v=>(parseInt(v)||0)>0)) && units>0;
-  const rows=SKUS.map(s=>{const q=parseInt(st[s.key])||0;if(!q)return'';return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span>${s.emoji} ${s.short} × <strong>${q}</strong></span><span style="color:var(--gold)">${fmt(q*getP(s.key))}</span></div>`;}).join('');
-  return `<div class="card gb" style="margin-bottom:12px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:800">🎒 Pre-Show Inventory Calculator</div>
-      <button class="btn btn-gold btn-xs" onclick="openPreShowStock('${sh.id}')">${units>0?'✏️ Edit Stock':'+ Enter Stock'}</button>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Enter the stock you're bringing to this show to see what it could do — before you log a single count.${usingPacked?' <span style="color:var(--blue)">(showing packed inventory)</span>':''}</div>
-    ${units>0?`
-    <div class="g3" style="margin-bottom:10px">
-      <div style="text-align:center"><div style="font-size:20px;font-weight:900;color:var(--gold)">${fmtN(units)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Units Bringing</div></div>
-      <div style="text-align:center"><div style="font-size:20px;font-weight:900;color:var(--green)">${fmt(volume)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Potential Sales</div></div>
-      <div style="text-align:center"><div style="font-size:20px;font-weight:900;color:var(--blue)">${fmt(grossPotential)}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">Over Product Cost</div></div>
-    </div>
-    ${rows}
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">
-      <span>Cost of goods on this stock: <strong style="color:var(--text)">${fmt(cogs)}</strong></span>
-      <span>At full sell-through, before booth/gas/pay</span>
-    </div>`:`<div style="text-align:center;color:var(--muted);font-size:12px;padding:8px 0">No stock entered yet. Tap <strong style="color:var(--gold)">+ Enter Stock</strong> to project this show's potential.</div>`}
-  </div>`;
-}
-function openPreShowStock(shId){
-  const sh=S.shows.find(s=>s.id===shId);if(!sh)return;
-  const st=sh.preShowStock||{};
-  mOpen(`<div class="mh"><div class="mt">🎒 Stock You're Bringing</div><button class="mx" onclick="mClose()">×</button></div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Enter how many of each you're packing for <strong>${sh.name}</strong>. We'll project potential sales volume.</div>
-    ${SKUS.map(s=>`<div class="cr"><div class="cr-i"><div class="cr-n">${s.emoji} ${s.name}</div><div class="cr-s">${fmt(getP(s.key))} each</div></div><div class="cr-c"><input class="cri" type="number" inputmode="numeric" id="pss_${s.key}" value="${parseInt(st[s.key])||''}" placeholder="0" min="0"></div></div>`).join('')}
-    <div id="pssLive" style="font-size:12px;color:var(--muted);text-align:center;margin:12px 0"></div>
-    <button class="btn btn-gold btn-full" onclick="savePreShowStock('${shId}')">Save Pre-Show Stock</button>
-    <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="clearPreShowStock('${shId}')">Clear</button>`);
-  const live=()=>{let u=0,v=0,c=0;SKUS.forEach(s=>{const q=parseInt(($$('pss_'+s.key)||{}).value)||0;u+=q;v+=q*getP(s.key);c+=q*s.cost;});const el=$$('pssLive');if(el)el.innerHTML=`Bringing <strong style="color:var(--gold)">${u}</strong> units · potential <strong style="color:var(--green)">${fmt(v)}</strong> · over cost <strong style="color:var(--blue)">${fmt(Math.max(0,v-c))}</strong>`;};
-  SKUS.forEach(s=>{const el=$$('pss_'+s.key);if(el)el.addEventListener('input',live);});
-  live();
-}
-function savePreShowStock(shId){
-  const sh=S.shows.find(s=>s.id===shId);if(!sh)return;
-  const st={};SKUS.forEach(s=>{const v=parseInt(($$('pss_'+s.key)||{}).value)||0;if(v>0)st[s.key]=v;});
-  sh.preShowStock=st;mClose();saveS();toast('Pre-show stock saved');
-}
-function clearPreShowStock(shId){
-  const sh=S.shows.find(s=>s.id===shId);if(!sh)return;
-  sh.preShowStock={};mClose();saveS();toast('Pre-show stock cleared');
 }
 
 function rDay(sh,di){
@@ -2670,7 +3208,7 @@ function saveDebtPmt(){
   if(!amt||amt<=0){toast('Enter a valid amount');return;}
   const date=$$('dpt_date').value||new Date().toISOString().split('T')[0];
   const note=$$('dpt_note').value||'';
-  if(!S.productDebt)S.productDebt={supplier:'',originalBalance:0,payments:[]};
+  if(!S.productDebt)S.productDebt={supplier:'Mark Martone',originalBalance:10000,payments:[]};
   S.productDebt.payments.push({amount:amt,date,note});
   mClose();saveS();toast('✅ Payment logged — '+fmt(amt));
 }
@@ -3237,7 +3775,7 @@ function openAssignReps(shId){
   <div style="margin-top:12px">
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 0;border-top:1px solid var(--border)">
       <input type="checkbox" id="ar_reponly" ${sh.repOnlyShow?'checked':''} style="width:20px;height:20px">
-      <div style="font-size:12px;color:var(--muted)"><strong>Rep-only show</strong> — owner not attending</div>
+      <div style="font-size:12px;color:var(--muted)"><strong>Rep-only show</strong> — Justin not attending</div>
     </label>
   </div>
   <button class="btn btn-gold btn-full" style="margin-top:12px" onclick="saveAssignReps('${shId}')">✅ Save Roster</button>`);
@@ -3402,7 +3940,7 @@ function applyClaudeCmd(){
     toast('Unknown command. Start with INV:, ADD:, or SOLD:');
   }catch(e){toast('Command error: '+e.message);}
 }
-function confirmReset(){if(confirm('RESET ALL DATA? Cannot be undone.')){localStorage.removeItem('dd_bs_anthony_v7');S=JSON.parse(JSON.stringify(INIT));saveS();toast('Reset!');go('home');}}
+function confirmReset(){if(confirm('RESET ALL DATA? Cannot be undone.')){localStorage.removeItem('dd_bs_v7');S=JSON.parse(JSON.stringify(INIT));saveS();toast('Reset!');go('home');}}
 function exportData(){
   try{
     const txt=JSON.stringify(S,null,2);
@@ -3427,7 +3965,7 @@ function importData(){
 function _applyStateObj(parsed){
   if(!parsed||!parsed.inventory||!parsed.shows)throw new Error('not a valid backup');
   parsed.v=INIT.v;S=parsed;
-  localStorage.setItem('dd_bs_anthony_v7',JSON.stringify(S));
+  localStorage.setItem('dd_bs_v7',JSON.stringify(S));
   renderCur();
 }
 function applyImport(){
@@ -3482,7 +4020,7 @@ function setSync(st){_syncState=st;const el=$$('cl_status');if(el)el.textContent
 async function cloudPull(){
   if(!sb||!_cloudUser)return null;
   try{
-    const{data,error}=await sb.from('app_data').select('data_value').eq('data_key','bs_state_anthony').maybeSingle();
+    const{data,error}=await sb.from('app_data').select('data_value').eq('data_key','bs_state').maybeSingle();
     if(error||!data)return null;
     return data.data_value;
   }catch(e){console.warn('cloudPull',e);return null;}
@@ -3492,7 +4030,7 @@ async function cloudPush(){
   if(!S._updatedAt)S._updatedAt=new Date().toISOString();
   setSync('syncing');
   try{
-    const{error}=await sb.from('app_data').upsert({user_id:_cloudUser.id,data_key:'bs_state_anthony',data_value:S,updated_at:new Date().toISOString()},{onConflict:'user_id,data_key'});
+    const{error}=await sb.from('app_data').upsert({user_id:_cloudUser.id,data_key:'bs_state',data_value:S,updated_at:new Date().toISOString()},{onConflict:'user_id,data_key'});
     setSync(error?'error':'synced');
     if(error)console.warn('cloudPush',error);
   }catch(e){console.warn('cloudPush',e);setSync('error');}
@@ -3505,9 +4043,9 @@ function cloudQueuePush(){
 }
 function backupLocal(){
   try{
-    const cur=localStorage.getItem('dd_bs_anthony_v7');if(!cur)return;
-    localStorage.setItem('dd_bs_anthony_backup_'+Date.now(),cur);
-    const keys=Object.keys(localStorage).filter(k=>k.indexOf('dd_bs_anthony_backup_')===0).sort();
+    const cur=localStorage.getItem('dd_bs_v7');if(!cur)return;
+    localStorage.setItem('dd_bs_backup_'+Date.now(),cur);
+    const keys=Object.keys(localStorage).filter(k=>k.indexOf('dd_bs_backup_')===0).sort();
     while(keys.length>3)localStorage.removeItem(keys.shift());
   }catch(e){console.warn('backupLocal',e);}
 }
@@ -3519,7 +4057,7 @@ function looksUsed(st){
 function adoptCloud(cloud){
   backupLocal();
   cloud.v=INIT.v;
-  localStorage.setItem('dd_bs_anthony_v7',JSON.stringify(cloud));
+  localStorage.setItem('dd_bs_v7',JSON.stringify(cloud));
   S=loadS();
   renderCur();
   setSync('synced');
