@@ -627,14 +627,18 @@ function repDayPay(d,repId){ return parseFloat((d&&d.repPay?d.repPay[repId]:null
 function calcDayPay(d){ return Object.keys((d&&d.repPay)||{}).reduce((t,k)=>t+repDayPay(d,k),0); }
 // A rep's day pay summed across a show's days
 function repShowDayPay(sh,repId){ return (sh.days||[]).reduce((t,d)=>t+repDayPay(d,repId),0); }
-// What a rep earns on a show: day pay entries win; a legacy per-show payout (old commission
-// system's sh.repPayout) still counts when no day pay was entered, so history reconciles.
+// Legacy day-level payout overrides from the OLD commission system (d.repPayout, used on the blank app)
+function repLegacyDayPayout(d,repId){ const v=d&&d.repPayout?d.repPayout[repId]:null; return (v!=null&&v!=='')?(parseFloat(v)||0):null; }
+function repShowLegacyDayPayout(sh,repId){ return (sh.days||[]).reduce((t,d)=>{const v=repLegacyDayPayout(d,repId);return t+(v||0);},0); }
+// What a rep earns on a show: day pay entries win; legacy payouts from the old commission system
+// (per-day d.repPayout, then per-show sh.repPayout) still count when no day pay was entered.
 function repShowPay(sh,repId){
   const dp=repShowDayPay(sh,repId); if(dp>0)return dp;
+  const ldp=repShowLegacyDayPayout(sh,repId); if(ldp>0)return ldp;
   const ov=sh.repPayout&&sh.repPayout[repId]; if(ov!=null&&ov!=='')return parseFloat(ov)||0;
   return 0;
 }
-function showRepIds(sh){ const ids=new Set(); (sh.days||[]).forEach(d=>{ (d.repSales||[]).forEach(rs=>{ if(rs.repId)ids.add(rs.repId); }); Object.keys(d.repPay||{}).forEach(k=>ids.add(k)); }); if(sh.repPayout)Object.keys(sh.repPayout).forEach(k=>ids.add(k)); return [...ids]; }
+function showRepIds(sh){ const ids=new Set(); (sh.days||[]).forEach(d=>{ (d.repSales||[]).forEach(rs=>{ if(rs.repId)ids.add(rs.repId); }); Object.keys(d.repPay||{}).forEach(k=>ids.add(k)); Object.keys(d.repPayout||{}).forEach(k=>ids.add(k)); }); if(sh.repPayout)Object.keys(sh.repPayout).forEach(k=>ids.add(k)); return [...ids]; }
 function showRepPayTotal(sh){ return showRepIds(sh).reduce((t,repId)=>t+repShowPay(sh,repId),0); }
 // ---- Flat / hourly / manual workers (e.g. Olivia paid straight cash). Not commission-based reps. ----
 // Each worker: {id,name,role,type:'flat'|'hourly'|'manual',hours,rate,amount,paid,payMethod,payNote}
@@ -647,12 +651,13 @@ function showWorkerOwed(sh){ return (sh.workers||[]).reduce((t,w)=>t+Math.max(0,
 function showLaborTotal(sh){ return showRepPayTotal(sh)+showWorkerPayouts(sh); }
 // Total $ a rep rang up across a show (all payment methods)
 function repShowSales(sh,repId){ let t=0; (sh.days||[]).forEach(d=>(d.repSales||[]).forEach(rs=>{ if(rs.repId===repId)t+=PMTS.reduce((a,p)=>a+(parseFloat(rs[p.key])||0),0); })); return t; }
-// Rep pay charged against ONE day: day pay entries for that day; a legacy per-show payout
-// (no day pay entered) is split evenly across the show's days so day P&Ls still sum to the show.
+// Rep pay charged against ONE day: day pay entries for that day; legacy per-day payouts stay on
+// their day; a legacy per-show payout is split evenly across days so day P&Ls still sum to the show.
 function dayPayEffective(sh,di){
   const d=(sh.days||[])[di]; if(!d)return 0; let total=0;
   showRepIds(sh).forEach(repId=>{
     if(repShowDayPay(sh,repId)>0){ total+=repDayPay(d,repId); return; }
+    if(repShowLegacyDayPayout(sh,repId)>0){ total+=repLegacyDayPayout(d,repId)||0; return; }
     const ov=sh.repPayout&&sh.repPayout[repId];
     if(ov!=null&&ov!==''){ total+=(parseFloat(ov)||0)/(((sh.days||[]).length)||1); }
   });
