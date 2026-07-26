@@ -34,12 +34,13 @@ even in the same browser or signed into the same account.
    plain list.
 4. **Master Inventory button** — now the first and biggest control on Home: a
    full-width gold hero button above everything else.
-5. **Rep pay is per day (Jul 2026)** — commission percentages are GONE. Each rep
-   gets a flat dollar amount per day, entered daily (💵 Day Pay on the day
-   screen, the day closeout, the rep sales modal, or per rep from the show's
-   rep list — all write `day.repPay`). The app tracks earned vs paid vs owed
-   from those day entries. Legacy per-show payouts (`sh.repPayout`) from the
-   old commission system still count on old shows so history reconciles.
+5. **Rep pay is per day (Jul 2026)** — commission percentages are GONE, and so
+   is per-rep sales tracking. The day's money is ONE total (the Money column),
+   and each rep gets a flat dollar amount per day, entered daily (💵 Day Pay on
+   the day screen, the day closeout, or per rep from the show's rep list — all
+   write `day.repPay`). The app tracks earned vs paid vs owed from those day
+   entries. Legacy data (`sh.repPayout` payouts, old `d.repSales`) is still
+   read on old shows so history reconciles.
 
 ## Personal-app-only
 
