@@ -251,7 +251,7 @@
     <span class="hdr-logo">⚡</span>
     <div><div class="hdr-name">Best Solution, LLC</div></div>
   </div>
-  <div id="hdrR"></div>
+  <div style="display:flex;align-items:center;gap:10px"><span id="syncDot" onclick="go('settings')" title="Cloud sync — tap for details" style="width:10px;height:10px;border-radius:50%;background:#666;display:inline-block;cursor:pointer;flex-shrink:0"></span><div id="hdrR"></div></div>
 </div>
 
 <!-- PAGES -->
@@ -886,6 +886,29 @@ function nextShowCountdownHTML(activeShows,nextUp){
   }
   return `<div class="card" style="text-align:center;margin-bottom:12px;color:var(--muted);font-size:13px">No upcoming shows scheduled.</div>`;
 }
+
+// ===== Multi-show helpers (Jul 2026): today's day index + deposit deadlines =====
+function todayDayIndex(sh){
+  const n=(sh.days||[]).length; if(!n)return 0;
+  if(sh.startDate&&/^\d{4}-\d{2}-\d{2}$/.test(sh.startDate)){
+    const i=Math.round((new Date(_todayKey()+'T12:00:00')-new Date(sh.startDate+'T12:00:00'))/86400000);
+    if(i>=0&&i<n)return i; if(i>=n)return n-1; return 0;
+  }
+  for(let i=0;i<n;i++){const d=sh.days[i];if(!(d.morningCount&&d.eveningCount))return i;}
+  return n-1;
+}
+function depositAlerts(withinDays){
+  const today=_todayKey(); const out=[];
+  (S.shows||[]).forEach(sh=>{
+    if(sh.status==='completed'||isMissed(sh))return;
+    if(!sh.depositDue||!/^\d{4}-\d{2}-\d{2}$/.test(sh.depositDue))return;
+    const bal=boothBalance(sh); if(bal<=0)return;
+    const days=Math.round((new Date(sh.depositDue+'T12:00:00')-new Date(today+'T12:00:00'))/86400000);
+    if(days<=withinDays)out.push({sh,due:sh.depositDue,days,bal});
+  });
+  return out.sort((a,b)=>a.days-b.days);
+}
+
 function rHome(){
   const ytd=calcYTD();
   const invCost=calcInvCost(S.inventory);
@@ -1668,7 +1691,26 @@ function rShows(){
     <button class="btn ${tab==='completed'?'btn-gold':'btn-ghost'} btn-sm" style="flex:1;padding-left:4px;padding-right:4px" onclick="showsTab='completed';rShows()">✅ Completed (${completed.length})</button>
     <button class="btn ${tab==='missed'?'btn-gold':'btn-ghost'} btn-sm" style="flex:1;padding-left:4px;padding-right:4px${(missed.length&&tab!=='missed')?';border-color:var(--redbd);color:var(--red)':''}" onclick="showsTab='missed';rShows()">⚠️ Missed (${missed.length})</button>
   </div>`;
-  if(typeof PREV_YEAR!=='undefined'&&PREV_YEAR.gross>0){h+=`<button class="btn btn-ghost btn-full btn-sm" style="margin-bottom:12px;border-color:rgba(79,195,247,0.4);color:#7EB8F7" onclick="shows2025Mode=true;rShows()">📊 View 2025 Season Results</button>`;}
+  if(typeof PREV_YEAR!=='undefined'&&PREV_YEAR.gross>0){h+=`<button class="btn btn-ghost btn-full btn-sm" style="margin-bottom:12px;border-color:rgba(79,195,247,0.4);color:#7EB8F7" onclick="shows2025Mode=true;rShows()">📊 View 2025 Season Results</button>`;
+  if(tab==='upcoming'){
+    const planned=upcoming.filter(s=>s.status!=='active');
+    const paidS=planned.filter(s=>(s.boothCost||0)>0&&boothBalance(s)<=0);
+    const oweS=planned.filter(s=>s.confirmed!==false&&(s.boothCost||0)>0&&boothBalance(s)>0);
+    const pendS=planned.filter(s=>s.confirmed===false);
+    const dep=depositAlerts(14);
+    if(planned.length){
+      h+=`<div class="card" style="margin-bottom:12px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:8px">📋 Booking Pipeline</div>
+        ${dep.length?dep.map(x=>`<div class="sr" style="border:none;padding:3px 0"><span class="srl" style="color:var(--red);font-weight:700">💸 ${x.sh.name}</span><span class="srv red">${fmt(x.bal)} due ${x.days<0?('OVERDUE '+(-x.days)+'d'):x.days===0?'TODAY':'in '+x.days+'d'}</span></div>`).join(''):''}
+        <div class="g3" style="margin-top:${dep.length?'8px':'0'}">
+          <div class="sbox grb"><div class="sl">Booth Paid</div><div class="sv sm g">${paidS.length}</div></div>
+          <div class="sbox ${oweS.length?'rb':''}"><div class="sl">Owe Booth</div><div class="sv sm ${oweS.length?'r':'w'}">${oweS.length}</div><div class="ss">${fmt(oweS.reduce((t,s)=>t+boothBalance(s),0))} total</div></div>
+          <div class="sbox"><div class="sl">Pending / Applied</div><div class="sv sm w">${pendS.length}</div></div>
+        </div>
+        ${oweS.length?`<div style="font-size:11px;color:var(--muted);margin-top:8px">${oweS.map(s=>`${s.name} ${fmt(boothBalance(s))}${s.depositDue?' by '+s.depositDue:''}`).join(' · ')}</div>`:''}
+      </div>`;
+    }
+  }}
   if(tab==='missed'&&missed.length){h+=`<div class="wb red" style="margin-bottom:10px">These shows' dates passed but were never completed. Open one to mark it done if you actually did it, or edit/delete it.</div>`;}
   if(list.length){h+=list.map(s=>showCard(s)).join('');}
   else{h+=`<div class="empty"><div class="ei">${tab==='completed'?'✅':tab==='missed'?'⚠️':'🎪'}</div>${tab==='completed'?'No completed shows yet. Shows move here automatically when you close them out.':tab==='missed'?'No missed shows — nice work staying on top of it!':'No upcoming shows. Tap + New Show to start.'}</div>`;}
@@ -1881,6 +1923,8 @@ function showEditCosts(id){
   <div class="fg"><label class="fl">Number of Days</label><input class="fi" type="number" id="ec_days" step="1" min="1" value="${sh.numDays||1}" placeholder="1"></div>
   <div style="font-size:11px;color:var(--muted);margin:-4px 0 12px">Changing days adds/removes day tabs. Days that already have counts entered are never deleted.</div>
   <div class="fg"><label class="fl">Booth Cost ($)</label><input class="fi" type="number" id="ec_booth" step="0.01" min="0" value="${sh.boothCost||''}" placeholder="0.00"></div>
+  <div class="fg"><label class="fl">Booth Deposit Due By (optional)</label><input class="fi" type="date" id="ec_due" value="${sh.depositDue||''}"></div>
+  <div style="font-size:11px;color:var(--muted);margin:-4px 0 14px">Set this and the app warns you on Home starting 7 days out until the booth is paid.</div>
   <div class="fg"><label class="fl">One-Way Miles</label><input class="fi" type="number" id="ec_miles" step="1" min="0" value="${sh.miles||''}" placeholder="0"></div>
   <div class="fg"><label class="fl">Travel Type — tap one</label>
     <div style="display:flex;gap:8px">
@@ -1953,6 +1997,7 @@ function saveEditCosts(id){
   sh.location=v('ec_loc');
   const ndRaw=v('ec_days'); if(ndRaw!==''){ const nd=Math.max(1,parseInt(ndRaw,10)||1); if(nd!==sh.numDays) resizeShowDays(sh,nd); }
   sh.boothCost=parseFloat(v('ec_booth'))||0;
+  sh.depositDue=v('ec_due')||null;
   sh.miles=parseFloat(v('ec_miles'))||0;
   const tr=v('ec_trips'); sh.roundTrips = tr===''?null:(parseFloat(tr)||0);
   const gpr=v('ec_gasprice'); sh.gasPrice = gpr===''?null:(parseFloat(gpr)||0);
@@ -2965,16 +3010,41 @@ function showPackModal(shId){
   mOpen(`<div class="mh"><div class="mt">🎒 Pack for ${sh.name}</div><button class="mx" onclick="mClose()">×</button></div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:12px">How many are you bringing? Can't exceed master inventory.</div>
   ${SKUS.map(s=>`<div class="cr"><div class="cr-i"><div class="cr-n">${s.name}</div><div class="cr-s">In stock: ${S.inventory[s.key]||0}</div></div>
-  <div class="cr-c"><button class="crb" onclick="pkA('${s.key}',-1)">−</button><input class="cri" type="number" id="pk_${s.key}" value="0" min="0" max="${S.inventory[s.key]||0}"><button class="crb" onclick="pkA('${s.key}',1)">+</button></div></div>`).join('')}
+  <div class="cr-c"><button class="crb" onclick="pkA('${s.key}',-1)">−</button><input class="cri" type="number" id="pk_${s.key}" value="0" min="0" max="${S.inventory[s.key]||0}" oninput="updPackLeft()"><button class="crb" onclick="pkA('${s.key}',1)">+</button></div></div>`).join('')}
+  <div id="pkLeft" style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center"></div>
   <div style="display:flex;gap:10px;margin-top:12px">
-    <button class="btn btn-ghost" style="flex:0 0 auto" onclick="pkAll('${shId}')">Take All</button>
+    <button class="btn btn-ghost" style="flex:0 0 auto" onclick="pkAll('${shId}');updPackLeft()">Take All</button>
     <button class="btn btn-gold" style="flex:1" onclick="confirmPack('${shId}')">✅ Start Show</button>
   </div>`);
 }
-function pkA(k,d){const i=$$('pk_'+k);const m=S.inventory[k]||0;i.value=Math.max(0,Math.min(m,parseInt(i.value||0)+d));}
+function pkA(k,d){const i=$$('pk_'+k);const m=S.inventory[k]||0;i.value=Math.max(0,Math.min(m,parseInt(i.value||0)+d));updPackLeft();}
+function otherShowsNeedingStock(exceptId){
+  const today=_todayKey();
+  return (S.shows||[]).filter(sh=>{
+    if(sh.id===exceptId||sh.status==='completed'||isMissed(sh))return false;
+    if(sh.status==='active')return true;
+    if(!sh.startDate||!/^\d{4}-\d{2}-\d{2}$/.test(sh.startDate))return false;
+    const days=Math.round((new Date(sh.startDate+'T12:00:00')-new Date(today+'T12:00:00'))/86400000);
+    return days>=0&&days<=7;
+  });
+}
+function updPackLeft(){
+  const el=$$('pkLeft'); if(!el)return;
+  let taking=0; const left={};
+  SKUS.forEach(s=>{const v=parseInt(($$('pk_'+s.key)||{}).value)||0;taking+=v;left[s.key]=(S.inventory[s.key]||0)-v;});
+  const leftT=SKUS.reduce((t,s)=>t+Math.max(0,left[s.key]),0);
+  el.innerHTML=taking>0?`Garage after this pack: <strong style="color:${leftT<20?'var(--red)':'var(--text)'}">${leftT} units</strong> (${SKUS.map(s=>s.short+' '+Math.max(0,left[s.key])).join(' · ')})`:'';
+}
 function pkAll(shId){SKUS.forEach(s=>{const i=$$('pk_'+s.key);if(i)i.value=S.inventory[s.key]||0;});}
 function confirmPack(shId){
   const sh=S.shows.find(s=>s.id===shId);if(!sh)return;
+  // Coverage check: warn when other shows this week still need garage stock
+  (()=>{})();
+  const others=otherShowsNeedingStock(shId);
+  if(others.length){
+    let taking=0,leftT=0; SKUS.forEach(s=>{const v=Math.min(parseInt(($$('pk_'+s.key)||{}).value)||0,S.inventory[s.key]||0);taking+=v;leftT+=(S.inventory[s.key]||0)-v;});
+    if(taking>0&&typeof confirm==='function'&&!confirm('Heads up: '+others.map(o=>o.name).join(', ')+' also '+(others.length>1?'need':'needs')+' stock this week. After this pack the garage has '+leftT+' units left. Pack anyway?'))return;
+  }
   const pk={};SKUS.forEach(s=>pk[s.key]=Math.min(parseInt($$('pk_'+s.key).value)||0,S.inventory[s.key]||0));
   SKUS.forEach(s=>S.inventory[s.key]=(S.inventory[s.key]||0)-pk[s.key]);
   sh.status='active';sh.packedInventory={...pk};sh.days[0].morningCount={...pk};if(!sh.prices)sh.prices=JSON.parse(JSON.stringify(S.prices||{})); // freeze prices so later price changes never rewrite this show's history
@@ -4058,7 +4128,8 @@ let sb=null,_cloudUser=null,_cloudTimer=null,_syncState='off';
 try{ if(window.supabase)sb=window.supabase.createClient(SB_URL,SB_KEY); }catch(e){console.warn('Supabase init failed',e);}
 
 function syncLabel(st){return {off:'Not signed in',syncing:'Syncing…',synced:'Synced ✓',error:'Sync error — working offline'}[st]||'';}
-function setSync(st){_syncState=st;const el=$$('cl_status');if(el)el.textContent=syncLabel(st);}
+function setSync(st){_syncState=st;const el=$$('cl_status');if(el)el.textContent=syncLabel(st);const d=$$('syncDot');if(d){d.style.background=st==='synced'?'#00D26A':st==='syncing'?'#FFD700':st==='error'?'#FF4D4D':'#666';d.title='Cloud sync: '+(syncLabel(st)||'not signed in')+' — tap for details';}}
+try{ if(typeof window.addEventListener==='function'){ window.addEventListener('offline',()=>setSync('error')); window.addEventListener('online',()=>{ if(_cloudUser)cloudQueuePush(); }); } }catch(e){}
 
 async function cloudPull(){
   if(!sb||!_cloudUser)return null;
