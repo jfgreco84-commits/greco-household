@@ -823,7 +823,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
       <p class="slabel">WATCHING</p>
       <div class="row"><span class="rl">Outdoorsy refund (filthy RV / grey tank not dumped)</span><span class="rv green">up to $1,774</span></div>
       <div class="row"><span class="rl">Enterprise $359 mileage charge — verify when it posts</span><span class="rv yellow">pending</span></div>
-      <div class="row"><span class="rl red">Nationstar 2nd mortgage — irregular payments, VERIFY CURRENT</span><span class="rv red">verify</span></div>
+      <div class="row"><span class="rl">Mortgage: one loan only — servicing moved Nationstar → M&amp;T (confirmed 8/10)</span><span class="rv green">resolved</span></div>
       <div class="row"><span class="rl">Duplicate subs flagged in Bills: 2× Prime, 2× Cricut, 2× Microsoft, 2× Google One, 2× Perplexity</span><span class="rv red">cancel</span></div>
       <div class="row"><span class="rl">Best Solution summer event spend (booth fees + Cranberry lodging)</span><span class="rv">$1,500.07</span></div>
       <div class="row"><span class="rl">Cash withdrawn across all accounts Jun 1 – Aug 10 (untracked)</span><span class="rv red">≈ $12,900</span></div>
@@ -985,7 +985,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.33 — Aug-10 Financial Review sync: added Jul 24 stub (offset 6: gross $15,274.24, net $8,149.40, bonus $10,361.56) and Aug 7 stub (offset 7: gross $7,806.07, net $4,354.30). Ch-13 trustee rose to $733.85/check on the Aug stub — CH13 constant updated. Bills reconciled to actual statements (Netflix $28.47, Progressive $352, IV Nutrition $99, Mailchimp $209, Nextiva $430, AAA $59.50, Primo $65, Credit One ×3 remapped to real ACH pulls) + 11 new bills added incl. Nationstar 2nd mortgage and duplicate-subscription flags. New Trip &amp; Review card: trip total $5,933.80; Outdoorsy refund complaint open. 20% garnishment model unchanged (still no garnishment line on actual stubs). v5.32 added the Jul-10 stub.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.34 — Correction: NO 2nd mortgage. The Nationstar/Mr. Cooper pulls were the old servicer of the ONE mortgage before it transferred to M&amp;T (confirmed by Justin 8/10) — Nationstar bill removed (billsMerge_v811 also removes it from cloud lists where v810 already ran) and the verify flag cleared from the Review card. v5.33 — Aug-10 Financial Review sync: added Jul 24 stub (offset 6: gross $15,274.24, net $8,149.40, bonus $10,361.56) and Aug 7 stub (offset 7: gross $7,806.07, net $4,354.30). Ch-13 trustee rose to $733.85/check on the Aug stub — CH13 constant updated. Bills reconciled to actual statements (Netflix $28.47, Progressive $352, IV Nutrition $99, Mailchimp $209, Nextiva $430, AAA $59.50, Primo $65, Credit One ×3 remapped to real ACH pulls) + 11 new bills added incl. Nationstar 2nd mortgage and duplicate-subscription flags. New Trip &amp; Review card: trip total $5,933.80; Outdoorsy refund complaint open. 20% garnishment model unchanged (still no garnishment line on actual stubs). v5.32 added the Jul-10 stub.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1588,7 +1588,7 @@ const defaultBills = [
   // ONLY mortgage splits in half — everything else shows full amount on its due date
   // splitHalf:true → shows monthly/2 every period (Mortgage only)
   // dueDay:N       → shows full monthly amount only in the period containing the Nth of the month
-  { name:'Mortgage',             monthly:3575,  splitHalf:true, note:'Split in half — $1,788 per check' },
+  { name:'Mortgage',             monthly:3575,  splitHalf:true, note:'M&T Bank (servicing transferred from Nationstar/Mr. Cooper) — split in half, $1,788 per check' },
   { name:'Verizon',              monthly:344,   dueDay:8,       note:'Due ~8th — $200 + $144 VZW lines' },
   { name:'Hello Fresh',          monthly:109,   dueDay:5,       note:'No charges since 6/18 — confirm CANCELLED vs paused' },
   { name:'Hinckley Springs',     monthly:100,   dueDay:10,      note:'Possible DUP of Primo water (same parent co) — confirm still billing' },
@@ -1642,7 +1642,8 @@ const defaultBills = [
   { name:'Comenity Pay',           monthly:20,    dueDay:9,  note:'Store card min (PNC, acct *8500) — also a ~$30 Comenity charge on *4566; tell me if that 2nd card should be added' },
   { name:'Comn Cap Auto Pay',      monthly:10,    dueDay:5,  note:'Comenity Capital autopay (PNC, acct *3377) — recent actual $10/mo' },
   // ---- Added Aug 10 2026 — Financial Review (trip + full 4-account audit) ----
-  { name:'Nationstar Mortgage (2nd)', monthly:1250,  dueDay:1,  note:'2nd mortgage (Mr. Cooper) — irregular $1,000–1,500 pulls. VERIFY LOAN IS CURRENT' },
+  // (Nationstar entries on the statements were the OLD servicer of the ONE mortgage before it
+  //  transferred to M&T — confirmed by Justin 8/10. No 2nd mortgage exists.)
   { name:'Safeway Pest Control',      monthly:117,   dueDay:22, note:'$100–135/mo recurring (PNC)' },
   { name:'Progressive Universal',     monthly:57.76, dueDay:14, note:'2nd Progressive policy (PNC ACH ~14th)' },
   { name:'Barclaycard',               monthly:50,    dueDay:10, note:'Card min payment ACH (PNC)' },
@@ -1830,6 +1831,17 @@ async function hydrateFromCloud() {
     });
     if (dirty810) await saveKey('bills', bills);
     localStorage.setItem('billsMerge_v810', '1');
+  }
+  // ONE-TIME v811: correction — there is NO 2nd mortgage. The Nationstar pulls were the OLD
+  // servicer of the one mortgage before it transferred to M&T (confirmed 8/10). Remove the
+  // bill v810 added, on any device where it already merged into the cloud list.
+  if (!localStorage.getItem('billsMerge_v811')) {
+    const idx811 = bills.findIndex(b => b.name === 'Nationstar Mortgage (2nd)');
+    if (idx811 !== -1) {
+      bills.splice(idx811, 1);
+      await saveKey('bills', bills);
+    }
+    localStorage.setItem('billsMerge_v811', '1');
   }
   // knownData
   const cloudKnown = await loadKey('knownData', null);
