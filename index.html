@@ -740,7 +740,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
         </div>
         <div class="row">
           <span class="rl" style="color:#777">Bkrp C13T</span>
-          <span class="rv" style="color:#777">-$692.31</span>
+          <span class="rv" style="color:#777">-$733.85</span>
         </div>
       </div>
       <div class="row" id="garnishRow" style="display:none">
@@ -801,6 +801,33 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
       <button class="reset-btn" onclick="openExpenseModal()" style="background:#3a1e1e;color:#e85a5a;border:1px solid #8b3030">+ EXPENSE</button>
     </div>
     <div id="recentExpenses" class="recent-exp"></div>
+  </div>
+
+
+  <div class="card full">
+    <div class="card-header">
+      <span class="icon">🧳</span><h2>Aug 2026 Trip &amp; Financial Review</h2>
+      <span class="updated" style="margin-left:auto;font-size:0.7rem;color:#666">Reviewed 8/10/26 · full report: Financial Review 8-10-2026.docx (Desktop)</span>
+    </div>
+    <div class="card-body">
+      <p class="slabel">ROAD TRIP — FINAL (WI → IN → KY → GA → SC → OUTER BANKS NC → OH → IL)</p>
+      <div class="row"><span class="rl">Outdoorsy RV ($1,474.04 + $300 cash) — refund complaint OPEN</span><span class="rv">$1,774.04</span></div>
+      <div class="row"><span class="rl">Enterprise car (incl. $300 kept deposit + $359 mileage pending)</span><span class="rv">$1,580.59</span></div>
+      <div class="row"><span class="rl">Cash spent ($1,000 taken + $130 ATM)</span><span class="rv">$1,130.00</span></div>
+      <div class="row"><span class="rl">Food / gas / shopping / souvenirs + Spider-Man tickets</span><span class="rv">$960.10</span></div>
+      <div class="row"><span class="rl">Lodging (Days Inn IN + Hampton Inn OH) + Expedia</span><span class="rv">$490.07</span></div>
+      <hr class="divider">
+      <div class="row"><span class="rl bold yellow">TRIP TOTAL</span><span class="rv yellow" style="font-weight:900">$5,933.80</span></div>
+      <div class="row" style="padding:3px 0"><span class="rl" style="color:#555;font-size:0.72rem">Vehicles were 57% of the trip. Note: Cranberry Fest lodging ($580.30 Klarna-Airbnb) is a BUSINESS expense, not trip.</span></div>
+      <hr class="divider">
+      <p class="slabel">WATCHING</p>
+      <div class="row"><span class="rl">Outdoorsy refund (filthy RV / grey tank not dumped)</span><span class="rv green">up to $1,774</span></div>
+      <div class="row"><span class="rl">Enterprise $359 mileage charge — verify when it posts</span><span class="rv yellow">pending</span></div>
+      <div class="row"><span class="rl red">Nationstar 2nd mortgage — irregular payments, VERIFY CURRENT</span><span class="rv red">verify</span></div>
+      <div class="row"><span class="rl">Duplicate subs flagged in Bills: 2× Prime, 2× Cricut, 2× Microsoft, 2× Google One, 2× Perplexity</span><span class="rv red">cancel</span></div>
+      <div class="row"><span class="rl">Best Solution summer event spend (booth fees + Cranberry lodging)</span><span class="rv">$1,500.07</span></div>
+      <div class="row"><span class="rl">Cash withdrawn across all accounts Jun 1 – Aug 10 (untracked)</span><span class="rv red">≈ $12,900</span></div>
+    </div>
   </div>
 
 
@@ -958,7 +985,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.32 — Added the Jul 10 actual paystub (offset 5): gross $13,197.87, net $7,176.97, comm $3,467.10, bonus $6,384.62. Synced to cloud so both phones show it. 20% wage-garnishment model still applies from the Jun 26 check on (on TOP of Chapter-13) — note the actual stub shows no garnishment line yet, only the $692.31 trustee deduction. v5.31 added 2 recurring debits; multi-device concurrency from v5.29.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.33 — Aug-10 Financial Review sync: added Jul 24 stub (offset 6: gross $15,274.24, net $8,149.40, bonus $10,361.56) and Aug 7 stub (offset 7: gross $7,806.07, net $4,354.30). Ch-13 trustee rose to $733.85/check on the Aug stub — CH13 constant updated. Bills reconciled to actual statements (Netflix $28.47, Progressive $352, IV Nutrition $99, Mailchimp $209, Nextiva $430, AAA $59.50, Primo $65, Credit One ×3 remapped to real ACH pulls) + 11 new bills added incl. Nationstar 2nd mortgage and duplicate-subscription flags. New Trip &amp; Review card: trip total $5,933.80; Outdoorsy refund complaint open. 20% garnishment model unchanged (still no garnishment line on actual stubs). v5.32 added the Jul-10 stub.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1483,7 +1510,7 @@ sb.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.relo
 
 /* ---------------- CONSTANTS & DATA ---------------- */
 const ANCHOR     = new Date(2026, 3, 15);
-const CH13       = 692.31;
+const CH13       = 733.85; // rose from $692.31 — Aug 2026 trustee increase, confirmed on 8/7 stub
 // Wage garnishment — 20% of the net check (WI standard = 20% of disposable earnings),
 // starting the June 26, 2026 check (period offset 4) and every check after. This is
 // applied ON TOP of the existing Chapter-13 deduction. Set RATE to 0 to turn it off.
@@ -1506,12 +1533,14 @@ let paystubPts = [
   { gross:6032.17,  net:4032  },
   { gross:6811.87,  net:4496  },
   { gross:7499.82,  net:4213  },
+  { gross:7806.07,  net:4354  },
   { gross:8790.66,  net:4982  },
   { gross:9035.20,  net:5116  },
   { gross:9088.97,  net:5836  },
   { gross:9756.35,  net:6182  },
   { gross:13197.87, net:7177  },
   { gross:13674.79, net:8093  },
+  { gross:15274.24, net:8149  },
   { gross:17819.30, net:10034 },
 ];
 
@@ -1548,6 +1577,8 @@ let knownData = {
   '3':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:1143.64,  net:3246,  note:'Jun 12 check — actual stub confirmed' },
   '4':  { salary:SALARY_BASE, bonus:1590.62,     comm:4098.43,  net:5116,  note:'Jun 26 check — actual stub confirmed' },
   '5':  { salary:SALARY_BASE, bonus:6384.62,     comm:3467.10,  net:7177,  note:'Jul 10 check — actual stub confirmed' },
+  '6':  { salary:SALARY_BASE, bonus:10361.56,    comm:1566.53,  net:8149,  note:'Jul 24 check — actual stub confirmed' },
+  '7':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:3075.30,  net:4354,  note:'Aug 7 check — actual stub confirmed' },
 };
 
 let salesData = [];
@@ -1559,13 +1590,13 @@ const defaultBills = [
   // dueDay:N       → shows full monthly amount only in the period containing the Nth of the month
   { name:'Mortgage',             monthly:3575,  splitHalf:true, note:'Split in half — $1,788 per check' },
   { name:'Verizon',              monthly:344,   dueDay:8,       note:'Due ~8th — $200 + $144 VZW lines' },
-  { name:'Hello Fresh',          monthly:109,   dueDay:5,       note:'Due ~5th — $109 full when charged' },
-  { name:'Hinckley Springs',     monthly:100,   dueDay:10,      note:'Due ~10th' },
+  { name:'Hello Fresh',          monthly:109,   dueDay:5,       note:'No charges since 6/18 — confirm CANCELLED vs paused' },
+  { name:'Hinckley Springs',     monthly:100,   dueDay:10,      note:'Possible DUP of Primo water (same parent co) — confirm still billing' },
   { name:'Sun Tan City',         monthly:63,    dueDay:5,       note:'Due ~5th' },
   { name:'YMCA',                 monthly:101,   dueDay:1,       note:'Due ~1st' },
-  { name:'Progressive (Auto)',   monthly:328,   dueDay:10,      note:'Due ~10th' },
+  { name:'Progressive (Auto)',   monthly:352,   dueDay:10,      note:'Due ~10th — rose to $352.38 in Jul (was $328)' },
   { name:'Progressive (Boat)',   monthly:61,    dueDay:10,      note:'Due ~10th' },
-  { name:'AAA Life',             monthly:47,    dueDay:1,       note:'Due ~1st' },
+  { name:'AAA Life',             monthly:59.50, dueDay:1,       note:'Due ~1st — rose to $59.50 in Jul (was $47)' },
   { name:'Acadia (1st check)',   monthly:250,   dueDay:1,       note:'$250 — 1st check of month' },
   { name:'Acadia (2nd check)',   monthly:250,   dueDay:15,      note:'$250 — 2nd check of month' },
   { name:'WE Energies',          monthly:393,   dueDay:20,      note:'Due ~20th' },
@@ -1573,10 +1604,10 @@ const defaultBills = [
   { name:'Spectrum',             monthly:100.55,dueDay:15,      note:'Due ~15th — confirmed $100.55' },
   { name:'Water Bill',           monthly:100,   dueDay:20,      note:'Quarterly — due ~20th' },
   { name:'Capital One',          monthly:10,    dueDay:5,       note:'Due ~5th' },
-  { name:'Credit One (Card 1)',  monthly:38,    dueDay:6,       note:'Due ~6th' },
-  { name:'Credit One (Card 2)',  monthly:30,    dueDay:7,       note:'Due ~7th' },
-  { name:'Credit One (Card 3)',  monthly:25,    dueDay:27,      note:'Due ~27th' },
-  { name:'Netflix',              monthly:26.36, dueDay:7,       note:'Due ~7th' },
+  { name:'Credit One (Card 1)',  monthly:35,    dueDay:6,       note:'Acct *8220 — $34–35 ACH ~6th. PAY OFF & CLOSE (high-fee lender)' },
+  { name:'Credit One (Card 2)',  monthly:71,    dueDay:12,      note:'Acct *4974 — $71–73 ACH ~12th. PAY OFF & CLOSE' },
+  { name:'Credit One (Card 3)',  monthly:60,    dueDay:27,      note:'Acct *5158 — $60 ACH ~27th. PAY OFF & CLOSE' },
+  { name:'Netflix',              monthly:28.47, dueDay:7,       note:'Due ~7th — confirmed $28.47 (premium tier; downgrade saves ~$13)' },
   { name:'Apple (iCloud)',       monthly:5.26,  dueDay:7,       note:'Due ~7th' },
   { name:'Prime Video',          monthly:12.65, dueDay:8,       note:'Due ~8th' },
   { name:'Apple (Music)',        monthly:10.52, dueDay:8,       note:'Due ~8th' },
@@ -1588,28 +1619,40 @@ const defaultBills = [
   { name:'Cricut',               monthly:10.54, dueDay:29,      note:'Due ~29th' },
   { name:'Microsoft 365',        monthly:10.54, dueDay:17,      note:'Due ~17th' },
   { name:'Google One',           monthly:19.99, dueDay:14,      note:'Due ~14th' },
-  { name:'YouTube Premium',      monthly:14.82, dueDay:12,      note:'Due ~12th' },
+  { name:'YouTube Premium',      monthly:16.93, dueDay:12,      note:'Due ~12th — confirmed $16.93' },
   { name:'Hulu',                 monthly:13.70, dueDay:12,      note:'Due ~12th' },
   { name:'Amazon Prime',         monthly:15.07, dueDay:25,      note:'Due ~25th (AMEX)' },
-  { name:'IV Nutrition',         monthly:68,    dueDay:1,       note:'~$34 twice/month — 1st & 15th' },
-  { name:'Primo Brands/Water',   monthly:14.76, dueDay:21,      note:'Due ~21st — water delivery' },
-  { name:'Nextiva (VoIP)',       monthly:251.54,dueDay:1,       note:'Due ~1st — business phone line (on PNC)' },
+  { name:'IV Nutrition',         monthly:99,    dueDay:7,       note:'$99/mo recurring — confirmed Jul & Aug (PNC). Worth $1,188/yr?' },
+  { name:'Primo Brands/Water',   monthly:65,    dueDay:5,       note:'Water delivery ~$63–66/mo actual (was listed $14.76)' },
+  { name:'Nextiva (VoIP)',       monthly:430,   dueDay:1,       note:'Business VoIP (PNC) — $430+ last 2 mos, was $251. AUDIT PLAN' },
   // ---- Added Jun 16 2026 — recurring charges from Finance Review (dates confirmed off PNC statement where noted) ----
-  { name:'Claude.ai (AI Sub)',     monthly:100,   dueDay:8,  note:'Due ~8th (PNC) — Excel: confirm not also billed on Bluevine' },
+  { name:'Claude.ai (AI Sub)',     monthly:131,   dueDay:8,  note:'Due ~8th — $130.62 on Bluevine Jul (bills on Bluevine, not PNC)' },
   { name:'Anthropic API (usage)',  monthly:150,   dueDay:6,  note:'Metered AI usage — VARIES ~$80–250/mo (PNC)' },
   { name:'Apollo.io',              monthly:59,    dueDay:15, note:'Due ~15th (PNC) — DBW sales tool' },
   { name:'Canva',                  monthly:30,    dueDay:3,  note:'Due ~3rd (PNC) — design tool' },
   { name:'Ruma Sport (Fox River)', monthly:41.69, dueDay:1,  note:'Due ~1st (PNC) — fitness' },
-  { name:'Mailchimp',              monthly:116,   dueDay:1,  note:'Email marketing (NSB) — ~est day, confirm' },
+  { name:'Mailchimp',              monthly:209,   dueDay:30, note:'Email marketing — $208.89 now, bills on PNC ~30th (was NSB $116). Plan jumped — review tier' },
   { name:'EZ Texting',             monthly:32,    dueDay:1,  note:'SMS marketing (NSB) — ~est day, confirm' },
   { name:'Zoho CRM',               monthly:35,    dueDay:1,  note:'DBW CRM (Bluevine) — ~est day, confirm' },
   { name:'Perplexity AI',          monthly:20,    dueDay:1,  note:'AI sub (NSB/BV) — ~est day, confirm' },
   { name:'Walmart+',               monthly:7,     dueDay:1,  note:'Membership (NSB) — Excel shows ~$7, confirm' },
-  { name:'Next Insurance',         monthly:71,    dueDay:1,  note:'Dot Dynasty liability — ~est day, confirm' },
+  { name:'Next Insurance',         monthly:37.66, dueDay:2,  note:'Dot Dynasty liability — actual $37.66/mo (PNC ~2nd)' },
   { name:'Rugiet Health',          monthly:50,    dueDay:1,  note:'Supplement (PNC) — ~est day, confirm' },
   // ---- Added Jun 16 2026 — recurring credit-card debits from the Finance Review (amounts off the PNC statement) ----
   { name:'Comenity Pay',           monthly:20,    dueDay:9,  note:'Store card min (PNC, acct *8500) — also a ~$30 Comenity charge on *4566; tell me if that 2nd card should be added' },
   { name:'Comn Cap Auto Pay',      monthly:10,    dueDay:5,  note:'Comenity Capital autopay (PNC, acct *3377) — recent actual $10/mo' },
+  // ---- Added Aug 10 2026 — Financial Review (trip + full 4-account audit) ----
+  { name:'Nationstar Mortgage (2nd)', monthly:1250,  dueDay:1,  note:'2nd mortgage (Mr. Cooper) — irregular $1,000–1,500 pulls. VERIFY LOAN IS CURRENT' },
+  { name:'Safeway Pest Control',      monthly:117,   dueDay:22, note:'$100–135/mo recurring (PNC)' },
+  { name:'Progressive Universal',     monthly:57.76, dueDay:14, note:'2nd Progressive policy (PNC ACH ~14th)' },
+  { name:'Barclaycard',               monthly:50,    dueDay:10, note:'Card min payment ACH (PNC)' },
+  { name:'Allure Box',                monthly:26.38, dueDay:2,  note:'Subscription box (PNC/PayPal) — CANCEL CANDIDATE' },
+  { name:'Prime Video Channels',      monthly:26,    dueDay:15, note:'Extra add-on channels ($5.26 + $6.32×2 + $8.43) beyond the $12.65 one — cull the forgotten ones' },
+  { name:'Amazon Prime (PNC)',        monthly:15.06, dueDay:16, note:'DUPLICATE — Prime also bills $15.07 on Amex ~25th. Cancel one!' },
+  { name:'Microsoft 365 (NSB)',       monthly:13.76, dueDay:3,  note:'2nd Microsoft sub on North Shore — likely duplicate. Cancel one!' },
+  { name:'Cricut (2nd sub)',          monthly:10.54, dueDay:30, note:'DUPLICATE — Cricut bills twice/mo (29th & 30th). Cancel one!' },
+  { name:'NSB Platinum Card Fee',     monthly:5,     dueDay:30, note:'North Shore debit card fee — ask bank to waive' },
+  { name:'Google One (2nd plan)',     monthly:4.99,  dueDay:15, note:'Two Google One plans ($4.99 + $19.99) — pick one' },
 ];
 let bills = JSON.parse(JSON.stringify(defaultBills));
 let billsPaid = {}; // { '<periodOffset>': { '<billName>': { paidDate, paidBy } } }
@@ -1753,6 +1796,41 @@ async function hydrateFromCloud() {
     if (added) await saveKey('bills', bills);
     localStorage.setItem('billsMerge_v530', '1');
   }
+  // ONE-TIME v810: Aug-10 2026 Financial Review — append new bills (Nationstar 2nd mortgage,
+  // duplicate-sub flags, etc.) and update amounts confirmed off the Jun–Aug statements.
+  if (!localStorage.getItem('billsMerge_v810')) {
+    let dirty810 = false;
+    defaultBills.forEach(def => {
+      if (!bills.find(b => b.name === def.name)) {
+        bills.push(JSON.parse(JSON.stringify(def)));
+        dirty810 = true;
+      }
+    });
+    const upd810 = [
+      { name:'Netflix',             monthly:28.47, dueDay:7  },
+      { name:'Progressive (Auto)',  monthly:352,   dueDay:10 },
+      { name:'AAA Life',            monthly:59.50, dueDay:1  },
+      { name:'IV Nutrition',        monthly:99,    dueDay:7  },
+      { name:'Mailchimp',           monthly:209,   dueDay:30 },
+      { name:'Nextiva (VoIP)',      monthly:430,   dueDay:1  },
+      { name:'Next Insurance',      monthly:37.66, dueDay:2  },
+      { name:'Claude.ai (AI Sub)',  monthly:131,   dueDay:8  },
+      { name:'Primo Brands/Water',  monthly:65,    dueDay:5  },
+      { name:'YouTube Premium',     monthly:16.93, dueDay:12 },
+      { name:'Credit One (Card 1)', monthly:35,    dueDay:6  },
+      { name:'Credit One (Card 2)', monthly:71,    dueDay:12 },
+      { name:'Credit One (Card 3)', monthly:60,    dueDay:27 },
+    ];
+    upd810.forEach(u => {
+      const b = bills.find(x => x.name === u.name);
+      if (b && (b.monthly !== u.monthly || b.dueDay !== u.dueDay)) {
+        b.monthly = u.monthly; b.dueDay = u.dueDay;
+        dirty810 = true;
+      }
+    });
+    if (dirty810) await saveKey('bills', bills);
+    localStorage.setItem('billsMerge_v810', '1');
+  }
   // knownData
   const cloudKnown = await loadKey('knownData', null);
   if (cloudKnown && typeof cloudKnown === 'object') knownData = cloudKnown;
@@ -1783,6 +1861,24 @@ async function hydrateFromCloud() {
       await saveKey('knownData', knownData);
     }
     localStorage.setItem('knownMerge_v710', '1');
+  }
+  // ONE-TIME v724: add the Jul-24 actual paystub (offset 6) to cloud if missing.
+  // SURGICAL — only adds offset 6 when it isn't already a confirmed stub; never overwrites edits.
+  if (!localStorage.getItem('knownMerge_v724')) {
+    if (!knownData['6'] || !(knownData['6'].net > 0)) {
+      knownData['6'] = { salary:SALARY_BASE, bonus:10361.56, comm:1566.53, net:8149, note:'Jul 24 check — actual stub confirmed' };
+      await saveKey('knownData', knownData);
+    }
+    localStorage.setItem('knownMerge_v724', '1');
+  }
+  // ONE-TIME v807: add the Aug-7 actual paystub (offset 7) to cloud if missing.
+  // SURGICAL — only adds offset 7 when it isn't already a confirmed stub; never overwrites edits.
+  if (!localStorage.getItem('knownMerge_v807')) {
+    if (!knownData['7'] || !(knownData['7'].net > 0)) {
+      knownData['7'] = { salary:SALARY_BASE, bonus:BONUS_REG, comm:3075.30, net:4354, note:'Aug 7 check — actual stub confirmed' };
+      await saveKey('knownData', knownData);
+    }
+    localStorage.setItem('knownMerge_v807', '1');
   }
   // salesData
   const cloudSales = await loadKey('salesData', null);
@@ -1848,6 +1944,22 @@ async function hydrateFromCloud() {
   const cloudPts = await loadKey('paystubPts', null);
   if (cloudPts && Array.isArray(cloudPts) && cloudPts.length) paystubPts = cloudPts;
   else await saveKey('paystubPts', paystubPts);
+  // ONE-TIME v810: append the Jul-24 + Aug-7 stub points to the cloud pts list (sorted) if missing,
+  // so the projected-net interpolation on the phones learns from the two newest checks.
+  if (!localStorage.getItem('ptsMerge_v810')) {
+    let ptsDirty = false;
+    [{ gross:7806.07, net:4354 }, { gross:15274.24, net:8149 }].forEach(pt => {
+      if (!paystubPts.find(p => Math.abs(p.gross - pt.gross) < 0.01)) {
+        paystubPts.push(pt);
+        ptsDirty = true;
+      }
+    });
+    if (ptsDirty) {
+      paystubPts.sort((a, b) => a.gross - b.gross);
+      await saveKey('paystubPts', paystubPts);
+    }
+    localStorage.setItem('ptsMerge_v810', '1');
+  }
   // billsPaid (per-period bill payment tracking)
   const cloudPaid = await loadKey('billsPaid', null);
   if (cloudPaid && typeof cloudPaid === 'object') billsPaid = cloudPaid;
