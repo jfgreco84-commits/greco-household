@@ -1514,7 +1514,16 @@ const CH13       = 733.85; // rose from $692.31 — Aug 2026 trustee increase, c
 // Wage garnishment — 20% of the net check (WI standard = 20% of disposable earnings),
 // starting the June 26, 2026 check (period offset 4) and every check after. This is
 // applied ON TOP of the existing Chapter-13 deduction. Set RATE to 0 to turn it off.
-const GARNISH_RATE         = 0.20;
+const GARNISH_RATE         = 0;    // DISABLED 2026-08-10 — the 20% garnishment was never
+                                   // actually withheld. Verified against 4 consecutive stubs
+                                   // (Jun 26, Jul 10, Jul 24, Aug 7): each stub's Net Pay equals
+                                   // the PNC deposit + the $100 split to North Shore savings,
+                                   // with NO garnishment line. Chapter 13 ("Bkrp C13T", $733.85)
+                                   // is already deducted BEFORE net. Applying 20% on top of the
+                                   // actual net understated take-home by ~$4,959 across those
+                                   // four checks (Aug 7 showed $3,483 vs the real $4,354.30).
+                                   // If a garnishment ever does start, set the rate AND move
+                                   // GARNISH_START_OFFSET to that pay period.
 const GARNISH_START_OFFSET = 4;
 const MIN_OFFSET = -8;
 const EXPENSE_CUTOFF = '2026-05-01'; // Only show personal expenses on/after this date
