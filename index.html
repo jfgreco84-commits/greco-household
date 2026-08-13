@@ -985,7 +985,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.35 — Aug-13 statement reconciliation (PNC + North Shore + Bluevine through 8/13/2026). GMC Acadia PAID IN FULL — both Acadia bills removed (billsMerge_v812 clears them from cloud lists too). Seeded 15 confirmed payments into the Aug 5–18 pay period (offset 8) from posted statement charges, plus the $1,788 mortgage half paid 8/13 (billsPaidSeed_v813 skips any bill already marked by hand, so nothing double-counts). Pending charges (Hulu $13.70, Apple $9.99) deliberately NOT marked until they post. v5.34 — Correction: NO 2nd mortgage. The Nationstar/Mr. Cooper pulls were the old servicer of the ONE mortgage before it transferred to M&amp;T (confirmed by Justin 8/10) — Nationstar bill removed (billsMerge_v811 also removes it from cloud lists where v810 already ran) and the verify flag cleared from the Review card. v5.33 — Aug-10 Financial Review sync: added Jul 24 stub (offset 6: gross $15,274.24, net $8,149.40, bonus $10,361.56) and Aug 7 stub (offset 7: gross $7,806.07, net $4,354.30). Ch-13 trustee rose to $733.85/check on the Aug stub — CH13 constant updated. Bills reconciled to actual statements (Netflix $28.47, Progressive $352, IV Nutrition $99, Mailchimp $209, Nextiva $430, AAA $59.50, Primo $65, Credit One ×3 remapped to real ACH pulls) + 11 new bills added incl. Nationstar 2nd mortgage and duplicate-subscription flags. New Trip &amp; Review card: trip total $5,933.80; Outdoorsy refund complaint open. 20% garnishment model unchanged (still no garnishment line on actual stubs). v5.32 added the Jul-10 stub.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.36 — GMC Acadia running tab CLOSED OUT: tabPayoff_v814 adds one final payoff payment for whatever balance remains at load time (computed live from the tabPayments rows, not hardcoded), so the tab reads ✓ PAID IN FULL at 100% with all 27+ historical payments preserved. Skips safely if the rows haven't hydrated. v5.35 — Aug-13 statement reconciliation (PNC + North Shore + Bluevine through 8/13/2026). GMC Acadia PAID IN FULL — both Acadia bills removed (billsMerge_v812 clears them from cloud lists too). Seeded 15 confirmed payments into the Aug 5–18 pay period (offset 8) from posted statement charges, plus the $1,788 mortgage half paid 8/13 (billsPaidSeed_v813 skips any bill already marked by hand, so nothing double-counts). Pending charges (Hulu $13.70, Apple $9.99) deliberately NOT marked until they post. v5.34 — Correction: NO 2nd mortgage. The Nationstar/Mr. Cooper pulls were the old servicer of the ONE mortgage before it transferred to M&amp;T (confirmed by Justin 8/10) — Nationstar bill removed (billsMerge_v811 also removes it from cloud lists where v810 already ran) and the verify flag cleared from the Review card. v5.33 — Aug-10 Financial Review sync: added Jul 24 stub (offset 6: gross $15,274.24, net $8,149.40, bonus $10,361.56) and Aug 7 stub (offset 7: gross $7,806.07, net $4,354.30). Ch-13 trustee rose to $733.85/check on the Aug stub — CH13 constant updated. Bills reconciled to actual statements (Netflix $28.47, Progressive $352, IV Nutrition $99, Mailchimp $209, Nextiva $430, AAA $59.50, Primo $65, Credit One ×3 remapped to real ACH pulls) + 11 new bills added incl. Nationstar 2nd mortgage and duplicate-subscription flags. New Trip &amp; Review card: trip total $5,933.80; Outdoorsy refund complaint open. 20% garnishment model unchanged (still no garnishment line on actual stubs). v5.32 added the Jul-10 stub.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1693,7 +1693,7 @@ const DEFAULT_TABS = [
     emoji: '🚗',
     original: 12000,
     perCheck: 250,
-    note: 'Bought for $12,000 · $250/check until paid in full',
+    note: 'Bought for $12,000 · PAID IN FULL as of 8/13/2026',
     payments: [
       { id:'p_ac_01', date:'2025-06-13', amount:250,  note:'Check payment' },
       { id:'p_ac_02', date:'2025-06-27', amount:250,  note:'Check payment' },
@@ -2098,6 +2098,40 @@ async function hydrateFromCloud() {
         await saveItem('billPayments', { ...pmt, periodOffset: SEED_PERIOD, billName: s.bill });
       }
       localStorage.setItem('billsPaidSeed_v813', '1');
+    }
+    // ---- ONE-TIME v814: the GMC Acadia is PAID IN FULL (confirmed by Justin 8/13/2026).
+    // renderTabs() derives "✓ PAID IN FULL" from totalPaid >= tab.original, so rather than
+    // adding a new flag we close the tab out with a single final payoff payment. That keeps
+    // every historical payment row intact and the progress bar lands on 100%.
+    // The remainder is computed at RUNTIME from the payments actually loaded out of the
+    // tabPayments rows — never from a hardcoded figure — so any payments logged on a phone
+    // since this build are counted and we don't overpay the tab.
+    if (!localStorage.getItem('tabPayoff_v814')) {
+      const acadia = (runningTabs || []).find(t => t.id === 'acadia');
+      if (acadia) {
+        const real = (acadia.payments || []).filter(p => !p.missed && +p.amount > 0);
+        const totalPaid = real.reduce((s, p) => s + (+p.amount || 0), 0);
+        // Guard: if no payments loaded at all, the rows haven't hydrated — do NOT write a
+        // bogus full-balance payoff. Bail and let it run on the next load instead.
+        if (totalPaid > 0) {
+          const remaining = Math.round(((+acadia.original || 0) - totalPaid) * 100) / 100;
+          if (remaining > 0) {
+            const payoff = {
+              id: 'p_ac_payoff_v814',
+              date: '2026-08-13',
+              amount: remaining,
+              note: 'Final payoff — PAID IN FULL (confirmed 8/13/2026)'
+            };
+            if (!acadia.payments.some(p => p.id === payoff.id)) {
+              acadia.payments.push(payoff);
+              await saveItem('tabPayments', { ...payoff, tabId: 'acadia' });
+            }
+          }
+          localStorage.setItem('tabPayoff_v814', '1');
+        }
+      } else {
+        localStorage.setItem('tabPayoff_v814', '1');
+      }
     }
   } catch (e) {
     console.warn('app_items unavailable — using blob fallback:', e && e.message);
