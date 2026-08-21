@@ -1,5 +1,7 @@
 # HANDOFF — Best Solution App Rebuild
 
+> **⚠️ RETIRED (Jul 26 2026):** deployment is done and v8.0 audit fixes shipped. The live source of truth is now `best-solution/live/`. This handoff is kept for history only. Do not run gen_blank.py against these files.
+
 **Read this top to bottom. It contains everything needed to finish and ship the work.**
 Generated from a Claude Code web session. The main remaining work is **deployment**,
 which the web session could not do (its GitHub access was scoped to one repo only).
