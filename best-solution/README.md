@@ -60,3 +60,20 @@ launcher. To regenerate the blanks after editing the master:
 ```
 python3 gen_blank.py
 ```
+
+## Status note (2026-07-25)
+
+- **The live apps are ahead of this folder.** The deployed apps are at v7.8
+  (deployed 2026-07-19 from the master on the home PC). The copies here are
+  still v7.3. Treat the home-PC master as the real source of truth until this
+  folder is refreshed from it.
+- **Crew branding rule (new):** crew-facing apps say **Best Solution, LLC**,
+  never Dot Dynasty. `gen_blank.py` step 10 enforces it, and the same change
+  was applied directly to the live `best-solution-blank/index.html` (v7.8).
+  Keep this rule when the master is next deployed.
+- **Old app copy fixed:** `BEST_SOLUTION_APP_BLANK.html` in the
+  `best-solution-blank` repo was a stale v6.4 app. Anyone whose home-screen
+  icon pointed at it saw an outdated app. It now redirects to `index.html`.
+- **User guide:** `guide.html` (also deployed to the `best-solution-blank`
+  repo) is a plain-English instruction booklet for crew:
+  https://jfgreco84-commits.github.io/best-solution-blank/guide.html

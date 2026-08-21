@@ -221,7 +221,7 @@
 <div id="hdr">
   <div class="hdr-brand">
     <span class="hdr-logo">⚡</span>
-    <div><div class="hdr-name">Best Solution</div><div class="hdr-sub">Dot Dynasty LLC</div></div>
+    <div><div class="hdr-name">Best Solution, LLC</div></div>
   </div>
   <div id="hdrR"></div>
 </div>
@@ -868,7 +868,7 @@ function rHome(){
   </div>
   <button class="btn btn-ghost btn-full" style="margin-bottom:14px" onclick="exportCalICS()">📅 Export Shows to Calendar</button>
   ${activeShows.map(a=>`<button class="btn btn-gold btn-full" style="margin-bottom:14px" onclick="go('show','${a.id}')">🔴 Open Active Show: ${a.name}</button>`).join('')}
-  <div style="text-align:center;font-size:11px;color:var(--muted);padding-bottom:4px">Best Solution App · Dot Dynasty LLC · v7.3</div>
+  <div style="text-align:center;font-size:11px;color:var(--muted);padding-bottom:4px">Best Solution, LLC · v7.3</div>
   `;
 
   pg('home').innerHTML=html;
@@ -2087,7 +2087,7 @@ function printFullReport(){
   const expRows=(S.otherExpenses||[]).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(e=>'<tr><td>'+_esc(e.date||'')+'</td><td>'+_esc(e.category||'')+'</td><td class="r">'+_money(e.amount)+'</td><td>'+_esc(e.note||'')+'</td></tr>').join('');
   const expTot=(S.otherExpenses||[]).reduce((t,e)=>t+(parseFloat(e.amount)||0),0);
   _printHTML('Best Solution — Season Report',
-    '<h1>Best Solution — 2026 Season Report</h1><div class="muted">Generated '+_stamp()+' · Dot Dynasty LLC</div>'+
+    '<h1>Best Solution — 2026 Season Report</h1><div class="muted">Generated '+_stamp()+' · Best Solution, LLC</div>'+
     '<h2>Season Totals</h2><table><tr><th>Gross</th><th>COGS</th><th>Expenses</th><th>Net Profit</th><th>Tax Reserve</th><th>Units Sold</th></tr><tr class="tot"><td class="r">'+_money(y.gross)+'</td><td class="r">'+_money(y.cogs)+'</td><td class="r">'+_money(y.expenses)+'</td><td class="r">'+_money(y.profit)+'</td><td class="r">'+_money(y.taxRes)+'</td><td class="r">'+fmtN(y.totalUnits)+'</td></tr></table>'+
     '<h2>All Shows</h2><table><tr><th>Show</th><th>Status</th><th>Dates</th><th>Potential</th><th>Collected</th><th>COGS</th><th>Expenses</th><th>Profit</th></tr>'+showRows+'</table>'+
     (repRows?'<h2>Rep Pay</h2><table><tr><th>Rep</th><th>Earned</th><th>Paid</th><th>Owed</th></tr>'+repRows+'</table>':'')+
@@ -3345,7 +3345,7 @@ function rSettings(){
   <div style="font-size:11px;color:var(--muted)">Tip: open any show and tap Export for a single-show CSV or PDF.</div></div>
   <div class="card rb"><div style="font-size:10px;color:var(--red);text-transform:uppercase;font-weight:700;margin-bottom:10px">DANGER ZONE</div>
   <button class="btn btn-red btn-full" onclick="confirmReset()">🗑️ Reset All Data</button></div>
-  <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--muted)">Best Solution App · Dot Dynasty LLC · v7.2<br>${_cloudUser?('☁️ Synced — '+(_cloudUser.email||'signed in')):'Saved on this device · sign in above to sync'}</div>
+  <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--muted)">Best Solution, LLC · v7.2<br>${_cloudUser?('☁️ Synced — '+(_cloudUser.email||'signed in')):'Saved on this device · sign in above to sync'}</div>
   <div style="height:10px"></div>`;
 }
 function setSt(k,v){S.settings[k]=v;saveS();toast('Saved!');}
