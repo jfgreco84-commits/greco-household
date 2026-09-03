@@ -985,7 +985,7 @@ input[type="number"][readonly] { color:#888; background:#161616; border-color:#2
 </div><!-- /main -->
 
 <div class="footer-bar">
-  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.36 — GMC Acadia running tab CLOSED OUT: tabPayoff_v814 adds one final payoff payment for whatever balance remains at load time (computed live from the tabPayments rows, not hardcoded), so the tab reads ✓ PAID IN FULL at 100% with all 27+ historical payments preserved. Skips safely if the rows haven't hydrated. v5.35 — Aug-13 statement reconciliation (PNC + North Shore + Bluevine through 8/13/2026). GMC Acadia PAID IN FULL — both Acadia bills removed (billsMerge_v812 clears them from cloud lists too). Seeded 15 confirmed payments into the Aug 5–18 pay period (offset 8) from posted statement charges, plus the $1,788 mortgage half paid 8/13 (billsPaidSeed_v813 skips any bill already marked by hand, so nothing double-counts). Pending charges (Hulu $13.70, Apple $9.99) deliberately NOT marked until they post. v5.34 — Correction: NO 2nd mortgage. The Nationstar/Mr. Cooper pulls were the old servicer of the ONE mortgage before it transferred to M&amp;T (confirmed by Justin 8/10) — Nationstar bill removed (billsMerge_v811 also removes it from cloud lists where v810 already ran) and the verify flag cleared from the Review card. v5.33 — Aug-10 Financial Review sync: added Jul 24 stub (offset 6: gross $15,274.24, net $8,149.40, bonus $10,361.56) and Aug 7 stub (offset 7: gross $7,806.07, net $4,354.30). Ch-13 trustee rose to $733.85/check on the Aug stub — CH13 constant updated. Bills reconciled to actual statements (Netflix $28.47, Progressive $352, IV Nutrition $99, Mailchimp $209, Nextiva $430, AAA $59.50, Primo $65, Credit One ×3 remapped to real ACH pulls) + 11 new bills added incl. Nationstar 2nd mortgage and duplicate-subscription flags. New Trip &amp; Review card: trip total $5,933.80; Outdoorsy refund complaint open. 20% garnishment model unchanged (still no garnishment line on actual stubs). v5.32 added the Jul-10 stub.</span>
+  <span>GRECO HOUSEHOLD FINANCE MANAGER v5.37 — Aug-21 stub added (offset 8: gross $9,265.67, net $5,193.66, comm $4,534.90, regular bonus). Ch-13 trustee held at the new $733.85/check on both Aug stubs — Aug bump confirmed on payroll as predicted by the July audit. knownMerge_v821 + ptsMerge_v821 push the new stub to cloud knownData/paystubPts on each device. v5.36 — GMC Acadia running tab CLOSED OUT: tabPayoff_v814 adds one final payoff payment for whatever balance remains at load time (computed live from the tabPayments rows, not hardcoded), so the tab reads ✓ PAID IN FULL at 100% with all 27+ historical payments preserved. Skips safely if the rows haven't hydrated. v5.35 — Aug-13 statement reconciliation (PNC + North Shore + Bluevine through 8/13/2026). GMC Acadia PAID IN FULL — both Acadia bills removed (billsMerge_v812 clears them from cloud lists too). Seeded 15 confirmed payments into the Aug 5–18 pay period (offset 8) from posted statement charges, plus the $1,788 mortgage half paid 8/13 (billsPaidSeed_v813 skips any bill already marked by hand, so nothing double-counts). Pending charges (Hulu $13.70, Apple $9.99) deliberately NOT marked until they post. v5.34 — Correction: NO 2nd mortgage. The Nationstar/Mr. Cooper pulls were the old servicer of the ONE mortgage before it transferred to M&amp;T (confirmed by Justin 8/10) — Nationstar bill removed (billsMerge_v811 also removes it from cloud lists where v810 already ran) and the verify flag cleared from the Review card. v5.33 — Aug-10 Financial Review sync: added Jul 24 stub (offset 6: gross $15,274.24, net $8,149.40, bonus $10,361.56) and Aug 7 stub (offset 7: gross $7,806.07, net $4,354.30). Ch-13 trustee rose to $733.85/check on the Aug stub — CH13 constant updated. Bills reconciled to actual statements (Netflix $28.47, Progressive $352, IV Nutrition $99, Mailchimp $209, Nextiva $430, AAA $59.50, Primo $65, Credit One ×3 remapped to real ACH pulls) + 11 new bills added incl. Nationstar 2nd mortgage and duplicate-subscription flags. New Trip &amp; Review card: trip total $5,933.80; Outdoorsy refund complaint open. 20% garnishment model unchanged (still no garnishment line on actual stubs). v5.32 added the Jul-10 stub.</span>
   <button class="signout-link" id="signOutLink" onclick="doSignOut()" style="display:none">Sign Out</button>
 </div>
 
@@ -1546,6 +1546,7 @@ let paystubPts = [
   { gross:8790.66,  net:4982  },
   { gross:9035.20,  net:5116  },
   { gross:9088.97,  net:5836  },
+  { gross:9265.67,  net:5194  },
   { gross:9756.35,  net:6182  },
   { gross:13197.87, net:7177  },
   { gross:13674.79, net:8093  },
@@ -1588,6 +1589,7 @@ let knownData = {
   '5':  { salary:SALARY_BASE, bonus:6384.62,     comm:3467.10,  net:7177,  note:'Jul 10 check — actual stub confirmed' },
   '6':  { salary:SALARY_BASE, bonus:10361.56,    comm:1566.53,  net:8149,  note:'Jul 24 check — actual stub confirmed' },
   '7':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:3075.30,  net:4354,  note:'Aug 7 check — actual stub confirmed' },
+  '8':  { salary:SALARY_BASE, bonus:BONUS_REG,   comm:4534.90,  net:5194,  note:'Aug 21 check — actual stub confirmed' },
 };
 
 let salesData = [];
@@ -1908,6 +1910,14 @@ async function hydrateFromCloud() {
     }
     localStorage.setItem('knownMerge_v807', '1');
   }
+  // ONE-TIME v821: merge the Aug-21 stub (offset 8) into cloud knownData if missing
+  if (!localStorage.getItem('knownMerge_v821')) {
+    if (!knownData['8'] || !(knownData['8'].net > 0)) {
+      knownData['8'] = { salary:SALARY_BASE, bonus:BONUS_REG, comm:4534.90, net:5194, note:'Aug 21 check — actual stub confirmed' };
+      await saveKey('knownData', knownData);
+    }
+    localStorage.setItem('knownMerge_v821', '1');
+  }
   // salesData
   const cloudSales = await loadKey('salesData', null);
   if (cloudSales && Array.isArray(cloudSales)) salesData = cloudSales;
@@ -1987,6 +1997,17 @@ async function hydrateFromCloud() {
       await saveKey('paystubPts', paystubPts);
     }
     localStorage.setItem('ptsMerge_v810', '1');
+  }
+  // ONE-TIME v821: append the Aug-21 stub point so projected-net interpolation learns the new
+  // $733.85/check Ch-13 deduction level.
+  if (!localStorage.getItem('ptsMerge_v821')) {
+    const pt821 = { gross:9265.67, net:5194 };
+    if (!paystubPts.find(p => Math.abs(p.gross - pt821.gross) < 0.01)) {
+      paystubPts.push(pt821);
+      paystubPts.sort((a, b) => a.gross - b.gross);
+      await saveKey('paystubPts', paystubPts);
+    }
+    localStorage.setItem('ptsMerge_v821', '1');
   }
   // billsPaid (per-period bill payment tracking)
   const cloudPaid = await loadKey('billsPaid', null);
